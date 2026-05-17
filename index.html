@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life in the UK: Mock Test App</title>
+    <title>Life in the UK: PWA Mock Test App</title>
     
     <!-- Load Open Sans Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,7 +44,7 @@
     }
     </script>
 </head>
-<body class="antialiased bg-slate-50 font-sans">
+<body class="antialiased bg-slate-50 font-sans transition-colors duration-300">
     <div id="root"></div>
 
     <!-- Your React Application -->
@@ -53,10 +53,11 @@
         import { createRoot } from 'react-dom/client';
         import { 
           BookOpen, Trophy, AlertTriangle, CheckCircle2, XCircle, 
-          RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun, Target, X
+          RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun, Target, X,
+          Clock, PieChart, Activity
         } from 'lucide-react';
 
-        /* COMPRESSED DATA BANK */
+        /* COMPRESSED 300 QUESTIONS DATABANK */
         const rawData = [
           [1, "History", "Which two languages were used across England during the Middle Ages?", ["Welsh and Gaelic", "Norman French and Anglo-Saxon", "Latin and Celtic", "Nordic and English"], 1, "The king and noblemen spoke Norman French; peasants spoke Anglo-Saxon."],
           [2, "History", "In 1776, which British colonies declared their independence?", ["North African", "Asian", "North American", "South African"], 2, "13 North American colonies declared independence over 'no taxation without representation'."],
@@ -557,7 +558,261 @@
           [497, "Sports & Leisure", "Which of these is a famous rowing race in the UK?", ["The Henley Regatta", "The London Marathon", "The Ashes", "The FA Cup"], 0, "The Henley Royal Regatta is a famous rowing event held annually on the River Thames."],
           [498, "People", "Who was Florence Nightingale?", ["The inventor of the radio", "A pioneering nurse during the Crimean War", "The first female MP", "A famous Queen"], 1, "Florence Nightingale revolutionized nursing practices during the Crimean War."],
           [499, "Culture & Society", "Which of these is a classic British dish?", ["Sushi", "Fish and chips", "Pizza", "Tacos"], 1, "Fish and chips is a widely recognized and popular traditional British meal."],
-          [500, "Laws & Gov", "How many members are in a jury in England, Wales, and Northern Ireland?", ["10", "12", "15", "18"], 1, "A jury typically consists of 12 randomly selected members in England, Wales, and Northern Ireland."]
+          [500, "Laws & Gov", "How many members are in a jury in England, Wales, and Northern Ireland?", ["10", "12", "15", "18"], 1, "A jury typically consists of 12 randomly selected members in England, Wales, and Northern Ireland."],
+          
+          /* --- BATCH 3: QUESTIONS 501 TO 600 --- */
+          [501, "Sports & Leisure", "What medal did Mary Peters win in the 1972 Olympics?", ["No medals", "Silver", "Gold", "Bronze"], 2, "Mary Peters won an Olympic gold medal in the pentathlon in 1972."],
+          [502, "History", "Which of these forts were part of Hadrian's wall?", ["Vindolanda and Housesteads", "Maiden Castle", "Grimsby", "Sutton Hoo"], 0, "Housesteads and Vindolanda are famous Roman forts located along Hadrian's Wall in the north of England."],
+          [503, "People", "Who led a team of scientists to 'split the atom' for the first time?", ["Alexander Fleming", "Alan Turing", "Ernest Rutherford", "Sir Peter Mansfield"], 2, "Ernest Rutherford led the team at Manchester and Cambridge that first successfully split the atom."],
+          [504, "History", "What is the name of Irish people who favoured complete independence in the 19th century?", ["Fenians", "Quakers", "Highlanders", "Suffragettes"], 0, "The Fenians were an Irish nationalist movement that favoured complete independence from the UK."],
+          [505, "History", "Who introduced free secondary education in England and Wales in 1944?", ["Winston Churchill", "Clement Attlee", "Richard Austen Butler", "Aneurin Bevan"], 2, "Richard Austen Butler oversaw the introduction of the Education Act 1944, introducing free secondary education."],
+          [506, "History", "When did the first farmers come to Britain?", ["10,000 years ago", "6,000 years ago", "15,000 years ago", "2,000 years ago"], 1, "The first farmers arrived in Britain about 6,000 years ago from south-east Europe."],
+          [507, "History", "Which two languages were used across England during the Middle Ages?", ["Welsh and Gaelic", "Norman French and Anglo-Saxon", "Latin and Celtic", "Nordic and English"], 1, "After the Norman Conquest, the king and noblemen spoke Norman French, while peasants spoke Anglo-Saxon."],
+          [508, "Laws & Gov", "In England, Wales and NI, Youth Court cases are normally heard by:", ["Up to 3 specially trained magistrates OR a District Judge", "A sheriff AND a jury", "Members of the public", "High Court Judges"], 0, "Cases are heard by up to 3 specially trained magistrates or a District Judge. The public are not allowed in."],
+          [509, "History", "Which Scottish king defeated the English at the Battle of Bannockburn in 1314?", ["King Charles I", "King James I", "Admiral Nelson", "Robert the Bruce"], 3, "Robert the Bruce kept Scotland unconquered by defeating the English at Bannockburn in 1314."],
+          [510, "History", "Who was the tribal leader of the Iceni who fought against the Romans?", ["Columba", "Claudius", "Boudicca", "Hadrian"], 2, "Boudicca was the queen of the Iceni tribe who led a fierce rebellion against the Roman occupation."],
+          [511, "People", "Who was the first person in England to print books using a printing press?", ["William Shakespeare", "William Caxton", "Geoffrey Chaucer", "John Barbour"], 1, "William Caxton was the first person in England to print books using a printing press."],
+          [512, "History", "What did the Factories Act of 1847 introduce?", ["Limited everybody to 10 hours", "Banned child labour", "Limited the number of hours women and children could work to 10 hours per day", "Increased hours to 12 per day"], 2, "It restricted women and children to a maximum 10-hour workday in factories."],
+          [513, "History", "Who was invited by English Protestants to invade and rule England in 1688?", ["Duke of Medina Sidonia", "Napoleon", "King Philip II", "William of Orange"], 3, "Protestants asked William of Orange (from the Netherlands) to invade in what became the 'Glorious Revolution'."],
+          [514, "History", "Which battle resulted in William of Orange defeating James II in 1690?", ["Battle of Hastings", "Battle of the Boyne", "Battle of Trafalgar", "Battle of Waterloo"], 1, "William of Orange defeated the Catholic James II at the Battle of the Boyne in Ireland."],
+          [515, "Laws & Gov", "Which of the following is NOT a constitutional institution?", ["The Parliament", "The cabinet", "The armed forces", "The police"], 2, "The armed forces are not a constitutional institution. The monarchy, Parliament, courts, and police are."],
+          [516, "Culture & Society", "Which two British pop music groups were famous during the 'Swinging Sixties'?", ["The Rolling Stones and The Beatles", "ABBA and Radiohead", "Oasis and Blur", "Queen and The Who"], 0, "The Beatles and The Rolling Stones defined the 1960s pop culture phenomenon known as the 'Swinging Sixties'."],
+          [517, "Geography", "Where is the National Horseracing Museum located?", ["Edinburgh", "Newmarket, Suffolk", "St Andrews", "Aintree"], 1, "The National Horseracing Museum is located in Newmarket, Suffolk."],
+          [518, "Culture & Society", "Who was a famous British Art Deco ceramic designer?", ["Alexander McQueen", "Thomas Chippendale", "Clarice Cliff", "Mary Quant"], 2, "Clarice Cliff was a renowned designer famous for her highly recognizable Art Deco ceramics."],
+          [519, "Culture & Society", "What building was constructed in Hyde Park to hold the Great Exhibition of 1851?", ["The Crystal Palace", "Buckingham Palace", "Kensington Palace", "Apsley House"], 0, "The Great Exhibition of 1851 was held in Hyde Park inside the massive steel and glass Crystal Palace."],
+          [520, "History", "During the Great Depression in the 1930s, which traditional heavy industry was badly affected?", ["Housing construction", "Shipbuilding", "Automobile", "Aviation"], 1, "During the Great Depression, traditional heavy industries such as shipbuilding were severely affected."],
+          [521, "History", "What was inscribed on the first coins minted in Britain during the Iron Age?", ["Names of Gods", "Names of trees", "Names of animals", "Names of Iron Age kings"], 3, "The people of the Iron Age made the first coins in Britain, often inscribed with the names of Iron Age kings."],
+          [522, "History", "Which act formally abolished slavery throughout most of the British Empire in 1833?", ["The Magna Carta", "The Bill of Rights", "The Emancipation Act", "The Human Rights Act"], 2, "The Emancipation Act of 1833 legally abolished slavery throughout the British Empire."],
+          [523, "Laws & Gov", "How many elected members does the Northern Ireland Assembly have?", ["60", "90", "108", "120"], 1, "The Northern Ireland Assembly has 90 elected members, known as MLAs."],
+          [524, "History", "What is known as the 'Dunkirk spirit'?", ["Bombing of London", "Evacuation of Allied soldiers from France during WWII", "A famous military victory", "The invention of radar"], 1, "Civilian volunteers in small boats rescued over 300,000 men from Dunkirk, giving rise to the term 'Dunkirk spirit'."],
+          [525, "History", "Who fought against each other in the English Civil War of 1642?", ["House of York and Lancaster", "Anglo-Saxons and Vikings", "Cavaliers and Roundheads", "House of Fraser and Stuart"], 2, "The Cavaliers supported King Charles I, and the Roundheads supported Parliament."],
+          [526, "Sports & Leisure", "Which Scottish town is known globally as the 'home of golf'?", ["Glasgow", "Edinburgh", "Inverness", "St Andrews"], 3, "St Andrews is a town in Fife, Scotland, known internationally as the 'home of golf'."],
+          [527, "Sports & Leisure", "Who was the first man in the world to run 1 mile in under 4 minutes?", ["Sir Chris Hoy", "Sir Roger Bannister", "David Weir", "Mo Farah"], 1, "Sir Roger Bannister achieved this historic athletic milestone in 1954."],
+          [528, "Culture & Society", "Which UK sporting event features a 'yellow jersey' equivalent in cycling?", ["The London Marathon", "The Tour of Britain", "The Boat Race", "The Grand National"], 1, "The Tour of Britain is the premier road cycling event in the UK."],
+          [529, "Culture & Society", "Which British poet wrote 'The Daffodils' ('I wander'd lonely as a cloud')?", ["William Blake", "Robert Browning", "Lord Byron", "William Wordsworth"], 3, "William Wordsworth wrote the highly famous poem 'The Daffodils'."],
+          [530, "Culture & Society", "What is the name of the holiday when banks and many other businesses are closed for the day?", ["Credit Holidays", "Branch Holidays", "Bank Holidays", "Business Holidays"], 2, "Public holidays in the UK are commonly known as Bank Holidays."],
+          [531, "People", "What did the Scottish engineer John Logie Baird develop in the 1920s?", ["Television", "Radar", "Personal computer", "Radio"], 0, "John Logie Baird developed the first working mechanical television system in the 1920s."],
+          [532, "People", "What did Sir Frank Whittle invent in the 1930s?", ["Radar", "Hovercraft", "Jet engine", "Ballpoint pen"], 2, "The jet engine was developed in Britain in the 1930s by Sir Frank Whittle."],
+          [533, "History", "Which Queen succeeded in finding a balance between the views of Catholics and extreme Protestants?", ["Queen Victoria", "Queen Mary I", "Queen Elizabeth I", "Queen Anne"], 2, "Elizabeth I was a Protestant who successfully found a middle-ground balance to avoid religious wars in England."],
+          [534, "Laws & Gov", "If you wish to be a permanent resident, you should (choose two):", ["Respect rights of others AND Look after yourself and family", "Buy a house", "Marry a British citizen", "Ignore the law"], 0, "Permanent residents and citizens must respect others' rights and look after their own family and area."],
+          [535, "History", "When was England ruled by a republic (the Commonwealth) and not by a monarch?", ["When Elizabeth I died", "When Charles I was executed", "When the Magna Carta was signed", "After the Battle of Hastings"], 1, "Following the execution of Charles I in 1649, England briefly became a republic led by Oliver Cromwell."],
+          [536, "Laws & Gov", "Are civil servants appointed by the government based on political affiliation?", ["Yes, they must belong to the ruling party", "No, they are chosen on merit and are politically neutral", "Yes, they are chosen randomly", "No, they are appointed directly by the Monarch"], 1, "Civil servants are accountable to ministers but are chosen purely on merit and remain politically neutral."],
+          [537, "Culture & Society", "What kind of movies did Academy Award winner Nick Park specialise in?", ["Action movies", "Animated movies", "Thrillers", "Horror movies"], 1, "Nick Park won Oscars for his animated films, notably those featuring Wallace and Gromit."],
+          [538, "History", "What food shortage caused a massive famine in Ireland in the mid-19th century?", ["Corn", "Potato", "Wheat", "Oats"], 1, "The potato crop failed in the middle of the 19th century, causing a devastating famine in Ireland."],
+          [539, "History", "In which country of the British Empire did the Boer War (1899-1902) take place?", ["Netherlands", "Falkland Islands", "Gibraltar", "South Africa"], 3, "The Boer War took place in South Africa against settlers of Dutch descent called the Boers."],
+          [540, "Culture & Society", "Which novel written by JRR Tolkien was voted the country's best-loved novel in 2003?", ["Oliver Twist", "James Bond", "Pride and Prejudice", "The Lord of the Rings"], 3, "In a 2003 poll, The Lord of the Rings was overwhelmingly voted the nation's best-loved novel."],
+          [541, "History", "When was the Statute of Rhuddlan enacted, annexing Wales to the Crown of England?", ["1066", "1215", "1284", "1314"], 2, "King Edward I introduced the Statute of Rhuddlan in 1284, annexing Wales to the Crown of England."],
+          [542, "History", "Which King was defeated and killed at the Battle of Bosworth Field in 1485?", ["Henry VII", "Richard III", "Edward IV", "Charles I"], 1, "Richard III of the House of York was killed at the Battle of Bosworth Field in 1485, ending the War of the Roses."],
+          [543, "History", "What was the 'Habeas Corpus Act' of 1679?", ["A law abolishing slavery", "A law preventing unlawful imprisonment", "A tax on windows", "The right for women to vote"], 1, "The Habeas Corpus Act of 1679 guaranteed that no one could be held prisoner unlawfully. 'Habeas Corpus' is Latin for 'you must present the person in court'."],
+          [544, "Geography", "What proportion of the UK population lives in England?", ["Around 50%", "Around 65%", "Around 84%", "Around 95%"], 2, "England is by far the most populous country in the UK, making up around 84% of the total population."],
+          [545, "People", "Who was the architect of the Dumfries House in Scotland?", ["Robert Adam", "Christopher Wren", "Inigo Jones", "Edwin Lutyens"], 0, "Robert Adam was an influential 18th-century Scottish architect who designed Dumfries House."],
+          [546, "Laws & Gov", "In Scotland, what is a minor criminal case dealt with by?", ["A Crown Court", "A Justice of the Peace Court", "A Magistrates' Court", "A Youth Court"], 1, "In Scotland, minor criminal offences go to a Justice of the Peace Court. In England/Wales, it's a Magistrates' Court."],
+          [547, "History", "During the Victorian period, what did the 'Repeal of the Corn Laws' in 1846 achieve?", ["It banned the farming of corn", "It allowed the import of cheap raw materials", "It abolished the monarchy", "It forced farmers to move to cities"], 1, "The repeal of the Corn Laws abolished tariffs on imported grain, allowing the import of cheap raw materials and lowering food prices."],
+          [548, "Culture & Society", "Which of the following statements about the Church of Scotland is true?", ["It is a Catholic Church", "It is headed by the Monarch", "It is a Presbyterian Church led by a Moderator", "It does not exist"], 2, "The Church of Scotland is a Presbyterian Church. It is not headed by the Monarch, but by a Moderator appointed by the General Assembly."],
+          [549, "Culture & Society", "At what age can you apply for a free TV licence?", ["60", "65", "70", "75"], 3, "You can apply for a free TV licence if you are 75 or over."],
+          [550, "History", "When was the voting age lowered from 21 to 18 for men and women?", ["1918", "1928", "1945", "1969"], 3, "The voting age was lowered to 18 in 1969. (In 1918 women over 30 got it; in 1928 women got it at 21)."],
+          [551, "People", "Who won two gold medals in the 2004 Olympic Games in Athens for track and field?", ["Mo Farah", "Jessica Ennis-Hill", "Kelly Holmes", "Dame Kelly Holmes"], 3, "Dame Kelly Holmes won two gold medals for running in the 2004 Olympic Games."],
+          [552, "Laws & Gov", "What is the maximum amount for a claim in the 'Small Claims Procedure' in England and Wales?", ["£1,000", "£5,000", "£10,000", "£25,000"], 2, "The small claims procedure in England and Wales is used for claims of less than £10,000."],
+          [553, "History", "Which two groups fought at the Battle of Marston Moor and the Battle of Naseby?", ["The English and the French", "The Parliamentarians (Roundheads) and Royalists (Cavaliers)", "The Romans and the Celts", "The House of York and Lancaster"], 1, "These were crucial battles during the English Civil War where the Parliamentarians defeated the Royalists."],
+          [554, "Culture & Society", "Which film director won an Oscar for 'Chariots of Fire'?", ["Alfred Hitchcock", "Colin Welland", "Ridley Scott", "David Lean"], 1, "Colin Welland won an Oscar for the screenplay of Chariots of Fire (notably stating 'The British are coming!')."],
+          [555, "History", "What was the population of the UK in 1801?", ["Around 2 million", "Around 8 million", "Around 40 million", "Around 60 million"], 1, "In 1801, the population of the UK was roughly 8 million. By 1901, it was 40 million."],
+          [556, "Culture & Society", "Which famous document was recorded in 1086?", ["The Magna Carta", "The Bill of Rights", "The Domesday Book", "The Act of Union"], 2, "The Domesday Book, commissioned by William the Conqueror, was completed in 1086."],
+          [557, "Geography", "What is the capital of the country whose national flower is the Thistle?", ["Belfast", "Cardiff", "Edinburgh", "London"], 2, "The thistle represents Scotland, and its capital is Edinburgh."],
+          [558, "Laws & Gov", "By law, at what age can a person serve on a jury?", ["Over 16", "18 to 70", "21 to 75", "18 to 65"], 1, "Anyone aged 18 to 70 who is on the electoral register can be asked to serve on a jury."],
+          [559, "Culture & Society", "Which of the following is an example of civil law?", ["Burglary", "Selling alcohol to underage youth", "Discrimination in the workplace", "Carrying a weapon"], 2, "Discrimination, housing disputes, and faulty goods are covered by civil law. The others are criminal law."],
+          [560, "History", "What was the result of the 'Act of Union' in 1707?", ["Ireland joined the UK", "England and Wales united", "The Kingdom of Great Britain was created (Scotland united with England/Wales)", "The Roman Empire fell"], 2, "The Act of Union in 1707 formally united Scotland with England and Wales to create the Kingdom of Great Britain."],
+          [561, "Laws & Gov", "How is the Prime Minister appointed?", ["By public vote", "By the Monarch", "By the House of Lords", "By the Cabinet"], 1, "The Monarch officially appoints the Prime Minister (usually the leader of the party with the majority in the Commons)."],
+          [562, "People", "Who mapped the coast of Australia and discovered New Zealand?", ["Sir Francis Drake", "Captain James Cook", "Walter Raleigh", "John Cabot"], 1, "Captain James Cook mapped the coast of Australia and 'discovered' New Zealand in the 18th century."],
+          [563, "History", "In which year did the Battle of Trafalgar take place?", ["1066", "1415", "1588", "1805"], 3, "The Battle of Trafalgar, where Admiral Nelson was killed, took place in 1805."],
+          [564, "History", "Which monarch was restored to the throne in 1660 after the English Republic collapsed?", ["Charles I", "Charles II", "James II", "William of Orange"], 1, "Charles II was invited back from exile to take the throne in 1660, an event known as the Restoration."],
+          [565, "Culture & Society", "What are 'National Insurance' contributions primarily used for?", ["Building roads", "Funding local councils", "Paying for state pensions and the NHS", "Funding the Armed Forces"], 2, "NI contributions pay for state benefits, the NHS, and the state pension."],
+          [566, "Culture & Society", "What does 'UK' officially stand for?", ["The United Kingdom of Britain and Ireland", "The United Kingdom of Great Britain and Northern Ireland", "The United Kingdoms of England, Scotland, Wales and Ireland", "The United Kingdom of the Commonwealth"], 1, "The official name is the United Kingdom of Great Britain and Northern Ireland."],
+          [567, "Laws & Gov", "Which of these matters is NOT devolved to the Northern Ireland Assembly?", ["Education", "Health", "Defence", "Agriculture"], 2, "Defence, foreign affairs, and immigration are strongly reserved to the central UK government."],
+          [568, "People", "Who was George Stephenson?", ["The inventor of the jet engine", "The pioneer of the railway engine", "The discoverer of penicillin", "The architect of the Crystal Palace"], 1, "George Stephenson was a pioneering engineer who built the first public inter-city railway line to use steam locomotives."],
+          [569, "History", "Which king died at the Battle of Hastings?", ["William the Conqueror", "King Harold", "King Edward", "King Alfred"], 1, "The Anglo-Saxon King Harold was defeated and killed by William the Conqueror in 1066."],
+          [570, "Culture & Society", "In 1913, what did the UK government promise to Ireland that was subsequently delayed by WWI?", ["Complete independence", "Home Rule", "Representation in Parliament", "Financial aid"], 1, "The British government promised 'Home Rule' for Ireland, but it was postponed due to the outbreak of the First World War."],
+          [571, "Laws & Gov", "What is a 'Quango'?", ["A type of ancient dance", "A Non-Departmental Public Body (NDPB)", "A local charity", "A political party"], 1, "A Quango (Quasi-Autonomous Non-Governmental Organisation) is a non-departmental public body that has a role in the processes of national government but is not a government department."],
+          [572, "Geography", "What is the capital of the country where 'Hogmanay' is celebrated?", ["Belfast", "Cardiff", "London", "Edinburgh"], 3, "Hogmanay is a Scottish celebration, and Edinburgh is the capital of Scotland."],
+          [573, "History", "Which Queen's reign is known as the 'Golden Age' for English history?", ["Queen Victoria", "Queen Mary I", "Queen Elizabeth I", "Queen Anne"], 2, "Queen Elizabeth I's reign (1558-1603) is often referred to as the Golden Age (Shakespeare, Spanish Armada defeat)."],
+          [574, "Culture & Society", "Which flower is traditionally worn on Remembrance Day?", ["A red rose", "A red poppy", "A daffodil", "A white lily"], 1, "Red poppies are worn on Remembrance Day (11th November) to remember those who died for their country."],
+          [575, "People", "Who was David Hume?", ["A Welsh poet", "An English King", "A Scottish philosopher", "An Irish rebel"], 2, "David Hume was a highly influential Scottish philosopher during the Enlightenment in the 18th century."],
+          [576, "Laws & Gov", "Can a member of the House of Lords stand for election in the House of Commons?", ["Yes", "No"], 1, "No, peers in the House of Lords cannot run for election in the House of Commons."],
+          [577, "History", "What was the main cause of the English Civil War in 1642?", ["A dispute over trade with France", "The King's attempt to rule without Parliament", "The invasion of the Spanish Armada", "A disagreement over the succession of the throne"], 1, "Charles I believed in the Divine Right of Kings and tried to rule without Parliament, sparking the Civil War."],
+          [578, "Sports & Leisure", "Which of the following sports can trace its origins back to 15th century Scotland?", ["Football", "Cricket", "Tennis", "Golf"], 3, "The modern game of golf originated in Scotland in the 15th century."],
+          [579, "Culture & Society", "What is 'Vaisakhi'?", ["A Muslim festival marking the end of Ramadan", "A Hindu festival of lights", "A Sikh festival celebrating the founding of the Khalsa", "A Jewish holiday"], 2, "Vaisakhi is a major Sikh festival celebrating the founding of the Khalsa brotherhood."],
+          [580, "Laws & Gov", "How long is the maximum time between general elections in the UK?", ["3 years", "4 years", "5 years", "6 years"], 2, "A general election must be held at least every 5 years."],
+          [581, "History", "Which monarch was forced to sign the Magna Carta?", ["King Richard I", "King Henry VIII", "King John", "King Charles I"], 2, "King John was forced by his barons to sign the Magna Carta in 1215."],
+          [582, "People", "Who discovered that blood circulates around the body?", ["Isaac Newton", "Alexander Fleming", "William Harvey", "Francis Crick"], 2, "William Harvey was a physician who first discovered the full circulation of blood in the human body."],
+          [583, "Geography", "Which of these landmarks is located in Northern Ireland?", ["Snowdonia", "Loch Ness", "The Giant's Causeway", "Stonehenge"], 2, "The Giant's Causeway, made of hexagonal basalt columns, is in Northern Ireland."],
+          [584, "Culture & Society", "Which two main political parties dominated British politics during the 19th century?", ["Conservatives and Labour", "Whigs and Tories", "Labour and Liberal Democrats", "UKIP and Greens"], 1, "The Whigs and the Tories (who later became the Liberals and Conservatives) were the two main parties in the 19th century."],
+          [585, "Laws & Gov", "Who presides over the House of Lords?", ["The Prime Minister", "The Speaker", "The Lord Speaker", "The Monarch"], 2, "The Lord Speaker presides over the House of Lords (similar to the Speaker in the Commons)."],
+          [586, "History", "What was the 'Blitzkrieg' or 'Blitz'?", ["A fast German tank tactic", "The German bombing campaign against British cities in 1940-1941", "A naval battle", "The British invasion of Germany"], 1, "The Blitz was the intense bombing of British cities by the German Luftwaffe in WWII."],
+          [587, "People", "Who was Dylan Thomas?", ["A famous Scottish poet", "A Welsh rugby player", "A famous Welsh poet", "An English architect"], 2, "Dylan Thomas was a highly famous Welsh poet and writer (known for 'Under Milk Wood')."],
+          [588, "Culture & Society", "What is the traditional name for the day before Lent starts?", ["Ash Wednesday", "Good Friday", "Shrove Tuesday (Pancake Day)", "Maundy Thursday"], 2, "Shrove Tuesday, or Pancake Day, is the day before the 40 days of Lent begin."],
+          [589, "Laws & Gov", "If you are arrested, what right does the 'Habeas Corpus Act' guarantee you?", ["The right to a free lawyer", "The right to remain silent", "The right to not be held unlawfully without a trial", "The right to make a phone call"], 2, "It ensures you must be presented in court and cannot be detained unlawfully."],
+          [590, "History", "Which act joined England and Wales politically and administratively in the 16th century?", ["The Act of Union 1707", "The Laws in Wales Acts (Acts of Union) 1536-1542", "The Statute of Rhuddlan", "The Magna Carta"], 1, "During Henry VIII's reign, the Laws in Wales Acts formally united England and Wales."],
+          [591, "Culture & Society", "Which famous scientist wrote 'A Brief History of Time'?", ["Isaac Newton", "Alexander Fleming", "Stephen Hawking", "Peter Mansfield"], 2, "Stephen Hawking, a brilliant theoretical physicist, wrote the bestselling book 'A Brief History of Time'."],
+          [592, "Geography", "What is the longest river entirely within England?", ["The River Severn", "The River Thames", "The River Trent", "The River Clyde"], 1, "The Thames is the longest river entirely in England. The Severn is longer but starts in Wales."],
+          [593, "Laws & Gov", "Who chooses the members of the Cabinet?", ["The Monarch", "The public", "The Prime Minister", "The House of Lords"], 2, "The Prime Minister selects their Cabinet ministers from members of the Commons and Lords."],
+          [594, "History", "In what year did the Falklands War take place?", ["1979", "1982", "1991", "2003"], 1, "The Falklands War between the UK and Argentina took place in 1982."],
+          [595, "People", "Who was Richard Arkwright?", ["An explorer", "The inventor of the spinning frame, improving textile production", "A poet", "A general in the Civil War"], 1, "Arkwright improved the spinning of yarn, a major advancement during the Industrial Revolution."],
+          [596, "Culture & Society", "What is 'Hanukkah'?", ["A Hindu festival", "A Muslim festival", "A Jewish festival of lights", "A Sikh festival"], 2, "Hanukkah is an eight-day Jewish festival of lights celebrated in November or December."],
+          [597, "Laws & Gov", "What is a 'Whip' in Parliament?", ["A type of punishment", "An MP responsible for maintaining party discipline and attendance", "A civil servant", "A judge"], 1, "Whips are MPs appointed by their party to enforce discipline and ensure MPs vote according to party policy."],
+          [598, "History", "What was the result of the Battle of Agincourt in 1415?", ["The French defeated the English", "The English defeated the French despite being vastly outnumbered", "The Spanish Armada was destroyed", "The Romans left Britain"], 1, "King Henry V's English army famously defeated a much larger French army at Agincourt."],
+          [599, "Culture & Society", "Which of the following is a fundamental principle of British life?", ["Intolerance of different faiths", "Rule by a dictator", "The rule of law", "Inequality"], 2, "The rule of law, democracy, individual liberty, and tolerance are core British values."],
+          [600, "Laws & Gov", "Can an employer dismiss you because of your sexual orientation in the UK?", ["Yes, if they state it in the contract", "No, it is illegal under the Equality Act 2010", "Yes, but only for certain jobs", "No, but only if you have worked there for 5 years"], 1, "The Equality Act 2010 makes it illegal to discriminate against anyone based on age, race, sex, sexual orientation, or religion."],
+
+          /* --- BATCH 4: QUESTIONS 601 TO 750 --- */
+          [601, "History", "In what year did the first Christian communities appear in Britain?", ["1st Century", "3rd and 4th Centuries", "6th Century", "10th Century"], 1, "Christian communities began to appear in Britain in the 3rd and 4th centuries during the Roman occupation."],
+          [602, "History", "Who built the White Tower in the Tower of London?", ["Henry VIII", "Oliver Cromwell", "William the Conqueror", "Charles II"], 2, "William the Conqueror built the White Tower to assert his authority after the Norman Conquest of 1066."],
+          [603, "People", "Who is the patron saint of Wales?", ["St Patrick", "St Andrew", "St David", "St George"], 2, "St David is the patron saint of Wales, celebrated on March 1st."],
+          [604, "Laws & Gov", "At what age can you legally buy a lottery ticket in the UK?", ["16", "18", "21", "There is no age limit"], 0, "You must be 16 or over to buy a National Lottery ticket or scratchcard."],
+          [605, "History", "What was the population of the UK in 1998?", ["40 million", "50 million", "57 million", "65 million"], 2, "The population of the UK in 1998 was roughly 57 million."],
+          [606, "Culture & Society", "Which traditional food is associated with Northern Ireland?", ["Haggis", "Roast Beef", "Ulster Fry", "Welsh cakes"], 2, "The Ulster Fry is a traditional cooked breakfast native to Northern Ireland."],
+          [607, "History", "Which battle saw the final defeat of Emperor Napoleon in 1815?", ["Trafalgar", "Agincourt", "Waterloo", "Hastings"], 2, "The Duke of Wellington defeated Napoleon at the Battle of Waterloo in 1815."],
+          [608, "Laws & Gov", "How often must you renew your photocard driving licence?", ["Every 5 years", "Every 10 years", "Every 15 years", "It never expires"], 1, "A photocard driving licence must be renewed every 10 years."],
+          [609, "History", "What was the 'Emancipation Act' of 1833?", ["It gave women the right to vote", "It abolished slavery throughout the British Empire", "It legalised trade unions", "It created the NHS"], 1, "The Emancipation Act formally abolished slavery in the British Empire in 1833."],
+          [610, "Culture & Society", "What is the day before Lent known as in the UK?", ["Ash Wednesday", "Pancake Day (Shrove Tuesday)", "Good Friday", "Maundy Thursday"], 1, "Shrove Tuesday, traditionally a day to use up rich foods before fasting, is commonly known as Pancake Day."],
+          [611, "Geography", "What is the capital of Scotland?", ["Glasgow", "Aberdeen", "Dundee", "Edinburgh"], 3, "Edinburgh has been the capital of Scotland since the 15th century."],
+          [612, "Sports & Leisure", "Which sport has a famous competition called the 'Grand National'?", ["Motor racing", "Rowing", "Horse racing", "Cricket"], 2, "The Grand National is a highly famous annual horse race held at Aintree near Liverpool."],
+          [613, "People", "Who wrote the play 'Macbeth'?", ["Christopher Marlowe", "Jane Austen", "William Shakespeare", "Charles Dickens"], 2, "William Shakespeare, the Bard of Avon, wrote Macbeth."],
+          [614, "History", "Who invaded Britain in 55 BC?", ["The Vikings", "The Normans", "The Saxons", "The Romans (led by Julius Caesar)"], 3, "Julius Caesar led a Roman invasion of Britain in 55 BC, though it was unsuccessful in conquering the island."],
+          [615, "Laws & Gov", "What is the system called where employers deduct tax directly from your wages?", ["VAT", "PAYE", "National Insurance", "Council Tax"], 1, "PAYE (Pay As You Earn) is the system used by employers to deduct tax and NI directly from employee wages."],
+          [616, "Culture & Society", "What is 'Vaisakhi'?", ["A Muslim festival", "A Hindu festival of lights", "A Sikh festival celebrating the founding of the Khalsa", "A Jewish holiday"], 2, "Vaisakhi is a Sikh festival that celebrates the founding of the Khalsa brotherhood."],
+          [617, "People", "Who was Isambard Kingdom Brunel?", ["A king of England", "A famous Victorian engineer", "A prime minister", "A leader of the Suffragettes"], 1, "Brunel was a prolific Victorian engineer who designed bridges, tunnels, railways, and ships."],
+          [618, "History", "When was the Magna Carta signed?", ["1066", "1215", "1485", "1689"], 1, "The Magna Carta was signed by King John at Runnymede in 1215."],
+          [619, "Laws & Gov", "Which type of government does the UK have?", ["Parliamentary democracy", "Absolute monarchy", "Republic", "Communist state"], 0, "The UK is a parliamentary democracy with a constitutional monarch."],
+          [620, "History", "What was the 'Black Death'?", ["A civil war", "A devastating plague in 1348", "A major fire in London", "A famine in Ireland"], 1, "The Black Death was a bubonic plague pandemic that killed a third of the UK population in 1348."],
+          [621, "Culture & Society", "Which of these charities protects historic buildings and landscapes?", ["NSPCC", "Shelter", "The National Trust", "Crisis"], 2, "The National Trust is a prominent charity that preserves historic places and green spaces."],
+          [622, "Geography", "What is the capital of Northern Ireland?", ["Belfast", "Cardiff", "Edinburgh", "Dublin"], 0, "Belfast is the capital city of Northern Ireland."],
+          [623, "People", "Who was Admiral Nelson?", ["The Prime Minister during WWII", "The naval commander who won the Battle of Trafalgar", "The inventor of the hovercraft", "The architect of St Paul's Cathedral"], 1, "Admiral Horatio Nelson died leading the British Navy to victory at the Battle of Trafalgar in 1805."],
+          [624, "Laws & Gov", "What does a jury do in a Crown Court?", ["Decide the punishment", "Decide if the defendant is guilty or not guilty", "Defend the accused", "Prosecute the case"], 1, "The jury's sole role is to listen to the evidence and decide the verdict (guilty or not guilty)."],
+          [625, "Culture & Society", "What is 'Hogmanay'?", ["A Welsh festival", "The Scottish word for New Year's Eve", "An English cheese", "A traditional Irish dance"], 1, "Hogmanay is the Scots word for New Year's Eve, celebrated heavily in Scotland."],
+          [626, "People", "Who discovered the structure of DNA alongside Francis Crick?", ["James Watson", "Alexander Fleming", "Isaac Newton", "Tim Berners-Lee"], 0, "James Watson and Francis Crick discovered the double-helix structure of DNA in 1953."],
+          [627, "Laws & Gov", "What is a 'Small Claims Court'?", ["A court for children", "A fast, informal court to resolve minor financial disputes", "A court for serious crimes", "A court handling divorces"], 1, "The small claims procedure is an informal way to settle minor financial disputes without extensive lawyer fees."],
+          [628, "Culture & Society", "Which flower represents England?", ["Thistle", "Shamrock", "Daffodil", "Rose"], 3, "The Tudor Rose is the national flower of England."],
+          [629, "Geography", "Which is the highest mountain in England?", ["Ben Nevis", "Snowdon", "Scafell Pike", "Slieve Donard"], 2, "Scafell Pike is the highest mountain in England, located in the Lake District."],
+          [630, "People", "Who was Charlie Chaplin?", ["A prime minister", "A famous silent film actor and director", "A notable scientist", "A renowned poet"], 1, "Charlie Chaplin was a highly influential British comic actor in the silent film era."],
+          [631, "History", "Which Queen reigned during the era of the Spanish Armada?", ["Queen Victoria", "Queen Mary I", "Queen Elizabeth I", "Queen Anne"], 2, "Queen Elizabeth I was the monarch when the English defeated the Spanish Armada in 1588."],
+          [632, "Laws & Gov", "Who is the spiritual leader of the Church of England?", ["The Monarch", "The Archbishop of Canterbury", "The Prime Minister", "The Pope"], 1, "The Monarch is the Supreme Governor, but the Archbishop of Canterbury is the spiritual leader."],
+          [633, "Culture & Society", "What is the 'Union Jack'?", ["A famous pub", "The flag of the United Kingdom", "A historic coin", "A trade union"], 1, "The Union Jack is the official national flag of the United Kingdom."],
+          [634, "People", "Who is Tim Berners-Lee?", ["The inventor of the World Wide Web", "The inventor of radar", "The discoverer of penicillin", "A famous actor"], 0, "Sir Tim Berners-Lee is a British computer scientist credited with inventing the World Wide Web in 1989."],
+          [635, "Sports & Leisure", "Which sport features a 'Grand Slam' tournament at Wimbledon?", ["Golf", "Rugby", "Tennis", "Football"], 2, "Wimbledon is one of the four Grand Slam tennis tournaments, and the oldest in the world."],
+          [636, "History", "What was the 'Cold War'?", ["A war fought in the Arctic", "A period of political tension between the West and the Soviet Union", "A civil war in the UK", "A trade dispute with Iceland"], 1, "The Cold War was a decades-long period of geopolitical tension between the Western Bloc and the Eastern Bloc."],
+          [637, "Laws & Gov", "Which official publication lists everything said in Parliament?", ["The Times", "Hansard", "The Daily Telegraph", "The Gazette"], 1, "Hansard is the official, daily verbatim report of all debates and proceedings in Parliament."],
+          [638, "Culture & Society", "Which of these is a famous UK music festival?", ["Glastonbury", "Coachella", "Burning Man", "Lollapalooza"], 0, "Glastonbury is a world-famous music and performing arts festival held in Somerset."],
+          [639, "Geography", "Where is the Eden Project?", ["London", "Scotland", "Cornwall", "Wales"], 2, "The Eden Project is an ecological attraction featuring massive biomes, located in Cornwall."],
+          [640, "People", "Who was Emmeline Pankhurst?", ["A famous scientist", "A leader of the movement to get women the vote", "The first female Prime Minister", "A famous artist"], 1, "Emmeline Pankhurst was a founding leader of the British suffragette movement."],
+          [641, "History", "When did the UK establish a 'Welfare State'?", ["After WWI", "After WWII", "During the Victorian Era", "In the 21st Century"], 1, "The modern Welfare State, heavily featuring the NHS, was established by Clement Attlee's government post-WWII."],
+          [642, "Laws & Gov", "What is 'Civil Law' mostly concerned with?", ["Punishing serious crimes", "Settling disputes between individuals or organizations", "Regulating the police force", "Managing international treaties"], 1, "Civil law deals with disputes between individuals, such as housing contracts or faulty goods."],
+          [643, "Culture & Society", "What is the traditional food eaten on Bonfire Night?", ["Pancakes", "Turkey", "Toffee apples and baked potatoes", "Fish and chips"], 2, "Traditional Bonfire Night foods include toffee apples, baked potatoes, and parkin cake."],
+          [644, "People", "Who wrote 'Oliver Twist'?", ["William Shakespeare", "Jane Austen", "Charles Dickens", "J.K. Rowling"], 2, "Charles Dickens was a prominent Victorian author who wrote Oliver Twist and Great Expectations."],
+          [645, "Sports & Leisure", "The 'Open Championship' is a major event in which sport?", ["Tennis", "Golf", "Cricket", "Horse Racing"], 1, "The Open Championship (often referred to as the British Open) is the oldest golf tournament in the world."],
+          [646, "History", "Which king established the Church of England?", ["Henry VII", "Henry VIII", "Richard III", "Edward VI"], 1, "Henry VIII broke away from the Roman Catholic Church to secure a divorce, establishing the Church of England."],
+          [647, "Laws & Gov", "What is the 'Chancellor of the Exchequer' responsible for?", ["Health", "Education", "The Economy", "Defense"], 2, "The Chancellor of the Exchequer is the government minister responsible for managing the UK's economy."],
+          [648, "Culture & Society", "Which day is recognized as St. Andrew's Day?", ["March 1st", "April 23rd", "March 17th", "November 30th"], 3, "St. Andrew's Day is celebrated in Scotland on November 30th."],
+          [649, "Geography", "Which is the highest mountain in Northern Ireland?", ["Snowdon", "Ben Nevis", "Slieve Donard", "Scafell Pike"], 2, "Slieve Donard is the highest peak in the Mourne Mountains of Northern Ireland."],
+          [650, "People", "Who was Isambard Kingdom Brunel?", ["A famous politician", "A Victorian engineer who built bridges and ships", "A famous artist", "A monarch"], 1, "Brunel was a pioneering Victorian engineer famous for the Great Western Railway and Clifton Suspension Bridge."],
+          [651, "History", "What happened during the 'Glorious Revolution' of 1688?", ["King Charles I was executed", "William of Orange was invited to rule England", "The Battle of Waterloo took place", "The Magna Carta was signed"], 1, "The Glorious Revolution saw William of Orange and his wife Mary invited to replace James II as monarchs."],
+          [652, "Laws & Gov", "How is the Prime Minister chosen?", ["By a direct public vote for the individual", "The Monarch chooses whoever they like", "They are the leader of the political party with the most MPs", "By the House of Lords"], 2, "The Prime Minister is the leader of the political party that wins the most seats in a general election."],
+          [653, "Culture & Society", "What is a 'Pantomime'?", ["A serious political play", "A traditional comedic theatre production, often at Christmas", "A street parade", "A type of classical music"], 1, "Pantomimes are traditional, family-friendly musical comedy shows often performed around Christmas."],
+          [654, "People", "Who discovered gravity?", ["Albert Einstein", "Galileo Galilei", "Isaac Newton", "Stephen Hawking"], 2, "Sir Isaac Newton formulated the laws of motion and universal gravitation."],
+          [655, "Sports & Leisure", "Which sport is associated with the 'Six Nations' tournament?", ["Cricket", "Football", "Rugby Union", "Tennis"], 2, "The Six Nations is an annual international Rugby Union competition featuring England, France, Ireland, Italy, Scotland, and Wales."],
+          [656, "History", "What was the 'Magna Carta'?", ["A trade agreement", "A treaty with France", "A charter of rights agreed to by King John in 1215", "A map of the UK"], 2, "The Magna Carta was a historic charter that limited the King's power and established the rule of law."],
+          [657, "Laws & Gov", "What is the role of a Magistrate?", ["To pass laws in Parliament", "To deal with minor criminal cases in court", "To arrest criminals", "To serve in the Cabinet"], 1, "Magistrates are unpaid members of the community who deal with most minor criminal cases in England and Wales."],
+          [658, "Culture & Society", "What is the BBC?", ["British Baking Company", "British Broadcasting Corporation", "Bank of British Commerce", "British Builders Coalition"], 1, "The BBC (British Broadcasting Corporation) is the UK's main public service broadcaster."],
+          [659, "Geography", "What is the capital of the UK?", ["Edinburgh", "Cardiff", "Belfast", "London"], 3, "London is the capital city of England and the entire United Kingdom."],
+          [660, "People", "Who was Winston Churchill?", ["The monarch during WWI", "The Prime Minister during most of WWII", "The founder of the NHS", "A famous playwright"], 1, "Winston Churchill was the inspirational Prime Minister who led Britain during most of the Second World War."],
+          [661, "History", "Who invaded England in 1066?", ["The Romans", "The Vikings", "The Normans", "The Saxons"], 2, "The Normans, led by William the Conqueror, successfully invaded England in 1066."],
+          [662, "Laws & Gov", "Which institution is responsible for keeping order and security in the UK?", ["The Armed Forces", "The Police", "The Fire Service", "The Ambulance Service"], 1, "The Police are responsible for keeping order, protecting life, and preventing crime in local communities."],
+          [663, "Culture & Society", "Which of the following is a traditional pub game?", ["Monopoly", "Darts", "Chess", "Polo"], 1, "Darts, pool, and snooker are widely played traditional games in British pubs."],
+          [664, "People", "Who was Admiral Nelson?", ["A Prime Minister", "A famous poet", "A naval commander who won the Battle of Trafalgar", "An explorer"], 2, "Admiral Nelson was a highly successful naval commander who died at the Battle of Trafalgar."],
+          [665, "Sports & Leisure", "Where is the home of the Scottish national rugby team?", ["Hampden Park", "Murrayfield", "Celtic Park", "Ibrox"], 1, "Murrayfield Stadium in Edinburgh is the historic home of Scottish rugby."],
+          [666, "History", "What was the 'Enlightenment'?", ["A period of religious wars", "An 18th-century movement focused on reason, science, and philosophy", "The introduction of electricity", "A famous battle"], 1, "The Enlightenment was an 18th-century period when new ideas about politics, philosophy, and science flourished."],
+          [667, "Laws & Gov", "What is the minimum age to stand for election as an MP?", ["18", "21", "25", "30"], 0, "You must be at least 18 years old and a British, Irish, or eligible Commonwealth citizen to stand as an MP."],
+          [668, "Culture & Society", "When is St. George's Day?", ["1st March", "17th March", "23rd April", "30th November"], 2, "St. George's Day, celebrating the patron saint of England, is on 23rd April."],
+          [669, "Geography", "Which is the highest mountain in Wales?", ["Ben Nevis", "Scafell Pike", "Snowdon", "Slieve Donard"], 2, "Snowdon, located in Snowdonia National Park, is the highest mountain in Wales."],
+          [670, "People", "Who is known for developing the World Wide Web?", ["Steve Jobs", "Bill Gates", "Tim Berners-Lee", "Mark Zuckerberg"], 2, "Sir Tim Berners-Lee, a British computer scientist, invented the World Wide Web in 1989."],
+          [671, "History", "When did the Black Death strike Britain?", ["11th Century", "14th Century", "17th Century", "19th Century"], 1, "The Black Death (bubonic plague) arrived in Britain in 1348, which is the 14th century."],
+          [672, "Laws & Gov", "What is the role of a Jury?", ["To decide the sentence for a crime", "To pass new laws", "To decide if an accused person is guilty or not guilty", "To investigate crimes"], 2, "A jury listens to evidence in a trial and decides the verdict (guilty or not guilty)."],
+          [673, "Culture & Society", "What is 'Eid al-Fitr'?", ["A Hindu festival", "A festival celebrating the end of Ramadan", "A Sikh new year festival", "A Jewish holiday"], 1, "Eid al-Fitr is an important Islamic festival marking the end of the fasting month of Ramadan."],
+          [674, "People", "Who was Emmeline Pankhurst?", ["A famous author", "A pioneer of aviation", "A leader of the Suffragette movement", "A prominent scientist"], 2, "Emmeline Pankhurst was a key founder and leader of the British suffragette movement."],
+          [675, "Sports & Leisure", "Which sport is played at Twickenham?", ["Football", "Cricket", "Tennis", "Rugby Union"], 3, "Twickenham Stadium in London is the home of English Rugby Union."],
+          [676, "History", "Who were the Boers?", ["French settlers in Canada", "Dutch settlers in South Africa", "Spanish settlers in South America", "German settlers in Africa"], 1, "The Boers were settlers of Dutch descent in South Africa who fought the British in the Boer War."],
+          [677, "Laws & Gov", "Which group forms the main opposition in the House of Commons?", ["The House of Lords", "The party with the second-largest number of MPs", "The Civil Service", "The Judiciary"], 1, "The political party with the second-largest number of MPs forms the official Opposition."],
+          [678, "Culture & Society", "What do people traditionally eat on Shrove Tuesday?", ["Roast Beef", "Haggis", "Pancakes", "Hot Cross Buns"], 2, "Shrove Tuesday is commonly known as Pancake Day in the UK."],
+          [679, "Geography", "What is the capital of Wales?", ["Swansea", "Cardiff", "Newport", "Wrexham"], 1, "Cardiff is the capital city of Wales."],
+          [680, "People", "Who developed the first working television system?", ["John Logie Baird", "Alexander Graham Bell", "James Watt", "Tim Berners-Lee"], 0, "Scottish engineer John Logie Baird developed the first working mechanical television system in the 1920s."],
+          [681, "History", "What was the Domesday Book?", ["A book of laws", "A religious text", "A comprehensive survey of land and property in England", "A collection of poetry"], 2, "Commissioned by William the Conqueror in 1086, the Domesday Book was a huge survey of land and property ownership."],
+          [682, "Laws & Gov", "What is a 'Devolved Administration'?", ["A local town council", "A government with powers transferred from the central UK government", "A foreign embassy", "A specialized police force"], 1, "Devolved administrations (like the Scottish Parliament) have certain autonomous powers transferred from Westminster."],
+          [683, "Culture & Society", "Which of these charities supports children?", ["Age UK", "NSPCC", "Crisis", "Shelter"], 1, "The NSPCC (National Society for the Prevention of Cruelty to Children) is a prominent charity protecting minors."],
+          [684, "People", "Who was Clement Attlee?", ["A famous inventor", "The Prime Minister who introduced the Welfare State", "A military general in WWII", "A prominent artist"], 1, "Clement Attlee was the Labour Prime Minister who oversaw the creation of the Welfare State and NHS after WWII."],
+          [685, "Sports & Leisure", "Where does the famous annual boat race between Oxford and Cambridge take place?", ["River Mersey", "River Thames", "River Tyne", "River Severn"], 1, "The annual Oxford and Cambridge Boat Race takes place on the River Thames in London."],
+          [686, "History", "Which battle finally defeated Napoleon in 1815?", ["Battle of Trafalgar", "Battle of Agincourt", "Battle of Waterloo", "Battle of the Somme"], 2, "The Battle of Waterloo in 1815 resulted in the final defeat of French Emperor Napoleon."],
+          [687, "Laws & Gov", "At what age can citizens vote in UK parliamentary elections?", ["16", "18", "21", "25"], 1, "The voting age for UK parliamentary elections is 18."],
+          [688, "Culture & Society", "What are the 'Proms'?", ["A series of classical music concerts", "A type of sporting event", "A traditional dance", "A political rally"], 0, "The Proms is an eight-week summer season of daily orchestral classical music concerts sponsored by the BBC."],
+          [689, "Geography", "Which part of the UK is NOT on the island of Great Britain?", ["Scotland", "Wales", "England", "Northern Ireland"], 3, "Northern Ireland is situated on the island of Ireland, separate from Great Britain."],
+          [690, "People", "Who wrote 'Pride and Prejudice'?", ["Charlotte Brontë", "Emily Brontë", "Jane Austen", "George Eliot"], 2, "Jane Austen is the famous author of 'Pride and Prejudice' and 'Sense and Sensibility'."],
+          [691, "History", "When did the First World War end?", ["1914", "1918", "1939", "1945"], 1, "The First World War ended on November 11, 1918 at 11:00 am."],
+          [692, "Laws & Gov", "Which of the following forms of government does the UK have?", ["Absolute Monarchy", "Republic", "Parliamentary Democracy", "Dictatorship"], 2, "The UK is a Parliamentary Democracy with a constitutional monarch serving as head of state."],
+          [693, "Culture & Society", "What is the national flower of England?", ["Daffodil", "Thistle", "Shamrock", "Tudor Rose"], 3, "The Tudor Rose is the national flower of England."],
+          [694, "People", "Who was Margaret Thatcher?", ["The first female MP", "The first female Prime Minister of the UK", "A famous scientist", "A leader of the Suffragettes"], 1, "Margaret Thatcher was the UK's first female Prime Minister, serving from 1979 to 1990."],
+          [695, "Sports & Leisure", "Which city hosted the Olympic Games in 2012?", ["Manchester", "Birmingham", "London", "Glasgow"], 2, "London hosted the Summer Olympic and Paralympic Games in 2012."],
+          [696, "History", "Which empire built Hadrian's Wall?", ["The British Empire", "The Roman Empire", "The Norman Empire", "The Viking Empire"], 1, "The Roman Empire built Hadrian's Wall in northern England to defend against tribes from Scotland."],
+          [697, "Laws & Gov", "What is the purpose of National Insurance?", ["To pay for roads", "To fund state benefits like the NHS and pensions", "To insure local councils", "To pay for defense"], 1, "National Insurance contributions help fund state benefits, including the NHS and the state pension."],
+          [698, "Culture & Society", "Which famous playwright was born in Stratford-upon-Avon?", ["Christopher Marlowe", "Ben Jonson", "William Shakespeare", "John Milton"], 2, "William Shakespeare, often called the Bard, was born and raised in Stratford-upon-Avon."],
+          [699, "Geography", "Where is the Giant's Causeway located?", ["England", "Wales", "Scotland", "Northern Ireland"], 3, "The Giant's Causeway is a striking geological formation of volcanic basalt columns in Northern Ireland."],
+          [700, "People", "Who is the patron saint of Scotland?", ["St George", "St Patrick", "St David", "St Andrew"], 3, "St Andrew is the patron saint of Scotland, celebrated on 30th November."],
+          [701, "History", "Which king broke away from the Catholic Church to form the Church of England?", ["Henry VII", "Henry VIII", "Edward VI", "James I"], 1, "Henry VIII broke with Rome to secure a divorce, establishing the Church of England in the 1530s."],
+          [702, "Laws & Gov", "Which document protects individuals against unlawful detention?", ["Magna Carta", "Act of Settlement", "Habeas Corpus", "Petition of Right"], 2, "Habeas Corpus is a legal principle ensuring that individuals cannot be held in prison without a lawful reason."],
+          [703, "Culture & Society", "What is 'Diwali'?", ["A Muslim festival", "A Hindu and Sikh festival of lights", "A Jewish festival", "A Christian harvest festival"], 1, "Diwali is the Festival of Lights celebrated globally by Hindus and Sikhs."],
+          [704, "People", "Who designed St Paul's Cathedral in London?", ["Inigo Jones", "Christopher Wren", "Norman Foster", "Richard Rogers"], 1, "Sir Christopher Wren designed the new St Paul's Cathedral after it was destroyed in the Great Fire of London."],
+          [705, "Sports & Leisure", "Which two teams compete in 'The Ashes'?", ["England and South Africa", "England and Australia", "England and India", "England and New Zealand"], 1, "The Ashes is a historic test cricket series played solely between England and Australia."],
+          [706, "History", "What was the 'Blitz'?", ["A swift military attack by Britain", "The heavy bombing of British cities by Germany during WWII", "A famous battle in WWI", "The evacuation of Dunkirk"], 1, "The Blitz refers to the sustained strategic bombing of the UK by Nazi Germany during WWII."],
+          [707, "Laws & Gov", "What is the 'Cabinet' in the UK government?", ["A room in the House of Commons", "The committee of senior government ministers", "A storage for official documents", "The Monarch's private advisors"], 1, "The Cabinet is the core committee of senior government ministers, led by the Prime Minister."],
+          [708, "Culture & Society", "Which of these is a popular British comedy television series?", ["Doctor Who", "Fawlty Towers", "Downton Abbey", "Sherlock"], 1, "Fawlty Towers, starring John Cleese, is widely regarded as one of the greatest British sitcoms ever made."],
+          [709, "Geography", "Which national park is the largest in England?", ["Peak District", "Yorkshire Dales", "Lake District", "Dartmoor"], 2, "The Lake District in Cumbria is the largest national park in England."],
+          [710, "People", "Who was Florence Nightingale?", ["A pioneer of modern nursing", "A famous actress", "A prominent politician", "An explorer"], 0, "Florence Nightingale became famous for her pioneering work in nursing and sanitation during the Crimean War."],
+          [711, "History", "When did women in the UK get the right to vote on equal terms with men?", ["1918", "1928", "1945", "1969"], 1, "Women were given the right to vote at the same age as men (21) in 1928."],
+          [712, "Laws & Gov", "Which court deals with the most serious criminal cases (e.g., murder) in England and Wales?", ["Magistrates' Court", "County Court", "Crown Court", "High Court"], 2, "The Crown Court deals with more serious criminal cases and holds trials with a judge and jury."],
+          [713, "Culture & Society", "What is the traditional Sunday meal in the UK?", ["Fish and Chips", "Curry", "Roast dinner", "Shepherd's Pie"], 2, "A traditional Sunday meal is a roast dinner, often featuring roasted meat, potatoes, vegetables, and gravy."],
+          [714, "People", "Who discovered penicillin?", ["Alexander Fleming", "Marie Curie", "Louis Pasteur", "Edward Jenner"], 0, "Scottish scientist Sir Alexander Fleming discovered penicillin in 1928."],
+          [715, "Sports & Leisure", "Which sport was historically played in the UK and is known as the 'gentleman's game'?", ["Football", "Rugby", "Cricket", "Tennis"], 2, "Cricket is often referred to as the 'gentleman's game' and originated in England."],
+          [716, "History", "Who led the English Parliamentarians to victory in the English Civil War?", ["Charles I", "Henry VIII", "Oliver Cromwell", "Winston Churchill"], 2, "Oliver Cromwell led the Parliamentarian 'Roundhead' army against King Charles I."],
+          [717, "Laws & Gov", "How often must a general election be held in the UK?", ["At least every 3 years", "At least every 4 years", "At least every 5 years", "At least every 6 years"], 2, "By law, a general election must be held at least every five years."],
+          [718, "Culture & Society", "Which day is known as Guy Fawkes Night?", ["October 31st", "November 5th", "December 25th", "January 1st"], 1, "Guy Fawkes Night (Bonfire Night) is celebrated on November 5th to mark the failed 1605 Gunpowder Plot."],
+          [719, "Geography", "What is the highest mountain in Scotland and the UK?", ["Snowdon", "Scafell Pike", "Ben Nevis", "Slieve Donard"], 2, "Ben Nevis is the highest mountain in both Scotland and the entire United Kingdom."],
+          [720, "People", "Who was Mary, Queen of Scots?", ["Queen Victoria's daughter", "Elizabeth I's cousin who was executed", "The first Queen of England", "A leader of the Suffragettes"], 1, "Mary, Queen of Scots, was a Catholic cousin of Elizabeth I who was executed for plotting against her."],
+          [721, "History", "Which battle in 1066 saw William of Normandy defeat King Harold?", ["Battle of Waterloo", "Battle of Agincourt", "Battle of Hastings", "Battle of Trafalgar"], 2, "The Battle of Hastings in 1066 marked the beginning of the Norman Conquest of England."],
+          [722, "Laws & Gov", "What does 'PAYE' stand for?", ["Pay As You Earn", "Pay And Your Entitlements", "Pay All Your Expenses", "Public And Youth Education"], 0, "PAYE stands for Pay As You Earn, the standard system for collecting income tax in the UK."],
+          [723, "Culture & Society", "Which of the following is a British Overseas Territory?", ["Malta", "Cyprus", "Gibraltar", "Iceland"], 2, "Gibraltar is a British Overseas Territory located near the southern tip of Spain."],
+          [724, "People", "Who was Isambard Kingdom Brunel?", ["A famous poet", "A renowned engineer and builder", "A prime minister", "A monarch"], 1, "Isambard Kingdom Brunel was an iconic Victorian engineer who built railways, bridges, and ships."],
+          [725, "History", "Who were the 'Suffragettes'?", ["Women fighting for the right to vote", "Nurses during the Crimean War", "Factory workers during the Industrial Revolution", "Wives of monarchs"], 0, "The Suffragettes were women who aggressively campaigned for the right of women to vote in elections."],
+          [726, "Laws & Gov", "What is a 'constituency'?", ["A local council", "An electoral area represented by an MP", "A type of law", "A government department"], 1, "A constituency is a specific geographic electoral area that elects one Member of Parliament (MP)."],
+          [727, "Culture & Society", "When is St. Patrick's Day celebrated?", ["1st March", "17th March", "23rd April", "30th November"], 1, "St. Patrick's Day, celebrating the patron saint of Ireland, is on 17th March."],
+          [728, "Geography", "Which sea separates Great Britain from Ireland?", ["North Sea", "Irish Sea", "English Channel", "Celtic Sea"], 1, "The Irish Sea separates the islands of Great Britain and Ireland."],
+          [729, "People", "Who is known as the 'Bard of Avon'?", ["William Wordsworth", "Robert Burns", "William Shakespeare", "Lord Byron"], 2, "William Shakespeare, born in Stratford-upon-Avon, is widely known as the Bard of Avon."],
+          [730, "History", "What was the Industrial Revolution?", ["A war against machines", "A rapid period of development of industry and machinery", "A political uprising", "A movement to abolish slavery"], 1, "The Industrial Revolution was the rapid development of industry and manufacturing in 18th/19th century Britain."],
+          [731, "Sports & Leisure", "Wimbledon is a famous tournament for which sport?", ["Cricket", "Football", "Tennis", "Rugby"], 2, "Wimbledon is the oldest and arguably most prestigious tennis tournament in the world."],
+          [732, "Laws & Gov", "Which chamber of Parliament is elected by the public?", ["House of Lords", "House of Commons", "Both", "Neither"], 1, "The House of Commons consists of MPs who are democratically elected by the voting public."],
+          [733, "Culture & Society", "What is the traditional food often associated with Scotland?", ["Fish and chips", "Haggis", "Roast beef", "Welsh rarebit"], 1, "Haggis is a highly traditional Scottish dish made from sheep's offal, oatmeal, and spices."],
+          [734, "People", "Who was Queen Boudicca?", ["A Roman Empress", "A leader of the Iceni tribe who fought the Romans", "A Viking invader", "A Norman Queen"], 1, "Boudicca was the warrior queen of the Iceni tribe who led a massive rebellion against the Roman occupation."],
+          [735, "History", "Which document, signed in 1689, limited the monarch's powers and guaranteed parliamentary rights?", ["Magna Carta", "Bill of Rights", "Act of Union", "Habeas Corpus Act"], 1, "The Bill of Rights of 1689 confirmed the rights of Parliament and severely limited the monarch's power."],
+          [736, "Geography", "What is the capital city of Northern Ireland?", ["Belfast", "Dublin", "Cardiff", "Edinburgh"], 0, "Belfast is the capital city of Northern Ireland."],
+          [737, "Laws & Gov", "Who is the head of state of the UK?", ["The Prime Minister", "The Archbishop of Canterbury", "The Monarch", "The Speaker of the House"], 2, "The Monarch is the official Head of State of the UK, while the PM is the Head of Government."],
+          [738, "Culture & Society", "Which of these is a famous UK landmark?", ["Eiffel Tower", "Colosseum", "Stonehenge", "Statue of Liberty"], 2, "Stonehenge is a world-famous prehistoric stone circle monument located in Wiltshire, England."],
+          [739, "People", "Who wrote 'The Canterbury Tales'?", ["William Shakespeare", "Jane Austen", "Geoffrey Chaucer", "Charles Dickens"], 2, "Geoffrey Chaucer wrote 'The Canterbury Tales' during the Middle Ages."],
+          [740, "History", "Who introduced the NHS in 1948?", ["Aneurin Bevan", "Winston Churchill", "Clement Attlee", "Margaret Thatcher"], 0, "Aneurin Bevan, the Minister for Health in Clement Attlee's government, spearheaded the creation of the NHS."],
+          [741, "Geography", "Which of the following is NOT a country within the UK?", ["Scotland", "Wales", "Republic of Ireland", "Northern Ireland"], 2, "The Republic of Ireland is a completely independent sovereign country, not part of the UK."],
+          [742, "Laws & Gov", "How old must you be to drive a car in the UK?", ["16", "17", "18", "21"], 1, "You must be at least 17 years old to hold a licence to drive a car or motorcycle in the UK."],
+          [743, "Culture & Society", "What is a 'bank holiday'?", ["A day when only banks are open", "A public holiday when banks and many businesses close", "A day specifically for paying taxes", "A holiday exclusively for bank employees"], 1, "A bank holiday is a legally recognised public holiday when banks and most other businesses are closed."],
+          [744, "History", "What was the War of the Roses?", ["A war between England and France", "A civil war between the Houses of Lancaster and York", "A war between England and Scotland", "A war against the Spanish Armada"], 1, "The War of the Roses was a brutal 15th-century civil war between the House of Lancaster and House of York."],
+          [745, "People", "Who discovered the structure of DNA along with James Watson?", ["Francis Crick", "Alexander Fleming", "Isaac Newton", "Charles Darwin"], 0, "Francis Crick and James Watson discovered the double-helix structure of DNA in Cambridge in 1953."],
+          [746, "Sports & Leisure", "Which sport involves a 'Grand National' event?", ["Motor racing", "Horse racing", "Greyhound racing", "Cycling"], 1, "The Grand National is a famous, notoriously difficult steeplechase horse race held at Aintree."],
+          [747, "History", "When did the UK join the European Economic Community (EEC)?", ["1957", "1963", "1973", "1983"], 2, "The UK officially joined the EEC (which later became the EU) in 1973."],
+          [748, "Culture & Society", "What is the national flower of Wales?", ["Rose", "Daffodil", "Thistle", "Shamrock"], 1, "The Daffodil (alongside the leek) is heavily associated as the national symbol of Wales."],
+          [749, "Geography", "What is the longest river in the UK?", ["River Thames", "River Severn", "River Trent", "River Mersey"], 1, "The River Severn is the longest river in the UK, flowing 220 miles through Wales and England."],
+          [750, "Laws & Gov", "Which official chairs the debates in the House of Commons?", ["The Prime Minister", "The Monarch", "The Speaker", "The Lord Chancellor"], 2, "The Speaker is an MP elected by other MPs to chair debates, keep order, and remain politically neutral."]
         ];
 
         // Rehydrate data into structured objects
@@ -611,7 +866,6 @@
             } catch(e) { return {}; }
           });
 
-          // NEW: Memory cache for recently seen questions to prevent repetition
           const [recentlySeen, setRecentlySeen] = useState(() => {
             try {
               const saved = localStorage.getItem('ukLifeRecentlySeen');
@@ -619,7 +873,6 @@
             } catch(e) { return new Set(); }
           });
 
-          // Save to Local Storage on change
           useEffect(() => {
             localStorage.setItem('ukLifeAutoNav', JSON.stringify(autoNavigate));
           }, [autoNavigate]);
@@ -644,7 +897,6 @@
           useEffect(() => {
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
             setIsDarkMode(mediaQuery.matches);
-            
             const handler = (e) => setIsDarkMode(e.matches);
             mediaQuery.addEventListener('change', handler);
             return () => mediaQuery.removeEventListener('change', handler);
@@ -688,20 +940,15 @@
               pool = shuffledWeak.slice(0, 24);
 
               if (pool.length < 24) {
-                // Fill remainder, trying to avoid recently seen if possible
                 let available = QUESTION_BANK.filter(q => !pool.includes(q) && !updatedSeen.has(q.id));
-                
-                // If we run out of unseen questions, clear the seen cache and start over
                 if (available.length < (24 - pool.length)) {
                     updatedSeen.clear();
                     available = QUESTION_BANK.filter(q => !pool.includes(q));
                 }
-
                 const shuffledOther = [...available].sort(() => 0.5 - Math.random());
                 pool = [...pool, ...shuffledOther.slice(0, 24 - pool.length)];
               }
             } else {
-              // Smart Standard Mode: Inject up to 5 weak questions naturally
               const weakQuestions = QUESTION_BANK.filter(q => {
                 const stats = questionHistory[q.id];
                 return stats && stats.correct < stats.attempts;
@@ -710,20 +957,16 @@
               const selectedWeak = shuffledWeak.slice(0, 5); 
 
               let available = QUESTION_BANK.filter(q => !selectedWeak.includes(q) && !updatedSeen.has(q.id));
-              
-              // If we run out of unseen questions, clear the seen cache
               if (available.length < (24 - selectedWeak.length)) {
                   updatedSeen.clear();
                   available = QUESTION_BANK.filter(q => !selectedWeak.includes(q));
               }
-
               const shuffledOther = [...available].sort(() => 0.5 - Math.random());
               const selectedOther = shuffledOther.slice(0, 24 - selectedWeak.length);
 
               pool = [...selectedWeak, ...selectedOther].sort(() => 0.5 - Math.random());
             }
 
-            // Mark these questions as seen
             pool.forEach(q => updatedSeen.add(q.id));
             setRecentlySeen(updatedSeen);
 
@@ -746,12 +989,10 @@
               [currentIndex]: answer
             }));
             
-            // Reset timers
             setIsAutoNavCancelled(false);
             setAutoNavProgress(0);
             setShowExplanation(true);
 
-            // Update permanent global tracking memory for this exact question
             setQuestionHistory(prev => ({
                 ...prev,
                 [qId]: {
@@ -1071,7 +1312,7 @@
                     <BarChart3 size={40} />
                   </div>
                   <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-50 mb-3 tracking-tight">No History Yet</h2>
-                  <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg leading-relaxed max-w-lg mx-auto">You haven't completed any mock tests yet. Take a test to see your performance analysis!</p>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg leading-relaxed max-w-lg mx-auto">You haven't completed any mock tests yet. Take a test to unlock your advanced performance analytics!</p>
                   <button 
                     onClick={() => generateQuiz(false)}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all mx-auto shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 text-base"
@@ -1083,52 +1324,138 @@
               );
             }
 
+            // Advanced Analytics Calculations
             const stats = getCategoryStats();
             const categories = Object.keys(stats).filter(cat => stats[cat].totalSeen > 0);
             const weakCount = getWeakQuestionsCount();
+            
+            const totalTests = quizHistory.length;
+            const passedTests = quizHistory.filter(s => s >= 18).length;
+            const passRate = Math.round((passedTests / totalTests) * 100) || 0;
+            
+            const uniqueQuestionsSeen = Object.keys(questionHistory).length;
+            const coveragePercent = Math.round((uniqueQuestionsSeen / QUESTION_BANK.length) * 100);
+            
+            const totalAttempts = Object.values(questionHistory).reduce((sum, q) => sum + q.attempts, 0);
+            const estTimeMins = Math.round((totalAttempts * 15) / 60); // Est 15 sec per question
+            
+            // Preparedness formula: Mix of coverage (40%) and recent pass rate (60%)
+            const recentHistory = quizHistory.slice(-5);
+            const recentPassRate = recentHistory.length ? Math.round((recentHistory.filter(s => s >= 18).length / recentHistory.length) * 100) : passRate;
+            const preparednessScore = Math.min(100, Math.round((recentPassRate * 0.6) + ((coveragePercent * 2) * 0.4)));
 
             return (
-              <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
-                <div className="flex items-center gap-4 mb-6">
-                  <button 
-                    onClick={() => setCurrentScreen('home')}
-                    className="p-2.5 bg-white dark:bg-slate-800 rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
-                  >
-                    <Home size={20} />
-                  </button>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-50 tracking-tight">Your Performance Analysis</h2>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 mb-6">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
-                    <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl">
-                      Based on your entire mock test history, here are the specific syllabus areas you should focus on.
-                    </p>
-                    
-                    {weakCount > 0 && (
-                      <button 
-                        onClick={() => generateQuiz(true)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 text-sm sm:text-base w-full sm:w-auto"
-                      >
-                        <Target size={18} />
-                        Test Weak Areas ({weakCount} Qs)
-                      </button>
-                    )}
+              <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
+                
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => setCurrentScreen('home')}
+                      className="p-2.5 bg-white dark:bg-slate-800 rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+                    >
+                      <Home size={20} />
+                    </button>
+                    <div>
+                      <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-50 tracking-tight">Performance Analytics</h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Based on {totalTests} mock tests taken</p>
+                    </div>
                   </div>
 
-                  <div className="space-y-4">
+                  {weakCount > 0 && (
+                    <button 
+                      onClick={() => generateQuiz(true)}
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 text-sm sm:text-base w-full sm:w-auto"
+                    >
+                      <Target size={18} />
+                      Practice Weak Areas ({weakCount} Qs)
+                    </button>
+                  )}
+                </div>
+
+                {/* Top Metrics Grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  
+                  {/* Preparedness Score */}
+                  <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+                    <div className="relative z-10">
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="text-indigo-100 text-xs sm:text-sm font-bold uppercase tracking-wider">Preparedness</p>
+                        <Brain size={20} className="text-indigo-200" />
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <span className="text-4xl font-black">{preparednessScore}%</span>
+                      </div>
+                      <p className="text-xs text-indigo-200 mt-2 font-medium">Ready for the real exam</p>
+                    </div>
+                    <Activity size={100} className="absolute -right-4 -bottom-4 text-white opacity-10" />
+                  </div>
+
+                  {/* Pass Rate */}
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Pass Rate</p>
+                      <div className={`p-1.5 rounded-lg ${passRate >= 75 ? 'bg-green-100 text-green-600 dark:bg-green-900/30' : 'bg-red-100 text-red-600 dark:bg-red-900/30'}`}>
+                        <Trophy size={16} />
+                      </div>
+                    </div>
+                    <div>
+                      <span className={`text-3xl font-black ${passRate >= 75 ? 'text-green-600 dark:text-green-400' : 'text-slate-800 dark:text-slate-50'}`}>{passRate}%</span>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{passedTests} passed out of {totalTests}</p>
+                    </div>
+                  </div>
+
+                  {/* Bank Coverage */}
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Bank Coverage</p>
+                      <div className="p-1.5 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                        <PieChart size={16} />
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-3xl font-black text-slate-800 dark:text-slate-50">{coveragePercent}%</span>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{uniqueQuestionsSeen} of {QUESTION_BANK.length} unique questions</p>
+                    </div>
+                  </div>
+
+                  {/* Est Time Spent */}
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Time Practicing</p>
+                      <div className="p-1.5 rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
+                        <Clock size={16} />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-slate-800 dark:text-slate-50">{estTimeMins}</span>
+                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">mins</span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Across {totalAttempts} questions answered</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Detailed Category Analysis */}
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-5 sm:p-8 mb-8">
+                  <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-50 mb-6 flex items-center gap-2">
+                    <BookOpen size={20} className="text-blue-500" />
+                    Syllabus Breakdown
+                  </h3>
+
+                  <div className="space-y-5">
                     {categories.map(cat => {
                       const { correct, totalSeen } = stats[cat];
                       const percentage = Math.round((correct / totalSeen) * 100);
+                      
                       let statusColor = "bg-green-500 dark:bg-green-400";
-                      let alertIcon = null;
                       let bgCard = "bg-slate-50 dark:bg-slate-800/50";
                       let borderCard = "border-slate-100 dark:border-slate-700";
 
                       if (percentage < 75) {
                         statusColor = "bg-red-500 dark:bg-red-500";
-                        alertIcon = <AlertTriangle size={18} className="text-red-500 dark:text-red-400" />;
-                        bgCard = "bg-red-50/50 dark:bg-red-900/10";
+                        bgCard = "bg-red-50/30 dark:bg-red-900/10";
                         borderCard = "border-red-100 dark:border-red-900/30";
                       } else if (percentage < 90) {
                         statusColor = "bg-orange-400 dark:bg-orange-400";
@@ -1138,14 +1465,15 @@
                         <div key={cat} className={`p-4 sm:p-5 rounded-xl border ${bgCard} ${borderCard} transition-colors`}>
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
                             <div className="flex items-center gap-2">
-                              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{cat}</h3>
-                              {alertIcon}
+                              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">{cat}</h3>
+                              {percentage < 75 && <AlertTriangle size={16} className="text-red-500 dark:text-red-400 ml-1" />}
                             </div>
-                            <span className="text-base font-black text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-lg shadow-sm w-max">
+                            <span className="text-sm font-black text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-md shadow-sm w-max border border-slate-100 dark:border-slate-700">
                               {percentage}% ({correct}/{totalSeen})
                             </span>
                           </div>
-                          <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden shadow-inner">
+                          
+                          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
                             <div 
                               className={`${statusColor} h-full rounded-full transition-all duration-1000 relative`}
                               style={{ width: `${percentage}%` }}
@@ -1153,24 +1481,19 @@
                               <div className="absolute inset-0 bg-white/20 dark:bg-white/10 w-full h-full"></div>
                             </div>
                           </div>
-                          {percentage < 75 && (
-                            <p className="mt-3 text-sm text-red-600 dark:text-red-400 font-bold bg-white dark:bg-slate-900 px-3 py-2 rounded-lg shadow-sm inline-block">
-                              Action Required: Review the "{cat}" section in your study guides. 
-                            </p>
-                          )}
                         </div>
                       );
                     })}
                   </div>
                 </div>
 
-                <div className="flex justify-center">
+                <div className="flex justify-center pb-8">
                   <button 
                     onClick={() => generateQuiz(false)}
-                    className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105 active:scale-95 text-base w-full sm:w-auto justify-center"
+                    className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-3.5 px-8 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105 active:scale-95 text-base w-full sm:w-auto justify-center"
                   >
                     <RefreshCcw size={20} />
-                    Retake Regular Test
+                    Take a New Mock Test
                   </button>
                 </div>
               </div>
@@ -1188,8 +1511,7 @@
                     </div>
                     
                     <div className="flex items-center gap-1.5 sm:gap-3">
-                      {/* Theme Indicator (Read Only) */}
-                      <div className="hidden md:flex items-center justify-center p-1.5 rounded-full text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 mr-1" title="Theme auto-syncs with your system">
+                      <div className="hidden md:flex items-center justify-center p-1.5 rounded-full text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 mr-1">
                         {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
                       </div>
 
