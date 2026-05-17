@@ -34,12 +34,11 @@
         import { createRoot } from 'react-dom/client';
         import { 
           BookOpen, Trophy, AlertTriangle, CheckCircle2, XCircle, 
-          RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun
+          RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun, Target
         } from 'lucide-react';
 
         /* COMPRESSED DATA BANK */
         const rawData = [
-          // Mock Test 15
           [1, "History", "Which two languages were used across England during the Middle Ages?", ["Welsh and Gaelic", "Norman French and Anglo-Saxon", "Latin and Celtic", "Nordic and English"], 1, "The king and noblemen spoke Norman French; peasants spoke Anglo-Saxon."],
           [2, "History", "In 1776, which British colonies declared their independence?", ["North African", "Asian", "North American", "South African"], 2, "13 North American colonies declared independence over 'no taxation without representation'."],
           [3, "History", "When was England ruled by a republic and not by a monarch?", ["When Elizabeth I died", "When Charles I was executed", "When the Magna Carta was signed", "After the Battle of Hastings"], 1, "After Charles I was executed in 1649, England became a republic called the Commonwealth."],
@@ -64,7 +63,6 @@
           [22, "Laws & Gov", "Who is responsible for crime, policing and immigration?", ["Chancellor of the Exchequer", "Foreign Secretary", "The Speaker", "Home Secretary"], 3, "The Home Secretary handles internal 'home' affairs."],
           [23, "Culture & Society", "What kind of genre was the film Wallace and Gromit created by Nick Park?", ["Soap opera", "Silent movie", "Animated film", "Action film"], 2, "Nick Park won Oscars for his animated films."],
           [24, "Laws & Gov", "Anyone who is violent towards their partner can be prosecuted.", ["True", "False"], 0, "True. Domestic violence is a serious crime in the UK."],
-          // Mock Test 12
           [25, "Geography", "Which of the following is a Crown Dependency but not part of the UK?", ["Shetland", "Isle of Wight", "Isle of Man", "Anglesey"], 2, "The Isle of Man and Channel Islands are Crown Dependencies."],
           [26, "Culture & Society", "Is the BBC controlled by the government?", ["Yes", "No"], 1, "No, it is independent of the government."],
           [27, "Laws & Gov", "How many members does the Northern Ireland Assembly have?", ["12", "60", "90", "108"], 2, "It has 90 elected members, known as MLAs."],
@@ -89,7 +87,6 @@
           [46, "Culture & Society", "What is the Union Jack?", ["Flag of the Commonwealth", "Flag of the United Kingdom", "Shield used by Knights", "A trade union"], 1, "It combines the crosses of St George, St Andrew, and St Patrick."],
           [47, "People", "Who was voted the greatest Briton of all time in 2002?", ["Mo Farah", "Admiral Nelson", "Winston Churchill", "Clement Attlee"], 2, "Winston Churchill, the inspirational WWII leader, won the vote."],
           [48, "Culture & Society", "Women in Britain today make up about half of the workforce.", ["True", "False"], 0, "True. Women have equal rights and make up about half the workforce."],
-          // Mock Test 17
           [49, "Laws & Gov", "Which of the following is not a constitutional institution?", ["The Parliament", "The cabinet", "The armed forces", "The police"], 2, "The armed forces are not a constitutional institution."],
           [50, "History", "What food shortage caused the famine in Ireland in the middle of the 19th century?", ["Corn", "Potato", "Wheat", "Oats"], 1, "The potato crop failed, causing a famine that killed a million people."],
           [51, "Laws & Gov", "What name is given to the group of senior opposition MPs who challenge the government?", ["Shadow Cabinet", "Lobby groups", "Civil servants", "Support peers"], 0, "They form the shadow cabinet to put forward alternative policies."],
@@ -113,7 +110,6 @@
           [69, "History", "Who was defeated at the Battle of the Boyne in 1690?", ["James I", "James II", "Richard I", "Richard II"], 1, "William of Orange defeated the Catholic James II."],
           [70, "History", "What did the Factories Act of 1847 introduce?", ["Limited everybody to 10 hours", "Increased hours", "Limited the number of hours women and children could work to 10 hours per day", "Banned child labour"], 2, "It restricted women and children to a maximum 10-hour workday."],
           [71, "Laws & Gov", "In which of the following matters can the Scottish Parliament legislate?", ["Education", "Immigration", "Security", "Defence"], 0, "Education, civil/criminal law, and health are devolved to Scotland."],
-          // Mock Test 11
           [72, "Geography", "Is St Helena part of the UK?", ["Yes", "No"], 1, "No, it is a British overseas territory linked to the UK, but not part of it."],
           [73, "Geography", "Where is Theatreland?", ["Docklands", "East End", "London's West End", "South End"], 2, "The West End of London is famous for its theatres."],
           [74, "Culture & Society", "What is the name of the UK currency?", ["Euro", "Pound Sterling", "Peso", "Dollar"], 1, "The currency is the pound sterling (£)."],
@@ -135,7 +131,6 @@
           [90, "History", "When were the first coins in Britain made?", ["Stone Age", "Bronze Age", "The Iron Age", "Middle Ages"], 2, "Iron Age people made the first coins, inscribed with names of kings."],
           [91, "History", "Who did Britain fight against in the Crimean War?", ["Turkey", "Russia", "France", "Germany"], 1, "Britain, France, and Turkey fought against Russia (1853-1856)."],
           [92, "Laws & Gov", "How old do you have to be to buy alcohol in the UK?", ["17", "18", "19", "20"], 1, "You must be 18 to buy alcohol (16 to drink beer/wine with a meal)."],
-          // Mock Test 13 & 16 Mixed
           [93, "Culture & Society", "When is St George's day?", ["17th March", "30th November", "1st March", "23rd April"], 3, "St George (England) is celebrated on the 23rd of April."],
           [94, "Geography", "Which is the largest National Park in England?", ["Snowdonia", "Loch Lomond", "Giant's Causeway", "The Lake District"], 3, "The Lake District is the largest in England."],
           [95, "History", "Boudicca was a tribal leader who fought against which foreign invaders?", ["Normans", "Vikings", "Anglo-Saxons", "The Romans"], 3, "Boudicca was the queen of the Iceni who rebelled against the Romans."],
@@ -156,8 +151,6 @@
           [110, "History", "Which tribe came to Britain from northern Europe after the Romans left?", ["Gepids", "The Jutes", "Frisians", "Burgundians"], 1, "The Jutes, Angles, and Saxons invaded after the Romans left."],
           [111, "Culture & Society", "What is the minimum age to participate in the National Citizen Service programme?", ["14-15", "15-16", "16- and 17-year-olds", "18+"], 2, "It gives 16- and 17-year-olds the chance to build skills and do community projects."],
           [112, "People", "Who was the British scientist who co-discovered the structure of the DNA molecule?", ["Sir Ian Wilmot", "Keith Campbell", "James Watt", "Francis Crick"], 3, "Francis Crick co-discovered the DNA double-helix in 1953."],
-          
-          // Extra core facts
           [113, "History", "When was the Magna Carta signed?", ["1066", "1215", "1485", "1689"], 1, "1215. It limited the King's power and established that he was subject to the law."],
           [114, "History", "What does 'Habeas Corpus' mean?", ["The king is the law", "You must present the person in court", "Freedom of speech", "To have the body executed"], 1, "It guarantees no one can be held prisoner unlawfully (1679)."],
           [115, "History", "When was the Act of Union that created the Kingdom of Great Britain?", ["1689", "1707", "1800", "1922"], 1, "In 1707, England/Wales and Scotland merged to form Great Britain."],
@@ -267,6 +260,7 @@
           const [userAnswers, setUserAnswers] = useState({});
           const [showExplanation, setShowExplanation] = useState(false);
           const [quizHistory, setQuizHistory] = useState([]); 
+          const [questionHistory, setQuestionHistory] = useState({}); // Track global success/failure per question
           const [autoNavigate, setAutoNavigate] = useState(true);
           const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -294,10 +288,39 @@
             return () => clearTimeout(timeout);
           }, [showExplanation, currentIndex, autoNavigate, currentScreen]);
 
-          const startQuiz = () => {
-            const shuffled = [...QUESTION_BANK].sort(() => 0.5 - Math.random());
-            const selected = shuffled.slice(0, 24); 
-            setActiveQuestions(selected);
+          // Generates a mock test. If focusWeak is true, targets specifically failed questions.
+          const generateQuiz = (focusWeak = false) => {
+            const weakQuestions = QUESTION_BANK.filter(q => {
+              const stats = questionHistory[q.id];
+              return stats && stats.correct < stats.attempts;
+            });
+
+            let pool = [];
+
+            if (focusWeak) {
+              // Priority 1: Fill up to 24 entirely with weak questions
+              const shuffledWeak = [...weakQuestions].sort(() => 0.5 - Math.random());
+              pool = shuffledWeak.slice(0, 24);
+
+              // Priority 2: If we don't have 24 weak questions, fill the rest randomly
+              if (pool.length < 24) {
+                const otherQuestions = QUESTION_BANK.filter(q => !pool.includes(q));
+                const shuffledOther = [...otherQuestions].sort(() => 0.5 - Math.random());
+                pool = [...pool, ...shuffledOther.slice(0, 24 - pool.length)];
+              }
+            } else {
+              // Smart Standard Mode: Inject up to 8 weak questions naturally into a regular test
+              const shuffledWeak = [...weakQuestions].sort(() => 0.5 - Math.random());
+              const selectedWeak = shuffledWeak.slice(0, 8); 
+
+              const otherQuestions = QUESTION_BANK.filter(q => !selectedWeak.includes(q));
+              const shuffledOther = [...otherQuestions].sort(() => 0.5 - Math.random());
+              const selectedOther = shuffledOther.slice(0, 24 - selectedWeak.length);
+
+              pool = [...selectedWeak, ...selectedOther].sort(() => 0.5 - Math.random());
+            }
+
+            setActiveQuestions(pool);
             setCurrentIndex(0);
             setUserAnswers({});
             setShowExplanation(false);
@@ -306,11 +329,23 @@
 
           const handleAnswer = (answer) => {
             if (showExplanation) return; 
-            setUserAnswers({
-              ...userAnswers,
+            const isCorrect = answer === activeQuestions[currentIndex].correctAnswer;
+            const qId = activeQuestions[currentIndex].id;
+
+            setUserAnswers(prev => ({
+              ...prev,
               [currentIndex]: answer
-            });
+            }));
             setShowExplanation(true);
+
+            // Update permanent global tracking memory for this exact question
+            setQuestionHistory(prev => ({
+                ...prev,
+                [qId]: {
+                    attempts: (prev[qId]?.attempts || 0) + 1,
+                    correct: (prev[qId]?.correct || 0) + (isCorrect ? 1 : 0)
+                }
+            }));
           };
 
           const nextQuestion = () => {
@@ -341,22 +376,23 @@
 
           const getCategoryStats = () => {
             const stats = {};
+            // Pre-seed categories
             QUESTION_BANK.forEach(q => {
               if (!stats[q.category]) {
                 stats[q.category] = { totalSeen: 0, correct: 0 };
               }
-            });
-
-            activeQuestions.forEach((q, index) => {
-              const isAnswered = userAnswers[index] !== undefined;
-              if (isAnswered) {
-                stats[q.category].totalSeen += 1;
-                if (userAnswers[index] === q.correctAnswer) {
-                  stats[q.category].correct += 1;
-                }
+              const history = questionHistory[q.id];
+              if (history) {
+                stats[q.category].totalSeen += history.attempts;
+                stats[q.category].correct += history.correct;
               }
             });
             return stats;
+          };
+
+          // Count how many questions user has gotten wrong
+          const getWeakQuestionsCount = () => {
+             return Object.values(questionHistory).filter(stats => stats.correct < stats.attempts).length;
           };
 
           const renderHome = () => (
@@ -371,7 +407,7 @@
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Vast Question Bank Loaded ({QUESTION_BANK.length} Qs)</span>
                 </div>
                 <p className="text-slate-600 dark:text-slate-300 mb-10 text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto">
-                  We extracted every question from the official mocks and syllabus. You will face 24 random questions. You need 18/24 (75%) to pass.
+                  We extracted every question from the official mocks and syllabus. Your mock tests will automatically mix in questions you've previously failed.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -386,7 +422,7 @@
                   )}
 
                   <button 
-                    onClick={startQuiz}
+                    onClick={() => generateQuiz(false)}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95"
                   >
                     {activeQuestions.length > 0 && currentIndex < activeQuestions.length ? <RefreshCcw size={22} /> : <Play size={22} />}
@@ -430,7 +466,7 @@
             if (!question) return null;
 
             return (
-              <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 animate-in slide-in-from-right-8 duration-300">
+              <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
                 <div className="mb-10">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 gap-4">
                     <span className="text-base uppercase tracking-wider">Question {currentIndex + 1} of {activeQuestions.length}</span>
@@ -457,7 +493,8 @@
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-6 sm:p-10 transition-colors">
+                {/* Using a key bound to question.id completely resolves the lingering transition/color issue */}
+                <div key={question.id} className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-6 sm:p-10 transition-colors animate-in slide-in-from-right-8 duration-300">
                   <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-50 mb-8 leading-snug tracking-tight">{question.text}</h2>
                   
                   <div className="space-y-4">
@@ -578,7 +615,7 @@
                   <h2 className="text-4xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 tracking-tight">No History Yet</h2>
                   <p className="text-slate-600 dark:text-slate-400 mb-10 text-xl leading-relaxed max-w-lg mx-auto">You haven't completed any mock tests yet. Take a test to see your performance analysis!</p>
                   <button 
-                    onClick={startQuiz}
+                    onClick={() => generateQuiz(false)}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all mx-auto shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 text-lg"
                   >
                     <Play size={22} />
@@ -590,6 +627,7 @@
 
             const stats = getCategoryStats();
             const categories = Object.keys(stats).filter(cat => stats[cat].totalSeen > 0);
+            const weakCount = getWeakQuestionsCount();
 
             return (
               <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
@@ -604,9 +642,21 @@
                 </div>
 
                 <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-6 sm:p-10 mb-10">
-                  <p className="text-slate-600 dark:text-slate-300 mb-10 text-lg sm:text-xl leading-relaxed">
-                    Based on your recent mock test history, here are the specific syllabus areas you should focus on.
-                  </p>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-6 mb-10">
+                    <p className="text-slate-600 dark:text-slate-300 text-lg sm:text-xl leading-relaxed max-w-xl">
+                      Based on your entire mock test history, here are the specific syllabus areas you should focus on.
+                    </p>
+                    
+                    {weakCount > 0 && (
+                      <button 
+                        onClick={() => generateQuiz(true)}
+                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-2xl flex items-center gap-2 transition-all shadow-lg hover:scale-105 active:scale-95 shrink-0"
+                      >
+                        <Target size={20} />
+                        Test Weak Areas ({weakCount} Qs)
+                      </button>
+                    )}
+                  </div>
 
                   <div className="space-y-6">
                     {categories.map(cat => {
@@ -658,11 +708,11 @@
 
                 <div className="flex justify-center">
                   <button 
-                    onClick={startQuiz}
+                    onClick={() => generateQuiz(false)}
                     className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-2xl flex items-center gap-3 transition-all shadow-xl hover:scale-105 active:scale-95 text-lg"
                   >
                     <RefreshCcw size={22} />
-                    Retake Test
+                    Retake Regular Test
                   </button>
                 </div>
               </div>
