@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life in the UK: Mock Test App</title>
+    
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- Load Babel to compile React JSX in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Import Map for React and Lucide Icons -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0"
+        }
+    }
+    </script>
+</head>
+<body class="antialiased bg-slate-50">
+    <div id="root"></div>
+
+    <!-- Your React Application -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+          BookOpen, Trophy, AlertTriangle, CheckCircle2, XCircle, 
+          RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun
+        } from 'lucide-react';
+
+        /* COMPRESSED DATA BANK */
+        const rawData = [
+          // Mock Test 15
+          [1, "History", "Which two languages were used across England during the Middle Ages?", ["Welsh and Gaelic", "Norman French and Anglo-Saxon", "Latin and Celtic", "Nordic and English"], 1, "The king and noblemen spoke Norman French; peasants spoke Anglo-Saxon."],
+          [2, "History", "In 1776, which British colonies declared their independence?", ["North African", "Asian", "North American", "South African"], 2, "13 North American colonies declared independence over 'no taxation without representation'."],
+          [3, "History", "When was England ruled by a republic and not by a monarch?", ["When Elizabeth I died", "When Charles I was executed", "When the Magna Carta was signed", "After the Battle of Hastings"], 1, "After Charles I was executed in 1649, England became a republic called the Commonwealth."],
+          [4, "Culture & Society", "Which of the following is one of the highest-grossing film franchises produced in the UK?", ["Harry Potter", "Spider-man", "The Lord of the Rings", "Indiana Jones"], 0, "Harry Potter and James Bond are two of the highest-grossing UK film franchises."],
+          [5, "History", "When did the first farmers come to Britain?", ["10,000 years ago", "6,000 years ago", "15,000 years ago", "2,000 years ago"], 1, "The first farmers arrived in Britain about 6,000 years ago from south-east Europe."],
+          [6, "History", "When did the First World War end?", ["12.00 pm 11th Nov 1914", "12.00 pm 11th Nov 1918", "11.00 am 11th Nov 1914", "11.00 am 11th Nov 1918"], 3, "WWI ended at 11.00 am on 11th November 1918."],
+          [7, "Laws & Gov", "Can court orders be obtained to protect a person from being forced into a marriage?", ["Yes", "No"], 0, "True. Forced Marriage Protection Orders protect people from being forced into a marriage."],
+          [8, "Sports & Leisure", "What medal did Mary Peters win in the 1972 Olympics?", ["No medals", "Silver", "Gold", "Bronze"], 2, "She won an Olympic gold medal in the pentathlon in 1972."],
+          [9, "Laws & Gov", "In England, Wales and NI, Youth Court cases are normally heard by (choose two):", ["Up to 3 specially trained magistrates AND a District Judge", "A sheriff AND a jury", "Members of the public", "High Court Judges"], 0, "Cases are heard by up to 3 specially trained magistrates or a District Judge. Public are not allowed."],
+          [10, "People", "What was invented by Alan Turing in the 1930s?", ["The jet engine", "The television", "The Turing machine", "The ball pen"], 2, "A Turing machine is a theoretical mathematical device that influenced modern computers."],
+          [11, "History", "Which book tells us about how people lived in England just after the Norman Conquest?", ["The Domesday Book", "The Book of Common Prayer", "The Canterbury Tales", "The Magna Carta"], 0, "William the Conqueror commissioned the Domesday Book to list towns, villages, and landowners."],
+          [12, "People", "Who led a team of scientists to 'split the atom' for the first time?", ["Alexander Fleming", "Alan Turing", "Ernest Rutherford", "Sir Peter Mansfield"], 2, "Ernest Rutherford led the team at Manchester and Cambridge to split the atom."],
+          [13, "Culture & Society", "What song is sung by people in the UK when they are celebrating the New Year?", ["Auld Lang Syne", "The British Anthem", "Jingle Bells", "White Christmas"], 0, "Auld Lang Syne, written by Robert Burns, is sung at New Year (Hogmanay)."],
+          [14, "History", "Who fought in the English Civil war of 1642?", ["House of York and Lancaster", "Anglo-Saxons and Vikings", "Cavaliers and Roundheads", "House of Fraser and Stuart"], 2, "The Cavaliers supported the King, and the Roundheads supported Parliament."],
+          [15, "Geography", "Which of these forts were part of Hadrian's wall?", ["Vindolanda and Housesteads", "Maiden Castle", "Grimsby", "Sutton Hoo"], 0, "Housesteads and Vindolanda are famous forts along Hadrian's Wall."],
+          [16, "History", "What was the religion of the Puritans?", ["Hindu", "Catholic", "Sikh", "Protestant"], 3, "Puritans were a group of strict Protestants."],
+          [17, "History", "What is the name of Irish people who favoured complete independence in the 19th century?", ["Fenians", "Quakers", "Highlanders", "Suffragettes"], 0, "The Fenians favoured complete independence from the UK."],
+          [18, "Culture & Society", "Which two British pop music groups were famous during the Swinging Sixties?", ["The Rolling Stones and The Beatles", "ABBA and Radiohead", "Oasis and Blur", "Queen and The Who"], 0, "The Beatles and The Rolling Stones defined the 1960s pop culture."],
+          [19, "Laws & Gov", "What is the minimum age required to drive a motorcycle?", ["16", "17", "18", "21"], 1, "You must be 17 to drive a car or motorcycle (16 for a moped)."],
+          [20, "Laws & Gov", "The members of the House of Lords, known as peers, are elected by the people.", ["True", "False"], 1, "False. Peers are appointed, not democratically elected."],
+          [21, "History", "When did the Emancipation Act abolish slavery throughout the British Empire?", ["1835", "1823", "1807", "1833"], 3, "The Emancipation Act of 1833 abolished slavery. Remember: two 3s look like broken handcuffs."],
+          [22, "Laws & Gov", "Who is responsible for crime, policing and immigration?", ["Chancellor of the Exchequer", "Foreign Secretary", "The Speaker", "Home Secretary"], 3, "The Home Secretary handles internal 'home' affairs."],
+          [23, "Culture & Society", "What kind of genre was the film Wallace and Gromit created by Nick Park?", ["Soap opera", "Silent movie", "Animated film", "Action film"], 2, "Nick Park won Oscars for his animated films."],
+          [24, "Laws & Gov", "Anyone who is violent towards their partner can be prosecuted.", ["True", "False"], 0, "True. Domestic violence is a serious crime in the UK."],
+          // Mock Test 12
+          [25, "Geography", "Which of the following is a Crown Dependency but not part of the UK?", ["Shetland", "Isle of Wight", "Isle of Man", "Anglesey"], 2, "The Isle of Man and Channel Islands are Crown Dependencies."],
+          [26, "Culture & Society", "Is the BBC controlled by the government?", ["Yes", "No"], 1, "No, it is independent of the government."],
+          [27, "Laws & Gov", "How many members does the Northern Ireland Assembly have?", ["12", "60", "90", "108"], 2, "It has 90 elected members, known as MLAs."],
+          [28, "History", "Who was in charge of the British fleet at the Battle of Trafalgar?", ["Oliver Cromwell", "Duke of Wellington", "Robert the Bruce", "Admiral Nelson"], 3, "Admiral Nelson commanded the fleet and died in the battle."],
+          [29, "History", "What was inscribed in the first coins to be minted in Britain during the Iron Age?", ["Names of Iron Age kings", "Names of Gods", "Names of trees", "Names of animals"], 0, "They featured the names of Iron Age kings."],
+          [30, "Laws & Gov", "Towns, cities and rural areas are governed by government appointed officials.", ["True", "False"], 1, "False. They are governed by democratically elected councils."],
+          [31, "Geography", "Where is the Tate Art Gallery located?", ["Glasgow", "Cardiff", "London", "Belfast"], 2, "Tate Britain and Tate Modern are in London."],
+          [32, "History", "The version of the Bible created by King James I is known as:", ["Authorised version", "Reformed version", "Approved version", "Unique version"], 0, "It is known as the King James Version or Authorised Version."],
+          [33, "Culture & Society", "What is the period of the 1960s known for?", ["Downgrade in manufacturing", "Growth in British fashion and pop music", "Shortage of water", "Blockage of social laws"], 1, "It was known as the 'Swinging Sixties'."],
+          [34, "History", "Between 1680 and 1720 many refugees called Huguenots came to England from where?", ["Pakistan", "Germany", "India", "France"], 3, "They were French Protestants fleeing persecution."],
+          [35, "Sports & Leisure", "What is the most famous tennis tournament played in the UK?", ["Queen's Club", "Wimbledon", "Roland Garros", "Aegon Championships"], 1, "Wimbledon is the oldest tennis tournament in the world."],
+          [36, "Laws & Gov", "MPs can only be contacted at their office in the House of Commons.", ["True", "False"], 1, "False. They hold local 'surgeries' and have constituency offices."],
+          [37, "Culture & Society", "What is the day when jokes are published in newspapers and telecast on TV?", ["April Fool's Day", "Boxing Day", "Halloween", "Valentine's Day"], 0, "1st April is April Fool's Day until midday."],
+          [38, "History", "Which Scottish king defeated the English at the Battle of Bannockburn?", ["King Charles I", "King James I", "Admiral Nelson", "Robert the Bruce"], 3, "Robert the Bruce kept Scotland unconquered in 1314."],
+          [39, "People", "Who invented the World Wide Web?", ["Sir Tim Berners-Lee", "Sir Peter Mansfield", "Sir Ian Wilmot", "Sir Robert Edwards"], 0, "Tim Berners-Lee invented the WWW in 1990."],
+          [40, "Laws & Gov", "How are civil servants appointed?", ["Chosen on merit and form Liberal party", "Chosen randomly", "Chosen on merit and are politically neutral", "Appointed by monarch"], 2, "They are chosen on merit and remain politically neutral."],
+          [41, "History", "What is known as the 'Dunkirk spirit'?", ["Bombing of London", "Evacuation of Allied soldiers from France during WWII", "New social classes", "Refugees from France"], 1, "Civilian volunteers in small boats rescued over 300,000 men."],
+          [42, "Laws & Gov", "You have to be at least 21 years old to serve on a jury.", ["True", "False"], 1, "False. You can serve on a jury from age 18 to 70."],
+          [43, "Laws & Gov", "If you wish to be a permanent resident, you should (choose two):", ["Respect rights of others AND Look after yourself and family", "Buy a house", "Marry a British citizen", "Ignore the law"], 0, "You must respect the rights of others and provide for your family."],
+          [44, "Sports & Leisure", "Which major sports event took place in the UK in 2012?", ["Football World Cup", "Rugby World Cup", "Olympic games", "Eurocup Basketball"], 2, "London hosted the Olympics in 1908, 1948, and 2012."],
+          [45, "History", "Charles I believed in the 'Divine Right of Kings' so he tried:", ["To rule without Parliament", "To rule with approval", "To raise money", "To restore Catholicism"], 0, "He tried to rule without Parliament, sparking the Civil War."],
+          [46, "Culture & Society", "What is the Union Jack?", ["Flag of the Commonwealth", "Flag of the United Kingdom", "Shield used by Knights", "A trade union"], 1, "It combines the crosses of St George, St Andrew, and St Patrick."],
+          [47, "People", "Who was voted the greatest Briton of all time in 2002?", ["Mo Farah", "Admiral Nelson", "Winston Churchill", "Clement Attlee"], 2, "Winston Churchill, the inspirational WWII leader, won the vote."],
+          [48, "Culture & Society", "Women in Britain today make up about half of the workforce.", ["True", "False"], 0, "True. Women have equal rights and make up about half the workforce."],
+          // Mock Test 17
+          [49, "Laws & Gov", "Which of the following is not a constitutional institution?", ["The Parliament", "The cabinet", "The armed forces", "The police"], 2, "The armed forces are not a constitutional institution."],
+          [50, "History", "What food shortage caused the famine in Ireland in the middle of the 19th century?", ["Corn", "Potato", "Wheat", "Oats"], 1, "The potato crop failed, causing a famine that killed a million people."],
+          [51, "Laws & Gov", "What name is given to the group of senior opposition MPs who challenge the government?", ["Shadow Cabinet", "Lobby groups", "Civil servants", "Support peers"], 0, "They form the shadow cabinet to put forward alternative policies."],
+          [52, "Laws & Gov", "Which of the following are TWO responsibilities of MPs?", ["Protect life and property", "Represent everyone in constituency AND Help to create new laws", "Scrutinise the monarch", "Command the army"], 1, "MPs represent constituents, debate issues, and create laws."],
+          [53, "People", "Who was the longest serving PM in the 20th century?", ["John Major", "Alec Douglas-Home", "Robert Walpole", "Margaret Thatcher"], 3, "Margaret Thatcher served from 1979 to 1990."],
+          [54, "Geography", "What name is given to territories linked to the UK but not part of it (e.g. Isle of Man)?", ["Crown Dependencies", "Offshore Territories", "Crown Independencies", "British Colonies"], 0, "They have their own governments and are called Crown Dependencies."],
+          [55, "People", "What area did David Hume contribute to during the Enlightenment?", ["Architecture", "Poetry", "Cinema", "Philosophy"], 3, "David Hume was a famous Scottish philosopher."],
+          [56, "History", "What proportion of the population died as a result of the Black Death in England?", ["Half", "One third", "55%", "One quarter"], 1, "One third of the population died in 1348."],
+          [57, "History", "What happened to Charles I after he was in prison?", ["Moved to Spain", "Became a priest", "Escaped to France", "He was executed"], 3, "He was executed in 1649 after the Civil War."],
+          [58, "Laws & Gov", "What are TWO responsibilities of the monarch?", ["Appoint members of cabinet", "Advise/warn the PM AND Appoint the government", "Debate national issues", "Create laws"], 1, "The monarch appoints the government and has regular meetings with the PM."],
+          [59, "History", "What kind of disaster was the Black Death?", ["A plague", "An earthquake", "A famine", "A civil war"], 0, "It was a disease, probably a form of plague."],
+          [60, "History", "What country was in conflict with the UK for trading reasons during the 18th century?", ["Andorra", "Germany", "France", "Luxembourg"], 2, "Britain frequently clashed with France over overseas trade and settlements."],
+          [61, "Laws & Gov", "The Speaker is an MP, represents a constituency and deals with constituents.", ["True", "False"], 0, "True. The Speaker remains an MP despite being neutral in debates."],
+          [62, "Geography", "Where is Skara Brae, the best preserved prehistoric village in northern Europe, located?", ["Scotland", "Wales", "England", "Northern Ireland"], 0, "It is located on Orkney, off the north coast of Scotland."],
+          [63, "Culture & Society", "Which of the following plays was written by William Shakespeare?", ["MacBeth", "The Canterbury Tales", "Doctor Faustus", "The Mikado"], 0, "Shakespeare's famous plays include MacBeth, Hamlet, and Romeo & Juliet."],
+          [64, "History", "Where was William the Conqueror from?", ["Italy", "Portugal", "France", "Ireland"], 2, "He was the Duke of Normandy, in northern France."],
+          [65, "History", "How do you call the settlers from the Netherlands who went to war with the British in South Africa?", ["Blacksmiths", "Boers", "Conquistadors", "Beefeaters"], 1, "The Boers fought fiercely against the British from 1899 to 1902."],
+          [66, "Laws & Gov", "In NI, up to three specially trained magistrates or a District Judge are required for Youth Court.", ["True", "False"], 0, "True. This is the system used for youth cases."],
+          [67, "Sports & Leisure", "What made Roger Bannister famous?", ["First man to run a mile in under four minutes", "Ice dancing medals", "Rowing medals", "Climbing Everest"], 0, "He broke the 4-minute mile barrier in 1954."],
+          [68, "History", "Who was invited to invade and rule England in 1688?", ["Duke of Medina Sidonia", "Napoleon", "King Philip II", "William of Orange"], 3, "Protestants asked William of Orange to invade in the 'Glorious Revolution'."],
+          [69, "History", "Who was defeated at the Battle of the Boyne in 1690?", ["James I", "James II", "Richard I", "Richard II"], 1, "William of Orange defeated the Catholic James II."],
+          [70, "History", "What did the Factories Act of 1847 introduce?", ["Limited everybody to 10 hours", "Increased hours", "Limited the number of hours women and children could work to 10 hours per day", "Banned child labour"], 2, "It restricted women and children to a maximum 10-hour workday."],
+          [71, "Laws & Gov", "In which of the following matters can the Scottish Parliament legislate?", ["Education", "Immigration", "Security", "Defence"], 0, "Education, civil/criminal law, and health are devolved to Scotland."],
+          // Mock Test 11
+          [72, "Geography", "Is St Helena part of the UK?", ["Yes", "No"], 1, "No, it is a British overseas territory linked to the UK, but not part of it."],
+          [73, "Geography", "Where is Theatreland?", ["Docklands", "East End", "London's West End", "South End"], 2, "The West End of London is famous for its theatres."],
+          [74, "Culture & Society", "What is the name of the UK currency?", ["Euro", "Pound Sterling", "Peso", "Dollar"], 1, "The currency is the pound sterling (£)."],
+          [75, "Culture & Society", "What other name is given to Diwali?", ["The Festival of Lights", "Ash Wednesday", "Good Friday", "Easter Monday"], 0, "Diwali is the Festival of Lights, celebrated by Hindus and Sikhs."],
+          [76, "History", "What is the Enlightenment?", ["A period of total peace", "A period in the 18th century when new ideas about politics, philosophy and science were developed", "When England became an empire", "Economic recovery after WWII"], 1, "Thinkers like Adam Smith and David Hume drove this period of new ideas."],
+          [77, "Culture & Society", "Which of the following charities helps the environment?", ["NSPCC", "Shelter", "Friends of the Earth", "Crisis"], 2, "Friends of the Earth and the National Trust are environmental charities."],
+          [78, "History", "Which of the following was a crucial aerial battle fought between Germany and Britain in WWII?", ["The Battle of Britain", "Battle of Worcester", "Battle of Dunbar", "Battle of Marston Moor"], 0, "The RAF defeated the German air force in the summer of 1940."],
+          [79, "History", "Which two languages combined to become the English language after 1066?", ["Latin and Proto-Celtic", "Anglo-Saxon and Norman French", "Welsh and Gaelic", "Nordic and Roman"], 1, "Norman French (nobles) combined with Anglo-Saxon (peasants)."],
+          [80, "Laws & Gov", "By law, radio and TV coverage of political parties must be balanced.", ["True", "False"], 0, "True. Broadcasters must remain impartial and balanced."],
+          [81, "History", "Where did the Spanish Armada come from?", ["France", "Spain", "Italy", "South America"], 1, "It was sent by Spain in 1588 to conquer England and restore Catholicism."],
+          [82, "Geography", "What is the name of the War Memorial located in Whitehall?", ["Dumfries", "Cenotaph", "Royal Crescent", "White Tower"], 1, "The Cenotaph is where wreaths are laid on Remembrance Day."],
+          [83, "Laws & Gov", "The UK government has never suspended the Northern Ireland Assembly.", ["True", "False"], 1, "False. It has been suspended on a few occasions in the past."],
+          [84, "History", "What kind of church did Scotland establish in 1560?", ["A Catholic church", "A Protestant church"], 1, "They established a Protestant Church of Scotland with elected leadership."],
+          [85, "Laws & Gov", "The NI Assembly CANNOT make decisions on which two issues?", ["Immigration AND Defence", "Education", "Agriculture", "Social Services"], 0, "Immigration and defence remain strictly under central UK government control."],
+          [86, "Laws & Gov", "What should you do to make a complaint about the police? (choose two)", ["Go to the Police station directly AND Write to the Chief Constable", "Write to House of Commons", "Write to your MP", "Call the army"], 0, "You can complain at a station, to the Chief Constable, or an independent body."],
+          [87, "Culture & Society", "What flower did William Wordsworth write a famous poem about?", ["Rose", "Daffodil", "Thistle", "Shamrock"], 1, "He wrote the famous poem 'The Daffodils' ('I wander'd lonely as a cloud')."],
+          [88, "Culture & Society", "When is St Andrew's day celebrated?", ["17th April", "31st December", "1st March", "30th November"], 3, "St Andrew (Scotland) is celebrated on the 30th of November."],
+          [89, "Culture & Society", "Who was the architect that rebuilt Saint Paul's Cathedral after the Great Fire in 1666?", ["Robert Adam", "Sir Christopher Wren", "Sir Norman Foster", "Dame Zaha Hadid"], 1, "Sir Christopher Wren designed the new St Paul's Cathedral."],
+          [90, "History", "When were the first coins in Britain made?", ["Stone Age", "Bronze Age", "The Iron Age", "Middle Ages"], 2, "Iron Age people made the first coins, inscribed with names of kings."],
+          [91, "History", "Who did Britain fight against in the Crimean War?", ["Turkey", "Russia", "France", "Germany"], 1, "Britain, France, and Turkey fought against Russia (1853-1856)."],
+          [92, "Laws & Gov", "How old do you have to be to buy alcohol in the UK?", ["17", "18", "19", "20"], 1, "You must be 18 to buy alcohol (16 to drink beer/wine with a meal)."],
+          // Mock Test 13 & 16 Mixed
+          [93, "Culture & Society", "When is St George's day?", ["17th March", "30th November", "1st March", "23rd April"], 3, "St George (England) is celebrated on the 23rd of April."],
+          [94, "Geography", "Which is the largest National Park in England?", ["Snowdonia", "Loch Lomond", "Giant's Causeway", "The Lake District"], 3, "The Lake District is the largest in England."],
+          [95, "History", "Boudicca was a tribal leader who fought against which foreign invaders?", ["Normans", "Vikings", "Anglo-Saxons", "The Romans"], 3, "Boudicca was the queen of the Iceni who rebelled against the Romans."],
+          [96, "History", "How did Charles II manage to escape to Europe after his defeat in the Civil War?", ["Hiding in a farmer's house", "Riding a horse", "Hiding in an oak tree", "Swimming"], 2, "He famously hid in an oak tree to escape Cromwell's forces."],
+          [97, "History", "Who defeated the Vikings?", ["Harold", "Edward I", "King Arthur", "King Alfred the Great"], 3, "King Alfred the Great united the Anglo-Saxon kingdoms and defeated the Vikings."],
+          [98, "People", "Who was William Caxton?", ["A poet", "The first person in England to print books using a printing press", "An inventor", "A sailor"], 1, "Caxton printed The Canterbury Tales on his press."],
+          [99, "Geography", "Where do Beefeaters serve as tour guides?", ["Houses of Parliament", "The Tower of London", "The O2", "Big Ben"], 1, "Yeoman Warders, known as Beefeaters, guard the Tower of London."],
+          [100, "History", "During the rebellion, Bonnie Prince Charlie was supported by clansmen from which region?", ["Glasgow", "Galloway", "The Highlands", "Edinburgh"], 2, "He raised an army with the support of Highland clansmen."],
+          [101, "History", "What religion did Elizabeth I follow?", ["She was a Protestant", "She was a Catholic"], 0, "Elizabeth I re-established the Protestant Church of England."],
+          [102, "History", "Which armed force was used in the Battle of Britain?", ["Royal Navy", "Police Force", "Naval Service", "Royal Air Force"], 3, "The RAF defeated the German Luftwaffe in the skies over Britain."],
+          [103, "History", "Against which country did Britain fight at the Battle of Waterloo?", ["Germany", "Italy", "France", "Spain"], 2, "Wellington defeated the French Emperor Napoleon at Waterloo in 1815."],
+          [104, "People", "Who was William Wilberforce?", ["A poet", "A sportsman", "A politician", "A musician"], 2, "He was an MP and evangelical Christian who led the abolition of slavery."],
+          [105, "Laws & Gov", "Who is the spiritual leader of the Church of England?", ["Archbishop of Canterbury", "Archbishop of London", "Archbishop of Birmingham", "The Pope"], 0, "The monarch is the head, but the Archbishop of Canterbury is the spiritual leader."],
+          [106, "History", "James I was King of which country before becoming King of England?", ["Wales", "Ireland", "France", "Scotland"], 3, "He was James VI of Scotland before becoming James I of England in 1603."],
+          [107, "Geography", "Where is the National Horseracing Museum located?", ["Edinburgh", "Newmarket, Suffolk", "St Andrews", "Aintree"], 1, "It is located in Newmarket, Suffolk."],
+          [108, "Culture & Society", "Who was a famous Art Deco ceramic designer?", ["Alexander McQueen", "Thomas Chippendale", "Clarice Cliff", "Mary Quant"], 2, "Clarice Cliff was famous for her Art Deco ceramics in the 20th century."],
+          [109, "Laws & Gov", "When was the United Nations set up?", ["After WWI", "After the Second World War", "Before WWI", "Before WWII"], 1, "The UN was set up after WWII to prevent war and promote peace."],
+          [110, "History", "Which tribe came to Britain from northern Europe after the Romans left?", ["Gepids", "The Jutes", "Frisians", "Burgundians"], 1, "The Jutes, Angles, and Saxons invaded after the Romans left."],
+          [111, "Culture & Society", "What is the minimum age to participate in the National Citizen Service programme?", ["14-15", "15-16", "16- and 17-year-olds", "18+"], 2, "It gives 16- and 17-year-olds the chance to build skills and do community projects."],
+          [112, "People", "Who was the British scientist who co-discovered the structure of the DNA molecule?", ["Sir Ian Wilmot", "Keith Campbell", "James Watt", "Francis Crick"], 3, "Francis Crick co-discovered the DNA double-helix in 1953."],
+          
+          // Extra core facts
+          [113, "History", "When was the Magna Carta signed?", ["1066", "1215", "1485", "1689"], 1, "1215. It limited the King's power and established that he was subject to the law."],
+          [114, "History", "What does 'Habeas Corpus' mean?", ["The king is the law", "You must present the person in court", "Freedom of speech", "To have the body executed"], 1, "It guarantees no one can be held prisoner unlawfully (1679)."],
+          [115, "History", "When was the Act of Union that created the Kingdom of Great Britain?", ["1689", "1707", "1800", "1922"], 1, "In 1707, England/Wales and Scotland merged to form Great Britain."],
+          [116, "Laws & Gov", "At what age can you vote in the UK?", ["16", "18", "21", "25"], 1, "The voting age was lowered to 18 in 1969."],
+          [117, "People", "Who invented the hovercraft?", ["Alan Turing", "Sir Frank Whittle", "Sir Christopher Cockerell", "James Goodfellow"], 2, "Sir Christopher Cockerell invented the hovercraft in the 1950s."],
+          [118, "People", "Who invented the Cash-dispensing ATM?", ["James Goodfellow", "Tim Berners-Lee", "Peter Mansfield", "Alexander Fleming"], 0, "James Goodfellow invented the ATM in the 1960s."],
+          [119, "History", "Who built the Tower of London?", ["Henry VIII", "William the Conqueror", "Oliver Cromwell", "Charles II"], 1, "William the Conqueror built the White Tower to maintain power after 1066."],
+          [120, "Laws & Gov", "Where is the official home of the Prime Minister?", ["Buckingham Palace", "10 Downing Street", "Westminster Abbey", "Windsor Castle"], 1, "The PM lives at 10 Downing Street, London."],
+          [121, "Laws & Gov", "What is the Chancellor of the Exchequer responsible for?", ["Education", "Foreign Affairs", "The Economy", "Health"], 2, "The Chancellor is the cabinet minister in charge of the economy."],
+          [122, "Culture & Society", "What is the UK's population approximately?", ["45 million", "55 million", "67 million", "80 million"], 2, "The UK population is estimated at around 67 million."],
+          [123, "Culture & Society", "What percentage of the UK population has a parent or grandparent born outside the UK?", ["5%", "10%", "25%", "50%"], 1, "Around 10% of the population has recent roots outside the UK."],
+          [124, "Laws & Gov", "What is the name of the system used for taxing employee wages directly?", ["VAT", "PAYE (Pay As You Earn)", "National Insurance", "Self Assessment"], 1, "Employers deduct tax directly via PAYE."],
+          [125, "History", "What was the 'Blitz'?", ["A WWII naval evacuation", "The bombing of London and UK cities at night", "A WWI battle", "A civil war"], 1, "The German Luftwaffe bombed British cities at night during WWII."],
+          [126, "People", "Who was Clement Attlee?", ["The king during WWII", "The PM who created the NHS in 1945", "An inventor", "A famous architect"], 1, "He led the 1945 Labour government that established the Welfare State and NHS."],
+          [127, "Geography", "What is the longest distance on the UK mainland?", ["London to Edinburgh", "John O'Groats to Land's End", "Cardiff to Belfast", "Dover to York"], 1, "It is about 870 miles from John O'Groats (Scotland) to Land's End (England)."],
+          [128, "Culture & Society", "Where did the sport of cricket originate?", ["Scotland", "Wales", "England", "Australia"], 2, "Cricket originated in England and is now played globally."],
+          [129, "Laws & Gov", "What are two responsibilities that you will have as a British citizen or permanent resident of the UK?", ["To look after yourself/family AND the environment", "To stay in the UK forever", "To promote work in your local community", "To attend church"], 0, "You should look after yourself and family, and the area in which you live."],
+          [130, "Geography", "Where is Big Ben located?", ["Buckingham Palace", "The Tower of London", "The Houses of the Parliament", "Trafalgar Square"], 2, "Big Ben is the nickname for the great bell of the clock at the Houses of Parliament."],
+          [131, "History", "When were men and women given the right to vote at the age of 21?", ["1918", "1903", "1928", "1923"], 2, "In 1928, women were given the right to vote at the age of 21, the same as men."],
+          [132, "Geography", "Where is the UK geographically located?", ["South west of Europe", "North east of Europe", "North west of Europe", "South east of Europe"], 2, "The UK is located in the north west of Europe."],
+          [133, "Laws & Gov", "Solicitors' charges are usually based on how much time they spend on a case.", ["True", "False"], 0, "Solicitors usually charge based on the time they spend on a case."],
+          [134, "Geography", "Which of the following territories is a Crown dependency but is NOT part of the UK?", ["Northern Ireland", "Wales", "Scotland", "The Channel Islands"], 3, "The Channel Islands and the Isle of Man are Crown dependencies."],
+          [135, "People", "What did Sir Frank Whittle invent in the 1930s?", ["Radar", "Hovercraft", "Jet engine", "Ballpoint pen"], 2, "The jet engine was developed in Britain in the 1930s by Sir Frank Whittle."],
+          [136, "Culture & Society", "Who wrote 'The Daffodils'?", ["William Blake", "Robert Browning", "Lord Byron", "William Wordsworth"], 3, "The British poet William Wordsworth wrote 'The Daffodils'."],
+          [137, "History", "Who was given the title of Lord Protector?", ["Charles I", "Charles II", "Winston Churchill", "Oliver Cromwell"], 3, "Oliver Cromwell was given the title of Lord Protector and ruled until his death in 1658."],
+          [138, "Culture & Society", "What are the 40 days before Easter called?", ["Diwali", "Lent", "Hannukah", "Vaisakhi"], 1, "The 40 days before Easter are known as Lent."],
+          [139, "Laws & Gov", "What is the Home Secretary responsible for?", ["Health", "Defence", "Education", "Policing"], 3, "The Home Secretary is responsible for crime, policing and immigration."],
+          [140, "Geography", "St Helena is a British overseas territory and it is part of the United Kingdom.", ["True", "False"], 1, "False. British overseas territories are linked to the UK but are not part of it."],
+          [141, "Laws & Gov", "Several Church of England bishops sit in the House of Lords.", ["True", "False"], 0, "True. Several Church of England bishops sit in the House of Lords."],
+          [142, "Laws & Gov", "When walking your dog in a public place, you must ensure:", ["It does not play with other dogs", "It wears a collar showing the name and address of the owner", "It wears a high visibility jacket", "It does not bark"], 1, "All dogs in public places must wear a collar showing the owner's name and address."],
+          [143, "History", "Women over the age of 30 were given the right to vote as a result of their contribution towards the war effort. Which war was that?", ["The Second World War", "The Crimean War", "The First World War", "The Civil War"], 2, "In 1918, women over 30 were given voting rights in recognition of their WWI effort."],
+          [144, "History", "Which was the last successful foreign invasion of England that took place in 1066?", ["The Viking invasion", "The Anglo-Saxon Conquest", "The Roman invasion", "The Norman Conquest"], 3, "The Norman Conquest was the last successful foreign invasion of England in 1066."],
+          [145, "Geography", "Where are the Crown Jewels kept?", ["At the House of Commons", "At the Tower of London", "At Buckingham Palace", "At Windsor Castle"], 1, "The Crown Jewels are kept at the Tower of London."],
+          [146, "Sports & Leisure", "Which sport can be traced back to the 15th century in Scotland?", ["Golf", "Tennis", "Football", "Rugby"], 0, "The modern game of golf can be traced back to 15th century Scotland."],
+          [147, "Laws & Gov", "Which court deals with minor criminal cases in England, Wales and Northern Ireland?", ["High Court", "Justice of the Peace Court", "Magistrates' Court", "Crown Court"], 2, "Most minor criminal cases are dealt with in a Magistrates' Court."],
+          [148, "People", "What did the Scottish John Logie Baird develop?", ["Television", "Radar", "Personal computer", "Radio"], 0, "The television was developed by Scotsman John Logie Baird in the 1920s."],
+          [149, "Culture & Society", "Which of the following is a fundamental principle of British life?", ["Communism", "Intolerance", "Individual liberty", "Inequity"], 2, "Individual liberty is a fundamental principle of British life."],
+          [150, "Culture & Society", "Wales has its own established church.", ["True", "False"], 1, "False. There is no established Church in Wales or Northern Ireland."],
+          [151, "History", "Why did Henry VIII establish the church of England?", ["The Pope didn't let him divorce his first wife", "The Pope didn't let him marry Catherine Howard", "The Pope wanted England to be Catholic", "The Pope didn't let him divorce Anne of Cleves"], 0, "When the Pope refused his divorce from Catherine of Aragon, Henry established the Church of England."],
+          [152, "History", "What is the name of the long war that English kings fought with France in the middle ages?", ["The Crimean War", "The First World War", "The Hundred Years War", "The Boer War"], 2, "English kings fought a long war with France called the Hundred Years War."],
+          [153, "History", "When did the Black Death take place?", ["The Golden Age", "The Stone Age", "The Middle Ages", "The Iron Age"], 2, "In 1348 (Middle Ages) the Black Death came to Britain."],
+          [154, "History", "Who was the leader of the suffragettes, the group that campaigned for women's rights to vote?", ["Queen Victoria", "Oliver Cromwell", "Florence Nightingale", "Emmeline Pankhurst"], 3, "Emmeline Pankhurst was the leader of the suffragettes."],
+          [155, "Geography", "Cardiff is the capital city of which country?", ["Scotland", "Northern Ireland", "Ireland", "Wales"], 3, "The capital city of Wales is Cardiff."],
+          [156, "Culture & Society", "Which festival celebrates the end of Ramadan, when Muslims have fasted for a month?", ["Hannukah", "Vaisakhi", "Eid ul Adha", "Eid al-Fitr"], 3, "Eid al-Fitr celebrates the end of Ramadan."],
+          [157, "Culture & Society", "What type of character was played by Charlie Chaplin?", ["A superhero", "A tramp", "A scientific genius", "A bandit"], 1, "Charlie Chaplin became famous in silent movies for his tramp character."],
+          [158, "Laws & Gov", "You have to be at least 21 years old to stand as MP.", ["True", "False"], 1, "False. Anyone aged 18 or over can stand for election as an MP."],
+          [159, "People", "Who developed the radar?", ["John Logie Baird", "Sir Frank Whittle", "Sir Christopher Cockrell", "Sir Robert Watson-Watt"], 3, "Sir Robert Watson-Watt developed the radar."],
+          [160, "Culture & Society", "Which of the following is not a valid UK coin?", ["1p", "5p", "25p", "£1"], 2, "There are no 25p coins in the UK currency."],
+          [161, "Geography", "Where is the Eden Project located?", ["Dorset", "Cornwall", "Devon", "Somerset"], 1, "The Eden Project is located in Cornwall, in the south west of England."],
+          [162, "Laws & Gov", "If a husband forces his wife to have sex he can be charged with rape.", ["True", "False"], 0, "True. A husband forcing his wife to have sex can be charged with rape."],
+          [163, "History", "In which country of the British Empire did the Boer War (1899-1902) take place?", ["Netherlands", "Falkland Islands", "Gibraltar", "South Africa"], 3, "The Boer War of 1899 to 1902 took place in South Africa."],
+          [164, "Laws & Gov", "Which of the following actions is known as 'canvassing'?", ["Donating blood to help people", "Volunteering for an environmental charity", "Caring for animals at a local rescue shelter", "Persuading people to vote for a political party"], 3, "Persuading people to vote for a political party is called 'canvassing'."],
+          [165, "Culture & Society", "Which novel written by JRR Tolkien was voted the country's best-loved novel in 2003?", ["Oliver Twist", "James Bond", "Pride and Prejudice", "The Lord of the Rings"], 3, "In 2003, the Lord of the Rings by JRR Tolkien was voted the best-loved novel."],
+          [166, "History", "When did Germany invade Poland?", ["1942", "1941", "1940", "1939"], 3, "The Second World War started when Germany invaded Poland in 1939."],
+          [167, "Geography", "There are 15 national parks in England, Wales and Scotland. What are national parks?", ["Giant greenhouses", "Land formations of volcanic lava", "Areas of protected countryside", "Medieval buildings"], 2, "National Parks are areas of protected countryside."],
+          [168, "History", "In 1913, the British government promised 'Home Rule' for Ireland, why were changes in Ireland delayed until 1921?", ["Due to the outbreak of the First World War", "Due to the outbreak of the Second World War", "Because there was not a king on the throne", "Due to the outbreak of the Black Death"], 0, "The outbreak of the First World War led to postponing changes in Ireland."],
+          [169, "History", "Which of the following statements is true regarding Elizabeth I?", ["She was a Protestant and found a balance with Catholics", "She was a Catholic and found a balance with Protestants", "She hated both", "She abdicated"], 0, "Elizabeth I was a Protestant and succeeded in finding a balance between the views of Catholics and more extreme Protestants."],
+          [170, "Laws & Gov", "Which two documents do you need to apply for a National Insurance number?", ["Documents proving identity AND permission to work", "Tenancy agreement AND Bank statement", "Contract from employer AND passport", "Library card AND Utility bill"], 0, "You need documents that prove your identity and that you have permission to work in the UK."],
+          [171, "Culture & Society", "When is Halloween celebrated?", ["5th of November", "11th of November", "31st of October", "1st of April"], 2, "Halloween is celebrated on the 31st of October."],
+          [172, "Sports & Leisure", "What is the name of the most famous cricket competition played between England and Australia?", ["The Ashes", "The Six Nations Championship", "The Grand National", "The Australian Open"], 0, "The most famous cricket competition is the Ashes."],
+          [173, "Sports & Leisure", "Which of the following is a major horse-racing event in England?", ["The Wimbledon Championship", "Royal Ascot", "The Open Championship", "The Six Nations Championship"], 1, "Royal Ascot is a famous five-day horse-racing meeting in Berkshire."],
+          [174, "Laws & Gov", "How many members form a jury in Scotland?", ["12", "14", "15", "20"], 2, "In Scotland a jury has 15 members."],
+          [175, "Laws & Gov", "Police complaints can only be made by writing to the Chief Constable of the police force involved.", ["True", "False"], 1, "False. Complaints can be made at a station, to the Chief Constable, or to an independent body."],
+          [176, "Geography", "Where is the Lake District National Park located?", ["Scotland", "Wales", "England", "Northern Ireland"], 2, "Lake District is in England."],
+          [177, "People", "Who was born in Stratford-upon-Avon?", ["Jane Austen", "Charles Dickens", "William Shakespeare", "Thomas Hardy"], 2, "William Shakespeare was born in Stratford-upon-Avon."],
+          [178, "Laws & Gov", "What is the small claims procedure?", ["An informal way to settle minor disputes without much time or money", "A home insurance claim procedure", "A process for claiming tax back", "A way to claim benefits"], 0, "The small claims procedure is an informal way of helping people to settle minor disputes."],
+          [179, "Culture & Society", "What building was constructed in Hyde Park to hold the Great Exhibition of 1851?", ["The Crystal Palace", "Buckingham Palace", "Kensington Palace", "Apsley House"], 0, "In 1851, the Great Exhibition opened in Hyde Park in the Crystal Palace."],
+          [180, "People", "Who was Florence Nightingale?", ["An economist", "A painter", "A nurse", "A poet"], 2, "Florence Nightingale was a nurse, regarded as the founder of modern nursing."],
+          [181, "History", "Who is the patron Saint of England?", ["St George", "St Patrick", "St David", "St Andrew"], 0, "The patron Saint of England is St George."],
+          [182, "Culture & Society", "What stories are associated with Geoffrey Chaucer?", ["The Cambridge Tales", "The Eastbourne Tales", "The Canterbury Tales", "The London Tales"], 2, "Geoffrey Chaucer wrote The Canterbury Tales."],
+          [183, "Culture & Society", "When is Boxing Day celebrated?", ["31st October", "26th December", "24th December", "01st January"], 1, "Boxing Day is the day after Christmas Day (26th December)."],
+          [184, "Culture & Society", "What is the name of the holiday when banks and many other businesses are closed for the day?", ["Credit Holidays", "Branch Holidays", "Bank Holidays", "Business Holidays"], 2, "Public holidays are known as Bank Holidays."],
+          [185, "People", "What was Isaac Newton known for?", ["The discovery of insulin", "The discovery of gravity", "The discovery of penicillin", "The discovery of steam power"], 1, "Isaac Newton is famous for discovering how gravity applies to the whole universe."],
+          [186, "History", "Who built a wall in the north of England to keep out the Picts (ancestors of the Scottish people)?", ["Boudicca", "Emperor Hadrian", "Emperor Claudius", "Julius Caesar"], 1, "The Emperor Hadrian built a wall in the north of England."],
+          [187, "Sports & Leisure", "Which two universities participate in an annual rowing race that takes place on the River Thames?", ["Oxford and Cambridge", "Manchester and Warwick", "London and Edinburgh", "Bristol and Durham"], 0, "There is a popular yearly race on the Thames between Oxford and Cambridge Universities."],
+          [188, "Laws & Gov", "Does Britain have a written constitution?", ["Yes", "No"], 1, "No, the British constitution is not written down in any single document."],
+          [189, "Culture & Society", "Which of the following statements is correct regarding shopping in the UK?", ["Most shops in the UK are open seven days a week", "All shops close on Sundays and bank holidays", "Shops only open 5 days a week", "Shops are never open on bank holidays"], 0, "Most shops are open 7 days a week, although trading hours on Sundays and public holidays are generally reduced."],
+          [190, "History", "Which country sent a fleet of ships to England in 1588?", ["France", "Germany", "Spain", "Italy"], 2, "In 1588, the English defeated the Spanish Armada, which had been sent by Spain to conquer England."],
+          [191, "Geography", "Which of the following castles is located in Scotland?", ["Bodiam Castle", "Powis Castle", "Caernarfon Castle", "Crathes Castle"], 3, "Crathes Castle is located in Scotland."],
+          [192, "Culture & Society", "When is St Patrick's day celebrated?", ["1st March", "17th March", "23rd April", "30th November"], 1, "St Patrick's day, patron of Northern Ireland, is celebrated on the 17th of March."],
+          [193, "Laws & Gov", "How are the members of the Northern Ireland Parliament elected?", ["Using the first past the post system", "Using a runoff system", "By a system of proportional representation", "Using a system of ranked voting"], 2, "The Northern Ireland Assembly has 90 members elected with a form of proportional representation."],
+          [194, "People", "Who was the first British Prime Minister?", ["Winston Churchill", "Earl of Wilmington", "Henry Pelham", "Sir Robert Walpole"], 3, "Sir Robert Walpole was the first man to be called Prime Minister (1721 to 1742)."],
+          [195, "Culture & Society", "Which of the following actresses has not won an Oscar?", ["Tilda Swinton", "Dame Judi Dench", "Kate Winslet", "Emily Watson"], 3, "British actors to have won Oscars include Colin Firth, Sir Antony Hopkins, Dame Judi Dench, Kate Winslet, and Tilda Swinton. Emily Watson has not."],
+          [196, "History", "Why were canals built during the Industrial Revolution?", ["To make space for the large fleet of British ships", "To link the factories to towns and cities and to the ports", "To increase the number of water mills in the UK", "To increase the amount of water in towns and cities"], 1, "Canals were built to link the factories to towns, cities, and ports."],
+          [197, "History", "Which of the following countries helped Britain to develop the Concorde?", ["Germany", "Norway", "Italy", "France"], 3, "Britain and France developed the world's only supersonic commercial airliner, Concorde."],
+          [198, "History", "Which invention led to the rapid development of Britain during the Industrial Revolution?", ["Magnetic Resonance Imaging", "Radar", "Steam power", "Hovercraft"], 2, "The rapid development of industry happened because of the development of machinery and the use of steam power."],
+          [199, "Geography", "Where is the Giant's Causeway located?", ["Scotland", "England", "Wales", "Northern Ireland"], 3, "The Giant's Causeway is a land formation of columns made from volcanic lava located on the north-east coast of Northern Ireland."],
+          [200, "History", "What happened to Mary, Queen of Scots, after being sent to prison for 20 years by Queen Elizabeth I?", ["She got married", "She was sent to France", "She was sent to Scotland", "She was executed"], 3, "Mary was executed, accused of plotting against Elizabeth I."],
+          [201, "Laws & Gov", "What is the Commonwealth?", ["An international organization that aims to prevent war", "An association of countries that support each other and work together", "A trade union to protect workers rights", "A military alliance between European countries"], 1, "The Commonwealth is an association of countries that support each other and work together towards shared goals in democracy and development."],
+          [202, "History", "Under which name was the movement of opinion against the authority of the Pope during the times of Henry VIII known?", ["The Spanish Inquisition", "The Holy Wars", "The Enlightenment", "The Reformation"], 3, "The movement of opinion against the authority of the Pope was known as the Reformation."]
+        ];
+
+        // Rehydrate data into structured objects
+        const QUESTION_BANK = rawData.map(d => ({
+          id: d[0],
+          category: d[1],
+          text: d[2],
+          options: d[3],
+          correctAnswer: d[3][d[4]],
+          explanation: d[5]
+        }));
+
+        function App() {
+          const [currentScreen, setCurrentScreen] = useState('home');
+          const [activeQuestions, setActiveQuestions] = useState([]);
+          const [currentIndex, setCurrentIndex] = useState(0);
+          const [userAnswers, setUserAnswers] = useState({});
+          const [showExplanation, setShowExplanation] = useState(false);
+          const [quizHistory, setQuizHistory] = useState([]); 
+          const [autoNavigate, setAutoNavigate] = useState(true);
+          const [isDarkMode, setIsDarkMode] = useState(false);
+
+          // Auto theme detection
+          useEffect(() => {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            setIsDarkMode(mediaQuery.matches);
+            
+            const handler = (e) => setIsDarkMode(e.matches);
+            mediaQuery.addEventListener('change', handler);
+            return () => mediaQuery.removeEventListener('change', handler);
+          }, []);
+
+          // Auto-advance to the next question if the answer is correct
+          useEffect(() => {
+            let timeout;
+            if (currentScreen === 'quiz' && showExplanation && autoNavigate) {
+              const isCorrect = userAnswers[currentIndex] === activeQuestions[currentIndex]?.correctAnswer;
+              if (isCorrect) {
+                timeout = setTimeout(() => {
+                  nextQuestion();
+                }, 1500); 
+              }
+            }
+            return () => clearTimeout(timeout);
+          }, [showExplanation, currentIndex, autoNavigate, currentScreen]);
+
+          const startQuiz = () => {
+            const shuffled = [...QUESTION_BANK].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 24); 
+            setActiveQuestions(selected);
+            setCurrentIndex(0);
+            setUserAnswers({});
+            setShowExplanation(false);
+            setCurrentScreen('quiz');
+          };
+
+          const handleAnswer = (answer) => {
+            if (showExplanation) return; 
+            setUserAnswers({
+              ...userAnswers,
+              [currentIndex]: answer
+            });
+            setShowExplanation(true);
+          };
+
+          const nextQuestion = () => {
+            if (currentIndex < activeQuestions.length - 1) {
+              setCurrentIndex(currentIndex + 1);
+              setShowExplanation(false);
+            } else {
+              finishQuiz();
+            }
+          };
+
+          const finishQuiz = () => {
+            const score = calculateScore();
+            const newHistory = [...quizHistory, score];
+            setQuizHistory(newHistory);
+            setCurrentScreen('results');
+          };
+
+          const calculateScore = () => {
+            let correct = 0;
+            activeQuestions.forEach((q, index) => {
+              if (userAnswers[index] === q.correctAnswer) {
+                correct++;
+              }
+            });
+            return correct;
+          };
+
+          const getCategoryStats = () => {
+            const stats = {};
+            QUESTION_BANK.forEach(q => {
+              if (!stats[q.category]) {
+                stats[q.category] = { totalSeen: 0, correct: 0 };
+              }
+            });
+
+            activeQuestions.forEach((q, index) => {
+              const isAnswered = userAnswers[index] !== undefined;
+              if (isAnswered) {
+                stats[q.category].totalSeen += 1;
+                if (userAnswers[index] === q.correctAnswer) {
+                  stats[q.category].correct += 1;
+                }
+              }
+            });
+            return stats;
+          };
+
+          const renderHome = () => (
+            <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in duration-300">
+              <div className="bg-white dark:bg-slate-800 p-8 sm:p-12 rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-100 dark:border-slate-700/50 transition-all">
+                <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                  <BookOpen size={48} />
+                </div>
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 tracking-tight">Life in the UK: Exam Prep</h1>
+                <div className="flex items-center justify-center gap-2 mb-8">
+                    <Brain size={20} className="text-indigo-500 dark:text-indigo-400" />
+                    <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Vast Question Bank Loaded ({QUESTION_BANK.length} Qs)</span>
+                </div>
+                <p className="text-slate-600 dark:text-slate-300 mb-10 text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto">
+                  We extracted every question from the official mocks and syllabus. You will face 24 random questions. You need 18/24 (75%) to pass.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  {activeQuestions.length > 0 && currentIndex < activeQuestions.length && currentScreen !== 'results' && (
+                    <button 
+                      onClick={() => setCurrentScreen('quiz')}
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95"
+                    >
+                      <Play size={22} />
+                      Resume Test
+                    </button>
+                  )}
+
+                  <button 
+                    onClick={startQuiz}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95"
+                  >
+                    {activeQuestions.length > 0 && currentIndex < activeQuestions.length ? <RefreshCcw size={22} /> : <Play size={22} />}
+                    {activeQuestions.length > 0 && currentIndex < activeQuestions.length ? 'Restart New Test' : 'Start Mock Test'}
+                  </button>
+                  
+                  <button 
+                    onClick={() => setCurrentScreen('analysis')}
+                    className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95"
+                  >
+                    <BarChart3 size={22} />
+                    View History
+                  </button>
+                </div>
+
+                {quizHistory.length > 0 && (
+                  <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+                    <div className="text-center">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Tests Taken</p>
+                      <p className="text-4xl font-black text-slate-800 dark:text-slate-50">{quizHistory.length}</p>
+                    </div>
+                    <div className="hidden sm:block w-px h-16 bg-slate-200 dark:bg-slate-700"></div>
+                    <div className="text-center">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Avg Score</p>
+                      <p className="text-4xl font-black text-slate-800 dark:text-slate-50">
+                        {Math.round(quizHistory.reduce((a, b) => a + b, 0) / quizHistory.length)}<span className="text-2xl text-slate-400 dark:text-slate-500">/24</span>
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+
+          const renderQuiz = () => {
+            const question = activeQuestions[currentIndex];
+            const hasAnswered = showExplanation;
+            const isCorrect = userAnswers[currentIndex] === question?.correctAnswer;
+            const progress = ((currentIndex) / activeQuestions.length) * 100;
+
+            if (!question) return null;
+
+            return (
+              <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 animate-in slide-in-from-right-8 duration-300">
+                <div className="mb-10">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 gap-4">
+                    <span className="text-base uppercase tracking-wider">Question {currentIndex + 1} of {activeQuestions.length}</span>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 bg-white dark:bg-slate-800 px-4 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
+                        <input 
+                          type="checkbox" 
+                          checked={autoNavigate}
+                          onChange={(e) => setAutoNavigate(e.target.checked)}
+                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                        />
+                        <span>Auto-next <span className="hidden sm:inline">on correct</span></span>
+                      </label>
+                      <span className="px-4 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden shadow-inner">
+                    <div 
+                      className="bg-blue-500 dark:bg-blue-400 h-full rounded-full transition-all duration-500 ease-out relative"
+                      style={{ width: `${progress}%` }}
+                    >
+                      <div className="absolute inset-0 bg-white/20 dark:bg-white/10 w-full h-full"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-6 sm:p-10 transition-colors">
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-50 mb-8 leading-snug tracking-tight">{question.text}</h2>
+                  
+                  <div className="space-y-4">
+                    {question.options.map((option, idx) => {
+                      let btnClass = "w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 text-lg sm:text-xl font-medium leading-relaxed ";
+                      
+                      if (!hasAnswered) {
+                        btnClass += "border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-700 dark:text-slate-200 shadow-sm hover:shadow";
+                      } else {
+                        if (option === question.correctAnswer) {
+                          btnClass += "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 shadow-sm";
+                        } else if (option === userAnswers[currentIndex]) {
+                          btnClass += "border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 shadow-sm";
+                        } else {
+                          btnClass += "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed";
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => handleAnswer(option)}
+                          disabled={hasAnswered}
+                          className={btnClass}
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <span>{option}</span>
+                            {hasAnswered && option === question.correctAnswer && <CheckCircle2 className="text-green-500 shrink-0" size={28}/>}
+                            {hasAnswered && option === userAnswers[currentIndex] && option !== question.correctAnswer && <XCircle className="text-red-500 shrink-0" size={28}/>}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {hasAnswered && (
+                    <div className={`mt-10 p-6 rounded-2xl border-2 shadow-sm ${isCorrect ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/50' : 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-800/50'} animate-in slide-in-from-bottom-4 duration-300`}>
+                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+                        <div className={`shrink-0 mt-1 p-2 rounded-full h-fit ${isCorrect ? 'bg-green-100 dark:bg-green-800/30 text-green-600 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-800/30 text-orange-600 dark:text-orange-400'}`}>
+                          <Info size={24} />
+                        </div>
+                        <div>
+                          <h4 className={`text-xl font-extrabold mb-2 uppercase tracking-wider ${isCorrect ? 'text-green-800 dark:text-green-400' : 'text-orange-800 dark:text-orange-400'}`}>
+                            {isCorrect ? 'Correct!' : 'Incorrect'}
+                          </h4>
+                          <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+                            <span className="font-bold text-slate-900 dark:text-slate-100">Explanation: </span>
+                            {question.explanation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {hasAnswered && (
+                    <div className="mt-10 flex justify-end">
+                      <button 
+                        onClick={nextQuestion}
+                        className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-lg"
+                      >
+                        <span className="text-lg">{currentIndex < activeQuestions.length - 1 ? 'Next Question' : 'View Results'}</span>
+                        <ArrowRight size={22} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          };
+
+          const renderResults = () => {
+            const score = calculateScore();
+            const isPass = score >= 18; 
+
+            return (
+              <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 animate-in zoom-in duration-300">
+                <div className="bg-white dark:bg-slate-800 p-8 sm:p-12 rounded-3xl shadow-2xl text-center border border-slate-100 dark:border-slate-700/50">
+                  <div className={`w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner ${isPass ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400'}`}>
+                    <Trophy size={56} />
+                  </div>
+                  
+                  <h2 className="text-4xl font-black text-slate-800 dark:text-slate-50 mb-3 tracking-tight">
+                    {isPass ? 'Congratulations! You Passed' : 'Keep Studying! You Failed'}
+                  </h2>
+                  <p className="text-lg text-slate-500 dark:text-slate-400 mb-10 font-medium">You need 18 out of 24 to pass the official test.</p>
+                  
+                  <div className="text-8xl font-black text-slate-800 dark:text-slate-50 mb-12 tracking-tighter">
+                    {score}<span className="text-5xl text-slate-400 dark:text-slate-500">/24</span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                    <button 
+                      onClick={() => setCurrentScreen('analysis')}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 text-lg"
+                    >
+                      Analyze My Weaknesses
+                    </button>
+                    <button 
+                      onClick={() => setCurrentScreen('home')}
+                      className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95 text-lg"
+                    >
+                      <Home size={22} />
+                      Return Home
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          const renderAnalysis = () => {
+            if (quizHistory.length === 0) {
+              return (
+                <div className="max-w-3xl mx-auto py-20 px-4 text-center animate-in fade-in duration-300">
+                  <div className="w-28 h-28 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                    <BarChart3 size={56} />
+                  </div>
+                  <h2 className="text-4xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 tracking-tight">No History Yet</h2>
+                  <p className="text-slate-600 dark:text-slate-400 mb-10 text-xl leading-relaxed max-w-lg mx-auto">You haven't completed any mock tests yet. Take a test to see your performance analysis!</p>
+                  <button 
+                    onClick={startQuiz}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all mx-auto shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 text-lg"
+                  >
+                    <Play size={22} />
+                    Start Mock Test
+                  </button>
+                </div>
+              );
+            }
+
+            const stats = getCategoryStats();
+            const categories = Object.keys(stats).filter(cat => stats[cat].totalSeen > 0);
+
+            return (
+              <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
+                <div className="flex items-center gap-4 mb-10">
+                  <button 
+                    onClick={() => setCurrentScreen('home')}
+                    className="p-3 bg-white dark:bg-slate-800 rounded-full shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+                  >
+                    <Home size={24} />
+                  </button>
+                  <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-50 tracking-tight">Your Performance Analysis</h2>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-6 sm:p-10 mb-10">
+                  <p className="text-slate-600 dark:text-slate-300 mb-10 text-lg sm:text-xl leading-relaxed">
+                    Based on your recent mock test history, here are the specific syllabus areas you should focus on.
+                  </p>
+
+                  <div className="space-y-6">
+                    {categories.map(cat => {
+                      const { correct, totalSeen } = stats[cat];
+                      const percentage = Math.round((correct / totalSeen) * 100);
+                      let statusColor = "bg-green-500 dark:bg-green-400";
+                      let alertIcon = null;
+                      let bgCard = "bg-slate-50 dark:bg-slate-800/50";
+                      let borderCard = "border-slate-100 dark:border-slate-700";
+
+                      if (percentage < 75) {
+                        statusColor = "bg-red-500 dark:bg-red-500";
+                        alertIcon = <AlertTriangle size={20} className="text-red-500 dark:text-red-400" />;
+                        bgCard = "bg-red-50/50 dark:bg-red-900/10";
+                        borderCard = "border-red-100 dark:border-red-900/30";
+                      } else if (percentage < 90) {
+                        statusColor = "bg-orange-400 dark:bg-orange-400";
+                      }
+
+                      return (
+                        <div key={cat} className={`p-6 rounded-2xl border ${bgCard} ${borderCard} transition-colors`}>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{cat}</h3>
+                              {alertIcon}
+                            </div>
+                            <span className="text-lg font-black text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 px-3 py-1 rounded-lg shadow-sm">
+                              {percentage}% ({correct}/{totalSeen})
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-200 dark:bg-slate-700 h-4 rounded-full overflow-hidden shadow-inner">
+                            <div 
+                              className={`${statusColor} h-full rounded-full transition-all duration-1000 relative`}
+                              style={{ width: `${percentage}%` }}
+                            >
+                              <div className="absolute inset-0 bg-white/20 dark:bg-white/10 w-full h-full"></div>
+                            </div>
+                          </div>
+                          {percentage < 75 && (
+                            <p className="mt-4 text-base text-red-600 dark:text-red-400 font-bold bg-white dark:bg-slate-900 px-4 py-3 rounded-xl shadow-sm inline-block">
+                              Action Required: Review the "{cat}" section in your study guides. 
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <button 
+                    onClick={startQuiz}
+                    className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-2xl flex items-center gap-3 transition-all shadow-xl hover:scale-105 active:scale-95 text-lg"
+                  >
+                    <RefreshCcw size={22} />
+                    Retake Test
+                  </button>
+                </div>
+              </div>
+            );
+          };
+
+          return (
+            <div className={`${isDarkMode ? 'dark' : ''}`}>
+              <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-200 dark:selection:bg-blue-900 transition-colors duration-300">
+                <header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/50 sticky top-0 z-50 shadow-sm">
+                  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400 font-black text-2xl cursor-pointer tracking-tight" onClick={() => setCurrentScreen('home')}>
+                      <BookOpen size={28} />
+                      <span className="hidden sm:inline">UK Life Prep</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      {/* Theme Indicator (Read Only) */}
+                      <div className="hidden md:flex items-center justify-center p-2 rounded-full text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 mr-2" title="Theme auto-syncs with your system">
+                        {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
+                      </div>
+
+                      <button 
+                        onClick={() => setCurrentScreen('home')}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-bold transition-colors ${currentScreen === 'home' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+                      >
+                        <Home size={20} />
+                        <span className="hidden sm:inline">Home</span>
+                      </button>
+                      
+                      <button 
+                        onClick={() => setCurrentScreen('analysis')}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-bold transition-colors ${currentScreen === 'analysis' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+                      >
+                        <BarChart3 size={20} />
+                        <span className="hidden sm:inline">History</span>
+                      </button>
+
+                      {currentScreen === 'quiz' && (
+                        <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden sm:block"></div>
+                      )}
+                      {currentScreen === 'quiz' && (
+                        <button 
+                          onClick={() => setCurrentScreen('home')}
+                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        >
+                          <XCircle size={20} />
+                          <span className="hidden lg:inline">Quit Test</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </header>
+
+                <main className="pb-16 pt-8">
+                  {currentScreen === 'home' && renderHome()}
+                  {currentScreen === 'quiz' && renderQuiz()}
+                  {currentScreen === 'results' && renderResults()}
+                  {currentScreen === 'analysis' && renderAnalysis()}
+                </main>
+              </div>
+            </div>
+          );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
