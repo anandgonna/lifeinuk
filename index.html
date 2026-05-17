@@ -695,13 +695,22 @@
                             </div>
                             <div className="flex justify-between items-center gap-4">
                               <span className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:inline">Next question...</span>
-                              <button 
-                                onClick={() => setIsAutoNavCancelled(true)}
-                                className="w-full sm:w-auto bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 px-6 py-4 sm:py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 text-lg sm:text-base"
-                              >
-                                <X size={24} className="sm:w-5 sm:h-5" />
-                                Wait, Stay Here
-                              </button>
+                              <div className="flex w-full sm:w-auto gap-2">
+                                <button 
+                                  onClick={() => setIsAutoNavCancelled(true)}
+                                  className="flex-1 sm:flex-initial bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 px-4 py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 text-base whitespace-nowrap"
+                                >
+                                  <X size={20} />
+                                  Wait
+                                </button>
+                                <button 
+                                  onClick={nextQuestion}
+                                  className="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 text-base shadow-md hover:scale-[1.02] active:scale-95 whitespace-nowrap"
+                                >
+                                  Next
+                                  <ArrowRight size={20} />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         ) : (
