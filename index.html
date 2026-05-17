@@ -34,7 +34,7 @@
         import { createRoot } from 'react-dom/client';
         import { 
           BookOpen, Trophy, AlertTriangle, CheckCircle2, XCircle, 
-          RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun, Target
+          RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun, Target, X
         } from 'lucide-react';
 
         /* COMPRESSED DATA BANK */
@@ -259,10 +259,36 @@
           const [currentIndex, setCurrentIndex] = useState(0);
           const [userAnswers, setUserAnswers] = useState({});
           const [showExplanation, setShowExplanation] = useState(false);
-          const [quizHistory, setQuizHistory] = useState([]); 
-          const [questionHistory, setQuestionHistory] = useState({}); // Track global success/failure per question
           const [autoNavigate, setAutoNavigate] = useState(true);
           const [isDarkMode, setIsDarkMode] = useState(false);
+          
+          // New states for the auto-navigate timer
+          const [autoNavProgress, setAutoNavProgress] = useState(0);
+          const [isAutoNavCancelled, setIsAutoNavCancelled] = useState(false);
+
+          // Persistent Local Storage State
+          const [quizHistory, setQuizHistory] = useState(() => {
+            try {
+              const saved = localStorage.getItem('ukLifeQuizHistory');
+              return saved ? JSON.parse(saved) : [];
+            } catch(e) { return []; }
+          }); 
+          
+          const [questionHistory, setQuestionHistory] = useState(() => {
+            try {
+              const saved = localStorage.getItem('ukLifeQuestionHistory');
+              return saved ? JSON.parse(saved) : {};
+            } catch(e) { return {}; }
+          });
+
+          // Save to Local Storage on change
+          useEffect(() => {
+            localStorage.setItem('ukLifeQuizHistory', JSON.stringify(quizHistory));
+          }, [quizHistory]);
+
+          useEffect(() => {
+            localStorage.setItem('ukLifeQuestionHistory', JSON.stringify(questionHistory));
+          }, [questionHistory]);
 
           // Auto theme detection
           useEffect(() => {
@@ -274,19 +300,28 @@
             return () => mediaQuery.removeEventListener('change', handler);
           }, []);
 
-          // Auto-advance to the next question if the answer is correct
+          // Enhanced Auto-advance effect with visual progress timer
           useEffect(() => {
-            let timeout;
-            if (currentScreen === 'quiz' && showExplanation && autoNavigate) {
+            let interval;
+            const duration = 3000; // 3 full seconds to read before auto-advancing
+            const updateInterval = 30; // Smooth 30ms updates
+
+            if (currentScreen === 'quiz' && showExplanation && autoNavigate && !isAutoNavCancelled) {
               const isCorrect = userAnswers[currentIndex] === activeQuestions[currentIndex]?.correctAnswer;
               if (isCorrect) {
-                timeout = setTimeout(() => {
-                  nextQuestion();
-                }, 1500); 
+                let elapsed = 0;
+                interval = setInterval(() => {
+                  elapsed += updateInterval;
+                  setAutoNavProgress((elapsed / duration) * 100);
+                  if (elapsed >= duration) {
+                    clearInterval(interval);
+                    nextQuestion();
+                  }
+                }, updateInterval);
               }
             }
-            return () => clearTimeout(timeout);
-          }, [showExplanation, currentIndex, autoNavigate, currentScreen]);
+            return () => clearInterval(interval);
+          }, [showExplanation, currentIndex, autoNavigate, currentScreen, isAutoNavCancelled, userAnswers, activeQuestions]);
 
           // Generates a mock test. If focusWeak is true, targets specifically failed questions.
           const generateQuiz = (focusWeak = false) => {
@@ -298,18 +333,15 @@
             let pool = [];
 
             if (focusWeak) {
-              // Priority 1: Fill up to 24 entirely with weak questions
               const shuffledWeak = [...weakQuestions].sort(() => 0.5 - Math.random());
               pool = shuffledWeak.slice(0, 24);
 
-              // Priority 2: If we don't have 24 weak questions, fill the rest randomly
               if (pool.length < 24) {
                 const otherQuestions = QUESTION_BANK.filter(q => !pool.includes(q));
                 const shuffledOther = [...otherQuestions].sort(() => 0.5 - Math.random());
                 pool = [...pool, ...shuffledOther.slice(0, 24 - pool.length)];
               }
             } else {
-              // Smart Standard Mode: Inject up to 8 weak questions naturally into a regular test
               const shuffledWeak = [...weakQuestions].sort(() => 0.5 - Math.random());
               const selectedWeak = shuffledWeak.slice(0, 8); 
 
@@ -322,8 +354,10 @@
 
             setActiveQuestions(pool);
             setCurrentIndex(0);
-            setUserAnswers({});
+            setUserAnswers({}); 
             setShowExplanation(false);
+            setIsAutoNavCancelled(false);
+            setAutoNavProgress(0);
             setCurrentScreen('quiz');
           };
 
@@ -336,6 +370,10 @@
               ...prev,
               [currentIndex]: answer
             }));
+            
+            // Reset timers
+            setIsAutoNavCancelled(false);
+            setAutoNavProgress(0);
             setShowExplanation(true);
 
             // Update permanent global tracking memory for this exact question
@@ -352,6 +390,8 @@
             if (currentIndex < activeQuestions.length - 1) {
               setCurrentIndex(currentIndex + 1);
               setShowExplanation(false);
+              setIsAutoNavCancelled(false);
+              setAutoNavProgress(0);
             } else {
               finishQuiz();
             }
@@ -376,7 +416,6 @@
 
           const getCategoryStats = () => {
             const stats = {};
-            // Pre-seed categories
             QUESTION_BANK.forEach(q => {
               if (!stats[q.category]) {
                 stats[q.category] = { totalSeen: 0, correct: 0 };
@@ -390,23 +429,22 @@
             return stats;
           };
 
-          // Count how many questions user has gotten wrong
           const getWeakQuestionsCount = () => {
              return Object.values(questionHistory).filter(stats => stats.correct < stats.attempts).length;
           };
 
           const renderHome = () => (
-            <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in duration-300">
-              <div className="bg-white dark:bg-slate-800 p-8 sm:p-12 rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-100 dark:border-slate-700/50 transition-all">
-                <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                  <BookOpen size={48} />
+            <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in duration-300">
+              <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-xl max-w-3xl w-full border border-slate-100 dark:border-slate-700/50 transition-all">
+                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                  <BookOpen size={32} />
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 tracking-tight">Life in the UK: Exam Prep</h1>
-                <div className="flex items-center justify-center gap-2 mb-8">
-                    <Brain size={20} className="text-indigo-500 dark:text-indigo-400" />
-                    <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Vast Question Bank Loaded ({QUESTION_BANK.length} Qs)</span>
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-50 mb-3 tracking-tight">Life in the UK: Exam Prep</h1>
+                <div className="flex items-center justify-center gap-2 mb-6">
+                    <Brain size={18} className="text-indigo-500 dark:text-indigo-400" />
+                    <span className="text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Vast Question Bank Loaded ({QUESTION_BANK.length} Qs)</span>
                 </div>
-                <p className="text-slate-600 dark:text-slate-300 mb-10 text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto">
+                <p className="text-slate-600 dark:text-slate-300 mb-6 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
                   We extracted every question from the official mocks and syllabus. Your mock tests will automatically mix in questions you've previously failed.
                 </p>
                 
@@ -414,41 +452,41 @@
                   {activeQuestions.length > 0 && currentIndex < activeQuestions.length && currentScreen !== 'results' && (
                     <button 
                       onClick={() => setCurrentScreen('quiz')}
-                      className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95"
+                      className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95 text-base"
                     >
-                      <Play size={22} />
+                      <Play size={20} />
                       Resume Test
                     </button>
                   )}
 
                   <button 
                     onClick={() => generateQuiz(false)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 text-base"
                   >
-                    {activeQuestions.length > 0 && currentIndex < activeQuestions.length ? <RefreshCcw size={22} /> : <Play size={22} />}
+                    {activeQuestions.length > 0 && currentIndex < activeQuestions.length ? <RefreshCcw size={20} /> : <Play size={20} />}
                     {activeQuestions.length > 0 && currentIndex < activeQuestions.length ? 'Restart New Test' : 'Start Mock Test'}
                   </button>
                   
                   <button 
                     onClick={() => setCurrentScreen('analysis')}
-                    className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95"
+                    className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 text-base"
                   >
-                    <BarChart3 size={22} />
+                    <BarChart3 size={20} />
                     View History
                   </button>
                 </div>
 
                 {quizHistory.length > 0 && (
-                  <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+                  <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center justify-center gap-6 sm:gap-8">
                     <div className="text-center">
-                      <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Tests Taken</p>
-                      <p className="text-4xl font-black text-slate-800 dark:text-slate-50">{quizHistory.length}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Tests Taken</p>
+                      <p className="text-3xl font-black text-slate-800 dark:text-slate-50">{quizHistory.length}</p>
                     </div>
-                    <div className="hidden sm:block w-px h-16 bg-slate-200 dark:bg-slate-700"></div>
+                    <div className="hidden sm:block w-px h-12 bg-slate-200 dark:bg-slate-700"></div>
                     <div className="text-center">
-                      <p className="text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Avg Score</p>
-                      <p className="text-4xl font-black text-slate-800 dark:text-slate-50">
-                        {Math.round(quizHistory.reduce((a, b) => a + b, 0) / quizHistory.length)}<span className="text-2xl text-slate-400 dark:text-slate-500">/24</span>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Avg Score</p>
+                      <p className="text-3xl font-black text-slate-800 dark:text-slate-50">
+                        {Math.round(quizHistory.reduce((a, b) => a + b, 0) / quizHistory.length)}<span className="text-xl text-slate-400 dark:text-slate-500">/24</span>
                       </p>
                     </div>
                   </div>
@@ -466,24 +504,24 @@
             if (!question) return null;
 
             return (
-              <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                <div className="mb-10">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 gap-4">
-                    <span className="text-base uppercase tracking-wider">Question {currentIndex + 1} of {activeQuestions.length}</span>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 bg-white dark:bg-slate-800 px-4 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
+              <div className="max-w-4xl mx-auto py-4 px-2 sm:px-4">
+                <div className="mb-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-3">
+                    <span className="text-sm uppercase tracking-wider">Question {currentIndex + 1} of {activeQuestions.length}</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 bg-white dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
                         <input 
                           type="checkbox" 
                           checked={autoNavigate}
                           onChange={(e) => setAutoNavigate(e.target.checked)}
-                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                          className="w-3 h-3 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
                         />
                         <span>Auto-next <span className="hidden sm:inline">on correct</span></span>
                       </label>
-                      <span className="px-4 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
+                      <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
                     </div>
                   </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden shadow-inner">
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
                     <div 
                       className="bg-blue-500 dark:bg-blue-400 h-full rounded-full transition-all duration-500 ease-out relative"
                       style={{ width: `${progress}%` }}
@@ -493,13 +531,12 @@
                   </div>
                 </div>
 
-                {/* Using a key bound to question.id completely resolves the lingering transition/color issue */}
-                <div key={question.id} className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-6 sm:p-10 transition-colors animate-in slide-in-from-right-8 duration-300">
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-50 mb-8 leading-snug tracking-tight">{question.text}</h2>
+                <div key={question.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 animate-in slide-in-from-right-8 duration-300">
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 leading-tight tracking-tight">{question.text}</h2>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {question.options.map((option, idx) => {
-                      let btnClass = "w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 text-lg sm:text-xl font-medium leading-relaxed ";
+                      let btnClass = "w-full text-left p-3 sm:p-4 rounded-xl border-2 text-base sm:text-lg font-medium leading-snug ";
                       
                       if (!hasAnswered) {
                         btnClass += "border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-700 dark:text-slate-200 shadow-sm hover:shadow";
@@ -515,15 +552,15 @@
 
                       return (
                         <button
-                          key={idx}
+                          key={`${question.id}-${idx}`}
                           onClick={() => handleAnswer(option)}
                           disabled={hasAnswered}
                           className={btnClass}
                         >
-                          <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center justify-between gap-3">
                             <span>{option}</span>
-                            {hasAnswered && option === question.correctAnswer && <CheckCircle2 className="text-green-500 shrink-0" size={28}/>}
-                            {hasAnswered && option === userAnswers[currentIndex] && option !== question.correctAnswer && <XCircle className="text-red-500 shrink-0" size={28}/>}
+                            {hasAnswered && option === question.correctAnswer && <CheckCircle2 className="text-green-500 shrink-0" size={24}/>}
+                            {hasAnswered && option === userAnswers[currentIndex] && option !== question.correctAnswer && <XCircle className="text-red-500 shrink-0" size={24}/>}
                           </div>
                         </button>
                       );
@@ -531,16 +568,16 @@
                   </div>
 
                   {hasAnswered && (
-                    <div className={`mt-10 p-6 rounded-2xl border-2 shadow-sm ${isCorrect ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/50' : 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-800/50'} animate-in slide-in-from-bottom-4 duration-300`}>
-                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
-                        <div className={`shrink-0 mt-1 p-2 rounded-full h-fit ${isCorrect ? 'bg-green-100 dark:bg-green-800/30 text-green-600 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-800/30 text-orange-600 dark:text-orange-400'}`}>
-                          <Info size={24} />
+                    <div className={`mt-4 p-4 rounded-xl border-2 shadow-sm ${isCorrect ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/50' : 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-800/50'} animate-in slide-in-from-bottom-4 duration-300`}>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <div className={`shrink-0 mt-0.5 p-1.5 rounded-full h-fit ${isCorrect ? 'bg-green-100 dark:bg-green-800/30 text-green-600 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-800/30 text-orange-600 dark:text-orange-400'}`}>
+                          <Info size={20} />
                         </div>
                         <div>
-                          <h4 className={`text-xl font-extrabold mb-2 uppercase tracking-wider ${isCorrect ? 'text-green-800 dark:text-green-400' : 'text-orange-800 dark:text-orange-400'}`}>
+                          <h4 className={`text-lg font-extrabold mb-1 uppercase tracking-wider ${isCorrect ? 'text-green-800 dark:text-green-400' : 'text-orange-800 dark:text-orange-400'}`}>
                             {isCorrect ? 'Correct!' : 'Incorrect'}
                           </h4>
-                          <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+                          <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">
                             <span className="font-bold text-slate-900 dark:text-slate-100">Explanation: </span>
                             {question.explanation}
                           </p>
@@ -549,16 +586,40 @@
                     </div>
                   )}
 
+                  {/* Render Custom Timer OR Manual Next Button */}
                   {hasAnswered && (
-                    <div className="mt-10 flex justify-end">
-                      <button 
-                        onClick={nextQuestion}
-                        className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl flex items-center gap-3 transition-all hover:scale-105 active:scale-95 shadow-lg"
-                      >
-                        <span className="text-lg">{currentIndex < activeQuestions.length - 1 ? 'Next Question' : 'View Results'}</span>
-                        <ArrowRight size={22} />
-                      </button>
-                    </div>
+                    isCorrect && autoNavigate && !isAutoNavCancelled ? (
+                      <div className="mt-4 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-in fade-in duration-300 shadow-sm">
+                        <div className="flex-1 mr-4 sm:mr-6">
+                            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-bold uppercase tracking-wider">
+                                <span>Next question in...</span>
+                            </div>
+                            <div className="w-full bg-slate-200 dark:bg-slate-600 h-2 rounded-full overflow-hidden">
+                                <div 
+                                    className="bg-blue-500 h-full ease-linear"
+                                    style={{ width: `${autoNavProgress}%`, transition: 'width 30ms linear' }}
+                                ></div>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setIsAutoNavCancelled(true)}
+                            className="text-sm font-bold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors shrink-0 flex items-center gap-1.5"
+                        >
+                            <X size={16} />
+                            Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-4 flex justify-end">
+                        <button 
+                          onClick={nextQuestion}
+                          className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-lg"
+                        >
+                          <span className="text-base">{currentIndex < activeQuestions.length - 1 ? 'Next Question' : 'View Results'}</span>
+                          <ArrowRight size={20} />
+                        </button>
+                      </div>
+                    )
                   )}
                 </div>
               </div>
@@ -570,33 +631,33 @@
             const isPass = score >= 18; 
 
             return (
-              <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 animate-in zoom-in duration-300">
-                <div className="bg-white dark:bg-slate-800 p-8 sm:p-12 rounded-3xl shadow-2xl text-center border border-slate-100 dark:border-slate-700/50">
-                  <div className={`w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner ${isPass ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400'}`}>
-                    <Trophy size={56} />
+              <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6 animate-in zoom-in duration-300">
+                <div className="bg-white dark:bg-slate-800 p-6 sm:p-10 rounded-2xl shadow-xl text-center border border-slate-100 dark:border-slate-700/50">
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner ${isPass ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400'}`}>
+                    <Trophy size={40} />
                   </div>
                   
-                  <h2 className="text-4xl font-black text-slate-800 dark:text-slate-50 mb-3 tracking-tight">
+                  <h2 className="text-3xl font-black text-slate-800 dark:text-slate-50 mb-2 tracking-tight">
                     {isPass ? 'Congratulations! You Passed' : 'Keep Studying! You Failed'}
                   </h2>
-                  <p className="text-lg text-slate-500 dark:text-slate-400 mb-10 font-medium">You need 18 out of 24 to pass the official test.</p>
+                  <p className="text-base text-slate-500 dark:text-slate-400 mb-6 font-medium">You need 18 out of 24 to pass the official test.</p>
                   
-                  <div className="text-8xl font-black text-slate-800 dark:text-slate-50 mb-12 tracking-tighter">
-                    {score}<span className="text-5xl text-slate-400 dark:text-slate-500">/24</span>
+                  <div className="text-6xl font-black text-slate-800 dark:text-slate-50 mb-6 tracking-tighter">
+                    {score}<span className="text-4xl text-slate-400 dark:text-slate-500">/24</span>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
                     <button 
                       onClick={() => setCurrentScreen('analysis')}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 text-lg"
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 text-base"
                     >
                       Analyze My Weaknesses
                     </button>
                     <button 
                       onClick={() => setCurrentScreen('home')}
-                      className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95 text-lg"
+                      className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 text-base"
                     >
-                      <Home size={22} />
+                      <Home size={20} />
                       Return Home
                     </button>
                   </div>
@@ -608,17 +669,17 @@
           const renderAnalysis = () => {
             if (quizHistory.length === 0) {
               return (
-                <div className="max-w-3xl mx-auto py-20 px-4 text-center animate-in fade-in duration-300">
-                  <div className="w-28 h-28 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                    <BarChart3 size={56} />
+                <div className="max-w-3xl mx-auto py-10 px-4 text-center animate-in fade-in duration-300">
+                  <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                    <BarChart3 size={40} />
                   </div>
-                  <h2 className="text-4xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 tracking-tight">No History Yet</h2>
-                  <p className="text-slate-600 dark:text-slate-400 mb-10 text-xl leading-relaxed max-w-lg mx-auto">You haven't completed any mock tests yet. Take a test to see your performance analysis!</p>
+                  <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-50 mb-3 tracking-tight">No History Yet</h2>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg leading-relaxed max-w-lg mx-auto">You haven't completed any mock tests yet. Take a test to see your performance analysis!</p>
                   <button 
                     onClick={() => generateQuiz(false)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all mx-auto shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 text-lg"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all mx-auto shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 text-base"
                   >
-                    <Play size={22} />
+                    <Play size={20} />
                     Start Mock Test
                   </button>
                 </div>
@@ -630,35 +691,35 @@
             const weakCount = getWeakQuestionsCount();
 
             return (
-              <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
-                <div className="flex items-center gap-4 mb-10">
+              <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
+                <div className="flex items-center gap-4 mb-6">
                   <button 
                     onClick={() => setCurrentScreen('home')}
-                    className="p-3 bg-white dark:bg-slate-800 rounded-full shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+                    className="p-2.5 bg-white dark:bg-slate-800 rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
                   >
-                    <Home size={24} />
+                    <Home size={20} />
                   </button>
-                  <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-50 tracking-tight">Your Performance Analysis</h2>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-50 tracking-tight">Your Performance Analysis</h2>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-6 sm:p-10 mb-10">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-6 mb-10">
-                    <p className="text-slate-600 dark:text-slate-300 text-lg sm:text-xl leading-relaxed max-w-xl">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 mb-6">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+                    <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl">
                       Based on your entire mock test history, here are the specific syllabus areas you should focus on.
                     </p>
                     
                     {weakCount > 0 && (
                       <button 
                         onClick={() => generateQuiz(true)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-2xl flex items-center gap-2 transition-all shadow-lg hover:scale-105 active:scale-95 shrink-0"
+                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 text-sm sm:text-base w-full sm:w-auto"
                       >
-                        <Target size={20} />
+                        <Target size={18} />
                         Test Weak Areas ({weakCount} Qs)
                       </button>
                     )}
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {categories.map(cat => {
                       const { correct, totalSeen } = stats[cat];
                       const percentage = Math.round((correct / totalSeen) * 100);
@@ -669,7 +730,7 @@
 
                       if (percentage < 75) {
                         statusColor = "bg-red-500 dark:bg-red-500";
-                        alertIcon = <AlertTriangle size={20} className="text-red-500 dark:text-red-400" />;
+                        alertIcon = <AlertTriangle size={18} className="text-red-500 dark:text-red-400" />;
                         bgCard = "bg-red-50/50 dark:bg-red-900/10";
                         borderCard = "border-red-100 dark:border-red-900/30";
                       } else if (percentage < 90) {
@@ -677,17 +738,17 @@
                       }
 
                       return (
-                        <div key={cat} className={`p-6 rounded-2xl border ${bgCard} ${borderCard} transition-colors`}>
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{cat}</h3>
+                        <div key={cat} className={`p-4 sm:p-5 rounded-xl border ${bgCard} ${borderCard} transition-colors`}>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{cat}</h3>
                               {alertIcon}
                             </div>
-                            <span className="text-lg font-black text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 px-3 py-1 rounded-lg shadow-sm">
+                            <span className="text-base font-black text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-lg shadow-sm w-max">
                               {percentage}% ({correct}/{totalSeen})
                             </span>
                           </div>
-                          <div className="w-full bg-slate-200 dark:bg-slate-700 h-4 rounded-full overflow-hidden shadow-inner">
+                          <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden shadow-inner">
                             <div 
                               className={`${statusColor} h-full rounded-full transition-all duration-1000 relative`}
                               style={{ width: `${percentage}%` }}
@@ -696,7 +757,7 @@
                             </div>
                           </div>
                           {percentage < 75 && (
-                            <p className="mt-4 text-base text-red-600 dark:text-red-400 font-bold bg-white dark:bg-slate-900 px-4 py-3 rounded-xl shadow-sm inline-block">
+                            <p className="mt-3 text-sm text-red-600 dark:text-red-400 font-bold bg-white dark:bg-slate-900 px-3 py-2 rounded-lg shadow-sm inline-block">
                               Action Required: Review the "{cat}" section in your study guides. 
                             </p>
                           )}
@@ -709,9 +770,9 @@
                 <div className="flex justify-center">
                   <button 
                     onClick={() => generateQuiz(false)}
-                    className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-2xl flex items-center gap-3 transition-all shadow-xl hover:scale-105 active:scale-95 text-lg"
+                    className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105 active:scale-95 text-base w-full sm:w-auto justify-center"
                   >
-                    <RefreshCcw size={22} />
+                    <RefreshCcw size={20} />
                     Retake Regular Test
                   </button>
                 </div>
@@ -723,51 +784,51 @@
             <div className={`${isDarkMode ? 'dark' : ''}`}>
               <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-200 dark:selection:bg-blue-900 transition-colors duration-300">
                 <header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/50 sticky top-0 z-50 shadow-sm">
-                  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400 font-black text-2xl cursor-pointer tracking-tight" onClick={() => setCurrentScreen('home')}>
-                      <BookOpen size={28} />
+                  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-black text-xl cursor-pointer tracking-tight" onClick={() => setCurrentScreen('home')}>
+                      <BookOpen size={24} />
                       <span className="hidden sm:inline">UK Life Prep</span>
                     </div>
                     
-                    <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="flex items-center gap-1.5 sm:gap-3">
                       {/* Theme Indicator (Read Only) */}
-                      <div className="hidden md:flex items-center justify-center p-2 rounded-full text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 mr-2" title="Theme auto-syncs with your system">
-                        {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
+                      <div className="hidden md:flex items-center justify-center p-1.5 rounded-full text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 mr-1" title="Theme auto-syncs with your system">
+                        {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
                       </div>
 
                       <button 
                         onClick={() => setCurrentScreen('home')}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-bold transition-colors ${currentScreen === 'home' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${currentScreen === 'home' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
                       >
-                        <Home size={20} />
+                        <Home size={18} />
                         <span className="hidden sm:inline">Home</span>
                       </button>
                       
                       <button 
                         onClick={() => setCurrentScreen('analysis')}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-bold transition-colors ${currentScreen === 'analysis' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${currentScreen === 'analysis' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
                       >
-                        <BarChart3 size={20} />
+                        <BarChart3 size={18} />
                         <span className="hidden sm:inline">History</span>
                       </button>
 
                       {currentScreen === 'quiz' && (
-                        <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden sm:block"></div>
+                        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
                       )}
                       {currentScreen === 'quiz' && (
                         <button 
                           onClick={() => setCurrentScreen('home')}
-                          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         >
-                          <XCircle size={20} />
-                          <span className="hidden lg:inline">Quit Test</span>
+                          <XCircle size={18} />
+                          <span className="hidden lg:inline">Quit</span>
                         </button>
                       )}
                     </div>
                   </div>
                 </header>
 
-                <main className="pb-16 pt-8">
+                <main className="pb-8 pt-4">
                   {currentScreen === 'home' && renderHome()}
                   {currentScreen === 'quiz' && renderQuiz()}
                   {currentScreen === 'results' && renderResults()}
