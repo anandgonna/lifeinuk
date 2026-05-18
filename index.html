@@ -54,7 +54,7 @@
         import { 
           BookOpen, Trophy, AlertTriangle, CheckCircle2, XCircle, 
           RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun, Target, X,
-          Clock, PieChart, Activity, ChevronLeft, ChevronRight, GraduationCap, Settings
+          Clock, PieChart, Activity, ChevronLeft, ChevronRight, GraduationCap, Settings, Eye, EyeOff
         } from 'lucide-react';
 
         /* DEFAULT 10 SAMPLE QUESTIONS DATABANK FOR LOCAL FALLBACK WITH MEMORY TIPS */
@@ -81,7 +81,7 @@
           tip: d[6] || ""
         }));
 
-        const APP_VERSION = "v1.8";
+        const APP_VERSION = "v1.9";
 
         function App() {
           const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings
@@ -157,6 +157,14 @@
               const saved = localStorage.getItem('ukLifeRecentlySeen');
               return saved ? new Set(JSON.parse(saved)) : new Set();
             } catch(e) { return new Set(); }
+          });
+
+          // Study Mode Settings State
+          const [hideIncorrectStudy, setHideIncorrectStudy] = useState(() => {
+            try {
+              const saved = localStorage.getItem('ukLifeHideIncorrect');
+              return saved !== null ? JSON.parse(saved) : true;
+            } catch(e) { return true; }
           });
 
           // Dynamic detection of external questions file
@@ -253,6 +261,10 @@
           useEffect(() => {
             localStorage.setItem('ukLifeRecentlySeen', JSON.stringify([...recentlySeen]));
           }, [recentlySeen]);
+
+          useEffect(() => {
+            localStorage.setItem('ukLifeHideIncorrect', JSON.stringify(hideIncorrectStudy));
+          }, [hideIncorrectStudy]);
 
           useEffect(() => {
             localStorage.setItem('ukLifeStudyIndex', studyIndex.toString());
@@ -660,15 +672,15 @@
             return (
               <div className="max-w-4xl mx-auto py-4 px-2 sm:px-4">
                 <div className="mb-4">
-                  <div className="flex justify-between items-center text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-3">
-                    <span className="text-sm uppercase tracking-wider font-bold">Question {currentIndex + 1} of {activeQuestions.length}</span>
+                  <div className="flex flex-wrap justify-between items-center text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-y-2 gap-x-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm uppercase tracking-wider font-bold">Question {currentIndex + 1} of {activeQuestions.length}</span>
+                      <span className="px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
+                    </div>
                     
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm text-slate-700 dark:text-slate-300 font-mono text-sm">
-                        <Clock size={15} className="animate-pulse text-blue-500" />
-                        <span>{formatTime(elapsedTime)}</span>
-                      </div>
-                      <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm text-slate-700 dark:text-slate-300 font-mono text-sm ml-auto">
+                      <Clock size={15} className="animate-pulse text-blue-500 shrink-0" />
+                      <span>{formatTime(elapsedTime)}</span>
                     </div>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
@@ -806,14 +818,11 @@
             return (
               <div className="max-w-4xl mx-auto py-4 px-2 sm:px-4">
                 <div className="mb-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-3">
-                    <div className="flex items-center gap-2">
-                      <GraduationCap className="text-emerald-600 dark:text-emerald-400" size={20} />
-                      <span className="text-sm uppercase tracking-wider font-bold">Study Mode — Question {studyIndex + 1} of {questions.length}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-100 dark:border-emerald-800/50 shadow-sm">{question.category}</span>
+                  <div className="flex flex-wrap justify-between items-center text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-y-2 gap-x-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <GraduationCap className="text-emerald-600 dark:text-emerald-400 shrink-0" size={18} />
+                      <span className="text-sm uppercase tracking-wider font-bold">Study — Q{studyIndex + 1} of {questions.length}</span>
+                      <span className="px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-md border border-emerald-100 dark:border-emerald-800/50 shadow-sm">{question.category}</span>
                     </div>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
@@ -825,11 +834,23 @@
                 </div>
 
                 <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 animate-in slide-in-from-right-8 duration-300">
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 leading-tight tracking-tight">{question.text}</h2>
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-50 leading-tight tracking-tight">{question.text}</h2>
+                    <button 
+                      onClick={() => setHideIncorrectStudy(!hideIncorrectStudy)}
+                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors mt-1"
+                      title={hideIncorrectStudy ? "Show all options" : "Hide incorrect options"}
+                    >
+                      {hideIncorrectStudy ? <Eye size={14} /> : <EyeOff size={14} />}
+                      <span className="hidden sm:inline">{hideIncorrectStudy ? "Show All" : "Hide Wrong"}</span>
+                    </button>
+                  </div>
                   
                   <div className="space-y-2 mb-4">
                     {studyOptions.map((option, idx) => {
                       const isCorrectAnswer = option === question.correctAnswer;
+                      if (hideIncorrectStudy && !isCorrectAnswer) return null;
+
                       let btnClass = "w-full text-left p-2.5 sm:p-3 rounded-xl border-2 text-base sm:text-lg font-medium leading-snug ";
                       
                       if (isCorrectAnswer) {
@@ -1312,6 +1333,26 @@
                               </select>
                             </div>
                           )}
+
+                          {/* Study Mode Settings */}
+                          <div className="space-y-3 pt-2">
+                            <label className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                              <GraduationCap size={18} className="text-blue-500" />
+                              Study Mode
+                            </label>
+                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                              <div>
+                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200 block">Hide wrong answers</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">Show only the correct option</span>
+                              </div>
+                              <input
+                                type="checkbox"
+                                checked={hideIncorrectStudy}
+                                onChange={(e) => setHideIncorrectStudy(e.target.checked)}
+                                className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                              />
+                            </div>
+                          </div>
                       </div>
                   </div>
 
