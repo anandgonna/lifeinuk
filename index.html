@@ -28,7 +28,7 @@
     <!-- PWA Setup: Manifest and Theme Color -->
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#1e293b" />
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI1NjNlYiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yIDNoNmE0IDQgMCAwIDEgNCA0djE0YTMgMyAwIDAgMC0zLTNIMnoiLz48cGF0aCBkPSJNMjIgM2gtNmE0IDQgMCAwIDAtNCA0djE0YTMgMyAwIDAgMSAzLTNoN3oiLz48L3N2Zz4=" />
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI1NjNlYiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZT0iIzI1NjNlYiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIgM2g2YTQgNCAwIDAgMSA0IDR2MTRhMyAzIDAgMCAwLTMtM0gyeiIvPjxwYXRoIGQ9Ik0yMiAzaC02YTQgNCAwIDAgMC00IDR2MTRhMyAzIDAgMCAxIDMtM2g3eiIvPjwvc3ZnPg==" />
 
     <!-- Load Babel to compile React JSX in the browser -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -96,13 +96,22 @@
           // Settings Modal open/close state
           const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+          // Study Resume Prompt Modal state
+          const [isStudyResumeModalOpen, setIsStudyResumeModalOpen] = useState(false);
+
           // Dynamic Question Bank States
           const [questions, setQuestions] = useState([]);
           const [loadingQuestions, setLoadingQuestions] = useState(true);
           const [usingExternal, setUsingExternal] = useState(false);
 
           // Study & Review Mode State
-          const [studyIndex, setStudyIndex] = useState(0);
+          const [studyIndex, setStudyIndex] = useState(() => {
+            try {
+              const saved = localStorage.getItem('ukLifeStudyIndex');
+              return saved ? parseInt(saved, 10) : 0;
+            } catch(e) { return 0; }
+          });
+          const [studyOptions, setStudyOptions] = useState([]);
 
           // Auto-navigate states
           const [autoNavProgress, setAutoNavProgress] = useState(0);
@@ -246,6 +255,17 @@
             localStorage.setItem('ukLifeRecentlySeen', JSON.stringify([...recentlySeen]));
           }, [recentlySeen]);
 
+          useEffect(() => {
+            localStorage.setItem('ukLifeStudyIndex', studyIndex.toString());
+          }, [studyIndex]);
+
+          // Shuffler for Study & Review Mode Options
+          useEffect(() => {
+            if (currentScreen === 'study' && questions[studyIndex]) {
+              setStudyOptions([...questions[studyIndex].options].sort(() => Math.random() - 0.5));
+            }
+          }, [studyIndex, currentScreen, questions]);
+
           // Auto theme detection
           useEffect(() => {
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -357,7 +377,16 @@
               setRecentlySeen(updatedSeen);
             }
 
-            setActiveQuestions(pool);
+            // Shuffle the options of each selected question in the pool
+            const shuffledPool = pool.map(q => {
+              const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+              return {
+                ...q,
+                options: shuffledOptions
+              };
+            });
+
+            setActiveQuestions(shuffledPool);
             setCurrentIndex(0);
             setUserAnswers({}); 
             setShowExplanation(false);
@@ -367,9 +396,13 @@
             setCurrentScreen('quiz');
           };
 
-          const startStudyMode = () => {
-            setStudyIndex(0);
-            setCurrentScreen('study');
+          const handleStudyModeClick = () => {
+            if (studyIndex > 0) {
+              setIsStudyResumeModalOpen(true);
+            } else {
+              setStudyIndex(0);
+              setCurrentScreen('study');
+            }
           };
 
           const handleAnswer = (answer) => {
@@ -386,6 +419,7 @@
             setAutoNavProgress(0);
             setShowExplanation(true);
 
+            // Reactive Update: Questions coverage registers instantly inside the DB tracker
             setQuestionHistory(prev => ({
                 ...prev,
                 [qId]: {
@@ -498,7 +532,7 @@
                   </button>
 
                   <button 
-                    onClick={startStudyMode}
+                    onClick={handleStudyModeClick}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95 text-base"
                   >
                     <GraduationCap size={20} />
@@ -544,7 +578,7 @@
             return (
               <div className="max-w-4xl mx-auto py-4 px-2 sm:px-4">
                 <div className="mb-4">
-                  <div className="flex justify-between items-center text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                  <div className="flex justify-between items-center text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-3">
                     <span className="text-sm uppercase tracking-wider font-bold">Question {currentIndex + 1} of {activeQuestions.length}</span>
                     
                     <div className="flex items-center gap-2">
@@ -552,6 +586,11 @@
                         <Clock size={15} className="animate-pulse text-blue-500" />
                         <span>{formatTime(elapsedTime)}</span>
                       </div>
+                      {/* Reactive Coverage badge showing instantly calculated stats */}
+                      <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm flex items-center gap-1">
+                        <Target size={14} className="text-indigo-500" />
+                        Live Coverage: {Math.round((Object.keys(questionHistory).length / questions.length) * 100)}%
+                      </span>
                       <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
                     </div>
                   </div>
@@ -696,7 +735,15 @@
                       <GraduationCap className="text-emerald-600 dark:text-emerald-400" size={20} />
                       <span className="text-sm uppercase tracking-wider font-bold">Study Mode — Question {studyIndex + 1} of {questions.length}</span>
                     </div>
-                    <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-100 dark:border-emerald-800/50 shadow-sm">{question.category}</span>
+                    
+                    {/* Live indicator showing coverage state of the active study question */}
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm flex items-center gap-1">
+                        <Target size={14} className="text-indigo-500" />
+                        Live Coverage: {Math.round((Object.keys(questionHistory).length / questions.length) * 100)}%
+                      </span>
+                      <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-100 dark:border-emerald-800/50 shadow-sm">{question.category}</span>
+                    </div>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
                     <div 
@@ -710,7 +757,7 @@
                   <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 leading-tight tracking-tight">{question.text}</h2>
                   
                   <div className="space-y-3 mb-6">
-                    {question.options.map((option, idx) => {
+                    {studyOptions.map((option, idx) => {
                       const isCorrectAnswer = option === question.correctAnswer;
                       let btnClass = "w-full text-left p-3 sm:p-4 rounded-xl border-2 text-base sm:text-lg font-medium leading-snug ";
                       
@@ -787,7 +834,13 @@
                     </button>
 
                     <button 
-                      onClick={() => studyIndex < questions.length - 1 ? setStudyIndex(studyIndex + 1) : setCurrentScreen('home')}
+                      onClick={() => {
+                        if (studyIndex < questions.length - 1) {
+                          setStudyIndex(studyIndex + 1);
+                        } else {
+                          setCurrentScreen('home');
+                        }
+                      }}
                       className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl transition-all shadow-md text-base"
                     >
                       {studyIndex === questions.length - 1 ? 'Finish' : 'Next'}
@@ -887,6 +940,8 @@
 
             return (
               <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
+                
+                {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                   <div className="flex items-center gap-4">
                     <button 
@@ -912,7 +967,10 @@
                   )}
                 </div>
 
+                {/* Top Metrics Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  
+                  {/* Preparedness Score */}
                   <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
                     <div className="relative z-10">
                       <div className="flex justify-between items-start mb-2">
@@ -927,6 +985,7 @@
                     <Activity size={100} className="absolute -right-4 -bottom-4 text-white opacity-10" />
                   </div>
 
+                  {/* Pass Rate */}
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                       <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Pass Rate</p>
@@ -935,11 +994,12 @@
                       </div>
                     </div>
                     <div>
-                      <span className={`text-3xl font-black ${passRate >= 75 ? 'text-green-600 dark:text-green-400' : 'text-slate-800 dark:text-slate-50'}`}>{passRate}%</span>
+                      <span className={`text-3xl font-black ${passRate >= 75 ? text-green-600 : 'text-slate-800 dark:text-slate-50'}`}>{passRate}%</span>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{passedTests} passed out of {totalTests}</p>
                     </div>
                   </div>
 
+                  {/* Bank Coverage */}
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                       <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Bank Coverage</p>
@@ -953,6 +1013,7 @@
                     </div>
                   </div>
 
+                  {/* Est Time Spent */}
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                       <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Time Practicing</p>
@@ -970,6 +1031,7 @@
                   </div>
                 </div>
 
+                {/* Detailed Category Analysis */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-5 sm:p-8 mb-8">
                   <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-50 mb-6 flex items-center gap-2">
                     <BookOpen size={20} className="text-blue-500" />
@@ -1107,6 +1169,49 @@
                   {currentScreen === 'results' && renderResults()}
                   {currentScreen === 'analysis' && renderAnalysis()}
                 </main>
+
+                {/* STUDY MODE RESUME CHOICE MODAL */}
+                {isStudyResumeModalOpen && (
+                  <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
+                    <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 p-6 sm:p-8 animate-in zoom-in-95 duration-300 text-center">
+                      <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <GraduationCap size={32} />
+                      </div>
+                      <h3 className="text-2xl font-black text-slate-800 dark:text-slate-50 mb-2">Saved Study Session</h3>
+                      <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm">
+                        You have an active study session. Would you like to resume from your last position or start fresh from the first question?
+                      </p>
+
+                      <div className="flex flex-col gap-3">
+                        <button
+                          onClick={() => {
+                            setIsStudyResumeModalOpen(false);
+                            setCurrentScreen('study');
+                          }}
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                        >
+                          Resume from Q{studyIndex + 1}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsStudyResumeModalOpen(false);
+                            setStudyIndex(0);
+                            setCurrentScreen('study');
+                          }}
+                          className="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-250 font-bold py-3 rounded-xl transition-all"
+                        >
+                          Restart from Beginning
+                        </button>
+                        <button
+                          onClick={() => setIsStudyResumeModalOpen(false)}
+                          className="w-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-450 hover:bg-slate-50 dark:hover:bg-slate-700/50 py-3 rounded-xl font-bold transition-all text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* ADVANCED SETTINGS MODAL */}
                 {isSettingsOpen && (
