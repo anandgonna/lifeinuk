@@ -472,12 +472,23 @@
             const stats = {};
             questions.forEach(q => {
               if (!stats[q.category]) {
-                stats[q.category] = { totalSeen: 0, correct: 0 };
+                stats[q.category] = { total: 0, correct: 0, incorrect: 0, unseen: 0 };
               }
+              
+              stats[q.category].total += 1;
+              
               const history = questionHistory[q.id];
-              if (history) {
-                stats[q.category].totalSeen += history.attempts;
-                stats[q.category].correct += history.correct;
+              if (!history) {
+                stats[q.category].unseen += 1;
+              } else {
+                // Uses the same logic as your weak areas: 
+                // It's considered "incorrect/weak" until you answer it correctly enough times to master it.
+                const isWeak = history.attempts > history.correct && history.correct < 3;
+                if (isWeak) {
+                  stats[q.category].incorrect += 1;
+                } else {
+                  stats[q.category].correct += 1;
+                }
               }
             });
             return stats;
@@ -487,9 +498,23 @@
              return Object.values(questionHistory).filter(stats => (stats.attempts > stats.correct) && (stats.correct < 3)).length;
           };
 
-          const renderHome = () => (
-            <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in duration-300">
-              <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-xl max-w-3xl w-full border border-slate-100 dark:border-slate-700/50 transition-all">
+          const renderHome = () => {
+            const uniqueQuestionsSeen = Object.keys(questionHistory).length;
+            const coveragePercent = questions.length > 0 ? Math.round((uniqueQuestionsSeen / questions.length) * 100) : 0;
+            
+            let totalSeenAttempts = 0;
+            let totalSeenCorrect = 0;
+            Object.values(questionHistory).forEach(stats => {
+                totalSeenAttempts += stats.attempts;
+                totalSeenCorrect += stats.correct;
+            });
+            const overallAccuracy = totalSeenAttempts > 0 ? (totalSeenCorrect / totalSeenAttempts) * 100 : 0;
+            const preparednessScore = Math.min(100, Math.round((coveragePercent / 100) * overallAccuracy)) || 0;
+
+            return (
+              <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in duration-300">
+                <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-xl max-w-3xl w-full border border-slate-100 dark:border-slate-700/50 transition-all">
+                
                 <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
                   <BookOpen size={32} />
                 </div>
@@ -503,7 +528,7 @@
                 <p className="text-slate-600 dark:text-slate-300 mb-6 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
                   Master the official syllabus details with smart spacing, persistent weak-area tracking, and customizable auto-navigation.
                 </p>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto">
                   {activeQuestions.length > 0 && currentIndex < activeQuestions.length && currentScreen !== 'results' && (
                     <button 
@@ -544,12 +569,17 @@
                     className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 text-base"
                   >
                     <BarChart3 size={20} />
-                    View Statistics
+                    View Stats
                   </button>
                 </div>
 
                 {quizHistory.length > 0 && (
                   <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+                    <div className="text-center">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Preparedness</p>
+                      <p className="text-3xl font-black text-indigo-600 dark:text-indigo-400">{preparednessScore}%</p>
+                    </div>
+                    <div className="hidden sm:block w-px h-12 bg-slate-200 dark:bg-slate-700"></div>
                     <div className="text-center">
                       <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Tests Taken</p>
                       <p className="text-3xl font-black text-slate-800 dark:text-slate-50">{quizHistory.length}</p>
@@ -565,7 +595,8 @@
                 )}
               </div>
             </div>
-          );
+            );
+          };
 
           const renderQuiz = () => {
             const question = activeQuestions[currentIndex];
@@ -586,11 +617,6 @@
                         <Clock size={15} className="animate-pulse text-blue-500" />
                         <span>{formatTime(elapsedTime)}</span>
                       </div>
-                      {/* Reactive Coverage badge showing instantly calculated stats */}
-                      <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm flex items-center gap-1">
-                        <Target size={14} className="text-indigo-500" />
-                        Live Coverage: {Math.round((Object.keys(questionHistory).length / questions.length) * 100) || 0}%
-                      </span>
                       <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
                     </div>
                   </div>
@@ -660,16 +686,14 @@
 
                           {/* Injected Memory Tip on Incorrect Answers */}
                           {!isCorrect && question.tip && (
-                            <div className="mt-5 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/50 dark:bg-indigo-950/20 animate-in slide-in-from-bottom-2 duration-300">
-                              <div className="flex gap-2.5 items-start">
-                                <Brain className="text-indigo-500 shrink-0 mt-0.5" size={18} />
-                                <div>
-                                  <h5 className="text-xs font-extrabold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 mb-1">Memory Trick</h5>
-                                  <p className="text-sm text-indigo-950 dark:text-indigo-300 italic font-medium">
-                                    "{question.tip}"
-                                  </p>
-                                </div>
+                            <div className="mt-4 animate-in slide-in-from-bottom-2 duration-300">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <Brain className="text-indigo-600 dark:text-indigo-400" size={18} />
+                                <h5 className="text-sm font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Memory Trick</h5>
                               </div>
+                              <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed italic font-medium">
+                                "{question.tip}"
+                              </p>
                             </div>
                           )}
                         </div>
@@ -736,12 +760,7 @@
                       <span className="text-sm uppercase tracking-wider font-bold">Study Mode — Question {studyIndex + 1} of {questions.length}</span>
                     </div>
                     
-                    {/* Live indicator showing coverage state of the active study question */}
                     <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm flex items-center gap-1">
-                        <Target size={14} className="text-indigo-500" />
-                        Live Coverage: {Math.round((Object.keys(questionHistory).length / questions.length) * 100) || 0}%
-                      </span>
                       <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-100 dark:border-emerald-800/50 shadow-sm">{question.category}</span>
                     </div>
                   </div>
@@ -756,10 +775,10 @@
                 <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 animate-in slide-in-from-right-8 duration-300">
                   <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 leading-tight tracking-tight">{question.text}</h2>
                   
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-2 mb-4">
                     {studyOptions.map((option, idx) => {
                       const isCorrectAnswer = option === question.correctAnswer;
-                      let btnClass = "w-full text-left p-3 sm:p-4 rounded-xl border-2 text-base sm:text-lg font-medium leading-snug ";
+                      let btnClass = "w-full text-left p-2.5 sm:p-3 rounded-xl border-2 text-base sm:text-lg font-medium leading-snug ";
                       
                       if (isCorrectAnswer) {
                         btnClass += "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 shadow-sm";
@@ -779,17 +798,17 @@
                   </div>
 
                   {/* Fact & Mnemonic Details Container */}
-                  <div className="flex flex-col gap-4 mb-6">
-                    <div className="p-4 rounded-xl border-2 shadow-sm bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/50">
+                  <div className="flex flex-col gap-2.5 mb-5">
+                    <div className="p-3 sm:p-4 rounded-xl border-2 shadow-sm bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/50">
                       <div className="flex gap-3">
                         <div className="shrink-0 p-1.5 rounded-full h-fit bg-emerald-100 dark:bg-emerald-800/30 text-emerald-600 dark:text-emerald-400">
                           <Info size={20} />
                         </div>
                         <div>
-                          <h4 className="text-lg font-extrabold mb-1 uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                          <h4 className="text-base sm:text-lg font-extrabold mb-1 uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
                             Explanation & Fact
                           </h4>
-                          <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                          <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed">
                             {question.explanation}
                           </p>
                         </div>
@@ -798,16 +817,16 @@
 
                     {/* Integrated Memory Trick Display */}
                     {question.tip && (
-                      <div className="p-4 rounded-xl border-2 shadow-sm bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800/50 animate-in fade-in duration-300">
+                      <div className="p-3 sm:p-4 rounded-xl border-2 shadow-sm bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800/50 animate-in fade-in duration-300">
                         <div className="flex gap-3">
                           <div className="shrink-0 p-1.5 rounded-full h-fit bg-indigo-100 dark:bg-indigo-800/30 text-indigo-600 dark:text-indigo-400">
                             <Brain size={20} />
                           </div>
                           <div>
-                            <h4 className="text-lg font-extrabold mb-1 uppercase tracking-wider text-indigo-800 dark:text-indigo-400">
+                            <h4 className="text-base sm:text-lg font-extrabold mb-1 uppercase tracking-wider text-indigo-800 dark:text-indigo-400">
                               Memory Trick
                             </h4>
-                            <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed italic font-medium">
+                            <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed italic font-medium">
                               "{question.tip}"
                             </p>
                           </div>
@@ -901,32 +920,14 @@
           };
 
           const renderAnalysis = () => {
-            if (quizHistory.length === 0) {
-              return (
-                <div className="max-w-3xl mx-auto py-10 px-4 text-center animate-in fade-in duration-300">
-                  <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                    <BarChart3 size={40} />
-                  </div>
-                  <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-50 mb-3 tracking-tight">No History Yet</h2>
-                  <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg leading-relaxed max-w-lg mx-auto">You haven't completed any mock tests yet. Take a test to unlock your advanced performance analytics!</p>
-                  <button 
-                    onClick={() => generateQuiz(false)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all mx-auto shadow-xl shadow-blue-500/30 hover:scale-105 active:scale-95 text-base"
-                  >
-                    <Play size={20} />
-                    Start Mock Test
-                  </button>
-                </div>
-              );
-            }
-
             const stats = getCategoryStats();
-            const categories = Object.keys(stats).filter(cat => stats[cat].totalSeen > 0);
+            // Show all categories to maintain the dashboard layout even at 0 tests
+            const categories = questions.length > 0 ? [...new Set(questions.map(q => q.category))] : [];
             const weakCount = getWeakQuestionsCount();
             
             const totalTests = quizHistory.length;
             const passedTests = quizHistory.filter(s => getScoreValue(s) >= Math.ceil(getTotalValue(s) * 0.75)).length;
-            const passRate = Math.round((passedTests / totalTests) * 100) || 0;
+            const passRate = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
             
             const uniqueQuestionsSeen = Object.keys(questionHistory).length;
             const coveragePercent = questions.length > 0 ? Math.round((uniqueQuestionsSeen / questions.length) * 100) : 0;
@@ -972,6 +973,25 @@
                     </button>
                   )}
                 </div>
+
+                {/* Motivational Banner when 0 tests taken */}
+                {totalTests === 0 && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left shadow-sm">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center shrink-0">
+                      <Trophy size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-1">Ready to track your progress?</h3>
+                      <p className="text-sm text-blue-600 dark:text-blue-400">You haven't taken any mock tests yet. Your dashboard is currently empty. Take your first test to build your stats and improve your preparedness score!</p>
+                    </div>
+                    <button 
+                      onClick={() => generateQuiz(false)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 whitespace-nowrap"
+                    >
+                      Start Mock Test
+                    </button>
+                  </div>
+                )}
 
                 {/* Top Metrics Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -1047,39 +1067,54 @@
 
                   <div className="space-y-5">
                     {categories.map(cat => {
-                      const { correct, totalSeen } = stats[cat];
-                      const percentage = Math.round((correct / totalSeen) * 100);
+                      const catStats = stats[cat] || { total: 0, correct: 0, incorrect: 0, unseen: 0 };
+                      const { total, correct, incorrect, unseen } = catStats;
                       
-                      let statusColor = "bg-green-500 dark:bg-green-400";
-                      let bgCard = "bg-slate-50 dark:bg-slate-800/50";
-                      let borderCard = "border-slate-100 dark:border-slate-700";
-
-                      if (percentage < 75) {
-                        statusColor = "bg-red-500 dark:bg-red-500";
-                        bgCard = "bg-red-50/30 dark:bg-red-900/10";
-                        borderCard = "border-red-100 dark:border-red-900/30";
-                      } else if (percentage < 90) {
-                        statusColor = "bg-orange-400 dark:bg-orange-400";
-                      }
+                      const correctPct = total > 0 ? (correct / total) * 100 : 0;
+                      const incorrectPct = total > 0 ? (incorrect / total) * 100 : 0;
+                      const unseenPct = total > 0 ? (unseen / total) * 100 : 0;
+                      
+                      // Overall coverage percentage in this specific category
+                      const coveragePct = total > 0 ? Math.round(((correct + incorrect) / total) * 100) : 0;
+                      const isComplete = coveragePct === 100;
 
                       return (
-                        <div key={cat} className={`p-4 sm:p-5 rounded-xl border ${bgCard} ${borderCard} transition-colors`}>
+                        <div key={cat} className="p-4 sm:p-5 rounded-xl border bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
                             <div className="flex items-center gap-2">
                               <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">{cat}</h3>
-                              {percentage < 75 && <AlertTriangle size={16} className="text-red-500 dark:text-red-400 ml-1" />}
+                              {incorrect > 0 && <AlertTriangle size={16} className="text-orange-500 dark:text-orange-400 ml-1" />}
+                              {isComplete && incorrect === 0 && <CheckCircle2 size={16} className="text-green-500 dark:text-green-400 ml-1" />}
                             </div>
-                            <span className="text-sm font-black text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-md shadow-sm w-max border border-slate-100 dark:border-slate-700">
-                              {percentage}% ({correct}/{totalSeen})
+                            <span className="text-sm font-black text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-md shadow-sm w-max border border-slate-200 dark:border-slate-700">
+                              {coveragePct}% Coverage
                             </span>
                           </div>
                           
-                          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
-                            <div 
-                              className={`${statusColor} h-full rounded-full transition-all duration-1000 relative`}
-                              style={{ width: `${percentage}%` }}
-                            >
-                              <div className="absolute inset-0 bg-white/20 dark:bg-white/10 w-full h-full"></div>
+                          {/* Segmented Progress Bar */}
+                          <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden shadow-inner flex mb-3.5">
+                            <div className="bg-green-500 h-full transition-all duration-1000" style={{ width: `${correctPct}%` }} title={`${correct} Correct`}></div>
+                            <div className="bg-orange-500 h-full transition-all duration-1000" style={{ width: `${incorrectPct}%` }} title={`${incorrect} Incorrect`}></div>
+                            <div className="bg-slate-300 dark:bg-slate-600 h-full transition-all duration-1000 opacity-50" style={{ width: `${unseenPct}%` }} title={`${unseen} Unseen`}></div>
+                          </div>
+
+                          {/* Legend / Stats row */}
+                          <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm">
+                            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold">
+                                <span className="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                                {total} Total
+                            </div>
+                            <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400 font-bold">
+                                <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                                {correct} Mastered
+                            </div>
+                            <div className="flex items-center gap-1.5 text-orange-700 dark:text-orange-400 font-bold">
+                                <span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                                {incorrect} Weak
+                            </div>
+                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-500 font-bold">
+                                <span className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-600 border border-slate-300 dark:border-slate-500"></span>
+                                {unseen} Unseen
                             </div>
                           </div>
                         </div>
@@ -1140,7 +1175,7 @@
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${currentScreen === 'analysis' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
                       >
                         <BarChart3 size={18} />
-                        <span className="hidden sm:inline">History</span>
+                        <span className="hidden sm:inline">Stats</span>
                       </button>
 
                       {/* Settings Gear Button */}
@@ -1309,7 +1344,7 @@
                         {/* Reset History / Local Storage */}
                         <button
                           onClick={() => {
-                            if (window.confirm("Are you sure you want to clear your statistics, failed questions memory, and exam history? This cannot be undone.")) {
+                            if (window.confirm("Are you sure you want to clear your stats, failed questions memory, and exam history? This cannot be undone.")) {
                               localStorage.clear();
                               window.location.reload();
                             }
