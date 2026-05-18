@@ -81,7 +81,7 @@
           tip: d[6] || ""
         }));
 
-        const APP_VERSION = "v1.5";
+        const APP_VERSION = "v1.6";
 
         function App() {
           const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings
@@ -1075,58 +1075,62 @@
                     Syllabus Breakdown
                   </h3>
 
-                  <div className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {categories.map(cat => {
                       const catStats = stats[cat] || { total: 0, correct: 0, incorrect: 0, unseen: 0 };
                       const { total, correct, incorrect, unseen } = catStats;
                       
                       const correctPct = total > 0 ? (correct / total) * 100 : 0;
                       const incorrectPct = total > 0 ? (incorrect / total) * 100 : 0;
-                      const unseenPct = total > 0 ? (unseen / total) * 100 : 0;
                       
                       // Overall coverage percentage in this specific category
                       const coveragePct = total > 0 ? Math.round(((correct + incorrect) / total) * 100) : 0;
                       const isComplete = coveragePct === 100;
 
                       return (
-                        <div key={cat} className="p-4 sm:p-5 rounded-xl border bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">{cat}</h3>
-                              {incorrect > 0 && <AlertTriangle size={16} className="text-orange-500 dark:text-orange-400 ml-1" />}
-                              {isComplete && incorrect === 0 && <CheckCircle2 size={16} className="text-green-500 dark:text-green-400 ml-1" />}
-                            </div>
-                            <span className="text-sm font-black text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-md shadow-sm w-max border border-slate-200 dark:border-slate-700">
-                              {coveragePct}% Coverage
-                            </span>
-                          </div>
+                        <div key={cat} className="p-6 rounded-2xl border bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-sm transition-colors flex flex-col items-center text-center gap-4 hover:shadow-md">
                           
-                          {/* Segmented Progress Bar */}
-                          <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden shadow-inner flex mb-3.5">
-                            <div className="bg-green-500 h-full transition-all duration-1000" style={{ width: `${correctPct}%` }} title={`${correct} Correct`}></div>
-                            <div className="bg-orange-500 h-full transition-all duration-1000" style={{ width: `${incorrectPct}%` }} title={`${incorrect} Incorrect`}></div>
-                            <div className="bg-slate-300 dark:bg-slate-600 h-full transition-all duration-1000 opacity-50" style={{ width: `${unseenPct}%` }} title={`${unseen} Unseen`}></div>
+                          <div className="flex items-center justify-center gap-2 flex-wrap w-full">
+                            <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100">{cat}</h3>
+                            {incorrect > 0 && <AlertTriangle size={18} className="text-orange-500 dark:text-orange-400 shrink-0" />}
+                            {isComplete && incorrect === 0 && <CheckCircle2 size={18} className="text-green-500 dark:text-green-400 shrink-0" />}
                           </div>
 
-                          {/* Legend / Stats row */}
-                          <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm">
-                            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold">
-                                <span className="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-500"></span>
-                                {total} Total
-                            </div>
-                            <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400 font-bold">
-                                <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                                {correct} Mastered
-                            </div>
-                            <div className="flex items-center gap-1.5 text-orange-700 dark:text-orange-400 font-bold">
-                                <span className="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
-                                {incorrect} Weak
-                            </div>
-                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-500 font-bold">
-                                <span className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-600 border border-slate-300 dark:border-slate-500"></span>
-                                {unseen} Unseen
+                          {/* BIG Donut Chart */}
+                          <div 
+                            className="w-32 h-32 sm:w-40 sm:h-40 rounded-full relative flex items-center justify-center shadow-md my-2 shrink-0"
+                            style={{
+                              background: `conic-gradient(#22c55e 0% ${correctPct}%, #f97316 ${correctPct}% ${correctPct + incorrectPct}%, ${isDarkMode ? '#334155' : '#cbd5e1'} ${correctPct + incorrectPct}% 100%)`
+                            }}
+                          >
+                            <div className="w-20 h-20 sm:w-28 sm:h-28 bg-slate-50 dark:bg-slate-800/90 rounded-full absolute shadow-inner flex flex-col items-center justify-center">
+                               <span className="text-2xl sm:text-3xl font-black text-slate-700 dark:text-slate-200">{coveragePct}%</span>
+                               <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mt-0.5">Covered</span>
                             </div>
                           </div>
+
+                          {/* Legend / Stats block */}
+                          <div className="flex flex-col items-center gap-2 text-xs sm:text-sm w-full mt-2">
+                            <div className="flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold bg-white dark:bg-slate-900 px-3 py-1 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 w-full max-w-[160px]">
+                                <span className="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0"></span>
+                                {total} Total Qs
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-1">
+                                <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400 font-bold">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0"></span>
+                                    {correct} Mastered
+                                </div>
+                                <div className="flex items-center gap-1.5 text-orange-700 dark:text-orange-400 font-bold">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0"></span>
+                                    {incorrect} Weak
+                                </div>
+                                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-500 font-bold">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-600 border border-slate-300 dark:border-slate-500 shrink-0"></span>
+                                    {unseen} Unseen
+                                </div>
+                            </div>
+                          </div>
+
                         </div>
                       );
                     })}
