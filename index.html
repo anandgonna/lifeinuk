@@ -49,350 +49,62 @@
 
     <!-- Your React Application -->
     <script type="text/babel" data-type="module">
-        import React, { useState, useEffect } from 'react';
+        import React, { useState, useEffect, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
           BookOpen, Trophy, AlertTriangle, CheckCircle2, XCircle, 
           RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun, Target, X,
-          Clock, PieChart, Activity
+          Clock, PieChart, Activity, ChevronLeft, ChevronRight, GraduationCap, Settings
         } from 'lucide-react';
 
-        /* COMPRESSED 300 QUESTIONS DATABANK */
-        const rawData = [
-          // --- History: Prehistory, Romans, and Early Britain (1 - 25) ---
-          [1, "History", "When did the first farmers arrive in Britain?", ["10,000 years ago", "6,000 years ago", "15,000 years ago", "2,000 years ago"], 1, "The first farmers arrived in Britain about 6,000 years ago from south-east Europe."],
-          [2, "History", "Which monument in Wiltshire is a famous example of a prehistoric stone circle?", ["Hadrian's Wall", "Stonehenge", "Skara Brae", "Maiden Castle"], 1, "Stonehenge in Wiltshire is the most famous prehistoric monument of its type in Britain."],
-          [3, "History", "Where is Skara Brae, the best-preserved prehistoric village in northern Europe, located?", ["Scotland", "Wales", "England", "Northern Ireland"], 0, "Skara Brae is located on Orkney, off the north coast of Scotland."],
-          [4, "History", "What metal began to be used in Britain around 4,000 years ago?", ["Iron", "Bronze", "Steel", "Copper"], 1, "The Bronze Age began in Britain around 4,000 years ago when people learned to make bronze from copper and tin."],
-          [5, "History", "What was Maiden Castle in Dorset used for during the Iron Age?", ["A royal palace", "A massive hill fort", "A religious temple", "A trading port"], 1, "Maiden Castle in Dorset is a famous example of an Iron Age hill fort where people lived and defended themselves."],
-          [6, "History", "Which Roman Emperor led the first (unsuccessful) invasion of Britain in 55 BC?", ["Emperor Claudius", "Emperor Hadrian", "Julius Caesar", "Emperor Constantine"], 2, "Julius Caesar led Roman expeditions to Britain in 55 and 54 BC, but did not establish permanent rule."],
-          [7, "History", "In which year did Emperor Claudius lead the successful Roman invasion of Britain?", ["55 BC", "43 AD", "1066 AD", "1215 AD"], 1, "Emperor Claudius led the successful Roman invasion of Britain in 43 AD."],
-          [8, "History", "Who was Queen Boudicca?", ["The first Roman Queen of Britain", "The leader of the Iceni tribe who rebelled against the Romans", "A Norman Queen of Scots", "The wife of Alfred the Great"], 1, "Boudicca was the queen of the Iceni who led a powerful revolt against Roman rule in 60 AD."],
-          [9, "History", "Which two Roman forts are famous landmarks located along Hadrian's Wall?", ["Vindolanda and Housesteads", "Maiden Castle and Portchester", "Tower of London and Dover Castle", "Sutton Hoo and Grimspound"], 0, "Vindolanda and Housesteads are two of the best-preserved forts along Hadrian's Wall."],
-          [10, "History", "How long did the Romans occupy Britain?", ["100 years", "200 years", "400 years", "800 years"], 2, "The Romans remained in Britain for approximately 400 years, departing in 410 AD to defend Rome."],
-          [11, "History", "Which tribes invaded Britain from northern Europe after the Romans left in 410 AD?", ["The Normans and Huguenots", "The Angles, Saxons, and Jutes", "The Romans and Celts", "The Phoenicians and Carthaginians"], 1, "The Angles, Saxons, and Jutes invaded Britain, establishing several kingdoms that would form England."],
-          [12, "History", "Where did St Columba establish a famous Christian monastery in 563 AD?", ["Canterbury", "Iona", "Glastonbury", "Lindisfarne"], 1, "St Columba founded a highly influential monastery on the island of Iona, off the coast of Scotland, in 563 AD."],
-          [13, "History", "Who was sent by Pope Gregory the Great in 597 AD to convert the Anglo-Saxons to Christianity?", ["St Patrick", "St Augustine", "St Columba", "St Aidan"], 1, "St Augustine became the first Archbishop of Canterbury after converting the Anglo-Saxon kings."],
-          [14, "History", "Which Anglo-Saxon king successfully defeated the Viking invaders and unified parts of England?", ["King Harold", "King Alfred the Great", "Edward the Confessor", "King Arthur"], 1, "King Alfred the Great defeated the Vikings and laid the groundwork for a unified English kingdom."],
-          [15, "History", "The boundary agreement between King Alfred and the Vikings established which territory?", ["The Danelaw", "The Welsh Marches", "The Scottish Borders", "The Pale"], 0, "The Danelaw was the area of northern and eastern England ruled under Viking law."],
-          [16, "History", "In which year did the Battle of Hastings take place?", ["1066", "1215", "1485", "1588"], 0, "The Battle of Hastings took place on 14th October 1066."],
-          [17, "History", "Who was defeated and killed at the Battle of Hastings?", ["William the Conqueror", "King Harold", "Alfred the Great", "Edward the Confessor"], 1, "King Harold, the last Anglo-Saxon king of England, was killed at Hastings."],
-          [18, "History", "The tapestry that commemorates the Norman Conquest is called what?", ["The tapestry of Rhuddlan", "The Bayeux Tapestry", "The Wilton Tapestry", "The Gobelin Tapestry"], 1, "The Bayeux Tapestry is a massive piece of medieval embroidery showing the events of 1066."],
-          [19, "History", "Which book, compiled in 1086, was a comprehensive survey of land, people, and property commissioned by William the Conqueror?", ["The Magna Carta", "The Domesday Book", "The Canterbury Tales", "The Anglo-Saxon Chronicle"], 1, "The Domesday Book was compiled in 1086 so William the Conqueror could assess his kingdom's wealth and collect taxes."],
-          [20, "History", "Which dynamic family ruled England following the end of the Norman dynasty?", ["The Plantagenets", "The Tudors", "The Stuarts", "The Windsors"], 0, "The Plantagenets ruled England from 1154 to 1485 (including Henry II, Richard I, and King John)."],
-          [21, "History", "In 1215, which document was King John forced to sign, establishing that even the King was subject to the law?", ["The Bill of Rights", "The Magna Carta", "The Act of Settlement", "The Habeas Corpus Act"], 1, "The Magna Carta (Great Charter) was signed in 1215, laying the foundations for the rule of law."],
-          [22, "History", "What was the 'Hundred Years War'?", ["A civil war in England", "A series of wars between England and France from 1337 to 1453", "A war against Viking invaders", "A crusade to the Holy Land"], 1, "The Hundred Years War lasted 116 years as English kings fought French kings for territory."],
-          [23, "History", "Which famous battle in 1415 saw King Henry V defeat a vastly larger French army?", ["Battle of Hastings", "Battle of Bannockburn", "Battle of Agincourt", "Battle of Waterloo"], 2, "The Battle of Agincourt in 1415 was a legendary English victory during the Hundred Years War."],
-          [24, "History", "Which devastating disease struck Britain in 1348, killing about one-third of the entire population?", ["The Great Plague", "The Black Death", "Cholera", "Smallpox"], 1, "The Black Death (bubonic plague) wiped out an estimated 30% to 50% of the British population in the mid-14th century."],
-          [25, "History", "The Wars of the Roses (1455-1485) were fought between which two royal houses?", ["House of Windsor and Tudor", "House of Lancaster and York", "House of Stuart and Orange", "House of Hanover and Bruce"], 1, "The Wars of the Roses were civil wars between Lancaster (red rose) and York (white rose)."],
-        
-          // --- History: Middle Ages, Tudors & Stuarts (26 - 55) ---
-          [26, "History", "Which battle ended the Wars of the Roses in 1485, leading to the coronation of King Henry VII?", ["Battle of Hastings", "Battle of Bannockburn", "Battle of Bosworth Field", "Battle of Marston Moor"], 2, "At the Battle of Bosworth Field (1485), Henry Tudor defeated Richard III and married Elizabeth of York."],
-          [27, "History", "Why did Henry VIII establish the Church of England in the 1530s?", ["He wanted to introduce Protestantism to Britain", "The Pope refused to grant him a divorce from Catherine of Aragon", "He wanted to unite England and Scotland", "He was forced to by a popular rebellion"], 1, "Henry VIII broke with Rome to secure his divorce, initiating the English Reformation."],
-          [28, "History", "How many wives did King Henry VIII have in total?", ["Three", "Four", "Six", "Eight"], 2, "Henry VIII famously had six wives: Catherine of Aragon, Anne Boleyn, Jane Seymour, Anne of Cleves, Catherine Howard, and Catherine Parr."],
-          [29, "History", "Which of Henry VIII's wives succeeded in producing his only male heir, Edward VI, but died shortly after?", ["Anne Boleyn", "Jane Seymour", "Catherine Howard", "Catherine Parr"], 1, "Jane Seymour gave birth to Edward VI but died of complications shortly after."],
-          [30, "History", "Which Queen of England was known as 'Bloody Mary' due to her persecution of Protestants?", ["Queen Elizabeth I", "Queen Mary I", "Mary, Queen of Scots", "Queen Anne"], 1, "Mary I was a devout Catholic who executed many Protestants during her brief reign from 1553 to 1558."],
-          [31, "History", "In which year did the English navy famously defeat the Spanish Armada sent by King Philip II?", ["1215", "1485", "1588", "1605"], 2, "The English defeated the Spanish Armada in 1588 during the reign of Queen Elizabeth I."],
-          [32, "History", "Which Scottish Queen was imprisoned and eventually executed by her cousin Queen Elizabeth I in 1587?", ["Queen Mary I", "Mary, Queen of Scots", "Margaret of Scotland", "Queen Anne"], 1, "Mary, Queen of Scots, fled to England but was imprisoned and executed because Catholics saw her as the rightful heir to the English throne."],
-          [33, "History", "Who succeeded Elizabeth I to the English throne in 1603, uniting the crowns of England and Scotland?", ["King Charles I", "King James I (VI of Scotland)", "King James II", "William of Orange"], 1, "James VI of Scotland became James I of England upon Elizabeth I's death, uniting the crowns under the Stuarts."],
-          [34, "History", "What was the 'Gunpowder Plot' of 5th November 1605?", ["A plan by Protestants to assassinate King James I", "A Catholic conspiracy to blow up the Houses of Parliament and the King", "A rebellion in Ireland", "An attempt to overthrow the monarchy by Oliver Cromwell"], 1, "Led by Robert Catesby and featuring Guy Fawkes, the plotters tried to blow up Parliament to replace the Protestant king with a Catholic monarch."],
-          [35, "History", "Who fought in the English Civil War (1642-1651)?", ["The English and the French", "The Royalists (Cavaliers) and the Parliamentarians (Roundheads)", "The Anglo-Saxons and the Vikings", "The Tudors and the Stuarts"], 1, "The civil war pitted King Charles I's Royalists against Oliver Cromwell's Parliamentarians."],
-          [36, "History", "What happened to King Charles I in 1649 after losing the Civil War?", ["He fled to France", "He was executed and England became a republic", "He was exiled to Ireland", "He was restored to the throne with limited powers"], 1, "Charles I was tried for treason, executed in 1649, and England became a republic called the Commonwealth."],
-          [37, "History", "Which title was Oliver Cromwell given while he ruled England as a republic in the 1650s?", ["King of England", "Lord Protector", "Prime Minister", "Grand Chancellor"], 1, "Oliver Cromwell ruled England as 'Lord Protector' from 1653 until his death in 1658."],
-          [38, "History", "What major political event occurred in 1660, known as the 'Restoration'?", ["The signing of the Bill of Rights", "The return of the monarchy under King Charles II", "The union of England and Scotland", "The fall of the Roman Empire"], 1, "After Cromwell's death, Parliament invited Charles II back from exile, restoring the monarchy."],
-          [39, "History", "Which two disasters struck London during the reign of Charles II?", ["The Black Death and the Blitz", "The Great Plague (1665) and the Great Fire of London (1666)", "An earthquake and a flood", "A cholera outbreak and a civil war"], 1, "The Great Plague killed thousands in 1665, and the Great Fire destroyed most of the medieval city in 1666."],
-          [40, "History", "Who was invited to take the throne in 1688 in what is known as the 'Glorious Revolution'?", ["King Charles II", "King James II", "William of Orange and Queen Mary II", "King George I"], 2, "Protestants invited the Dutch Prince William of Orange and his English wife Mary to replace the Catholic King James II."],
-          [41, "History", "Which document, signed in 1689, confirmed the rights of Parliament and severely limited the monarch's power?", ["The Magna Carta", "The Bill of Rights", "The Habeas Corpus Act", "The Act of Settlement"], 1, "The Bill of Rights of 1689 firmly established parliamentary sovereignty over the Crown."],
-          [42, "History", "The 'Act of Union' in 1707 politically united which countries to form the Kingdom of Great Britain?", ["England and Ireland", "England, Wales, and Scotland", "England and Wales", "Great Britain and Northern Ireland"], 1, "The Act of Union 1707 united the Parliaments of Scotland and England (which already included Wales)."],
-          [43, "History", "Who is widely recognized as the first Prime Minister of Great Britain, serving from 1721 to 1742?", ["Winston Churchill", "Sir Robert Walpole", "Clement Attlee", "William Pitt"], 1, "Sir Robert Walpole was the first politician to hold the modern office of Prime Minister."],
-          [44, "History", "Between 1680 and 1720, which group of religious refugees fled to England from France?", ["The Puritans", "The Huguenots", "The Fenians", "The Quakers"], 1, "The Huguenots were French Protestants who fled state-sponsored persecution in France."],
-          [45, "History", "Which Scottish Jacobite rebellion leader was defeated at the Battle of Culloden in 1746?", ["Robert the Bruce", "Bonnie Prince Charlie", "James VI", "Oliver Cromwell"], 1, "Charles Edward Stuart (Bonnie Prince Charlie) led the final failed Jacobite uprising."],
-          [46, "History", "Which naval commander famously died securing victory over the French-Spanish fleet at the Battle of Trafalgar in 1805?", ["Duke of Wellington", "Admiral Nelson", "Francis Drake", "Robert Clive"], 1, "Admiral Horatio Nelson won the battle but lost his life on board HMS Victory."],
-          [47, "History", "Who defeated Napoleon at the Battle of Waterloo in 1815?", ["Admiral Nelson", "The Duke of Wellington", "Oliver Cromwell", "King George III"], 1, "Arthur Wellesley, the Duke of Wellington, led the allied forces to defeat Napoleon."],
-          [48, "History", "What was the purpose of the Reform Act of 1832?", ["To abolish slavery", "To expand the voting franchise and eliminate 'rotten boroughs'", "To establish the welfare state", "To limit the power of the House of Lords"], 1, "The Reform Act of 1832 standardized the franchise and redistributed seats to growing industrial cities."],
-          [49, "History", "During whose reign (1837-1901) did the British Empire grow to become the largest the world has ever seen?", ["Queen Elizabeth I", "Queen Anne", "Queen Victoria", "Queen Elizabeth II"], 2, "Queen Victoria's 63-year reign coincided with the height of British global power and industrial output."],
-          [50, "History", "Which act formally abolished slavery throughout most of the British Empire in 1833?", ["The Magna Carta", "The Bill of Rights", "The Emancipation Act", "The Welfare Act"], 2, "The Emancipation Act of 1833 made slavery illegal in almost all British territories."],
-          [51, "History", "Who led the team of British scientists to first 'split the atom' in 1932?", ["Sir Tim Berners-Lee", "Sir Frank Whittle", "Ernest Rutherford", "Sir Peter Mansfield"], 2, "Ernest Rutherford led the pioneering physics team at Cambridge University."],
-          [52, "History", "The 'Dunkirk spirit' in 1940 refers to what?", ["The high morale of British troops in North Africa", "The rescue of over 300,000 Allied soldiers from France by a fleet of small civilian boats", "The determination of Londoners during the Blitz", "The victory of the Royal Air Force in the Battle of Britain"], 1, "The successful evacuation of stranded Allied troops in May-June 1940 was hailed as a triumph of civilian unity."],
-          [53, "History", "Which crucial aerial battle was fought in the skies over Britain during the summer of 1940?", ["The Battle of Jutland", "The Battle of Britain", "The Battle of the Somme", "The Blitz"], 1, "The Battle of Britain was a successful Royal Air Force defense against the German Luftwaffe."],
-          [54, "History", "What does 'The Blitz' refer to in WWII history?", ["The rapid invasion of Poland", "The nighttime bombing of British cities by Germany", "The naval blockade of the Atlantic", "The Allied invasion of Normandy"], 1, "The Blitz was the sustained nighttime bombing of cities like London, Coventry, and Belfast by Germany."],
-          [55, "History", "In what year did the UK join the European Economic Community (EEC)?", ["1957", "1973", "1992", "2016"], 2, "The UK entered the EEC (which became the EU) on January 1, 1973."],
-        
-          // --- History: Post-War Era, Welfare, Devolution & Modern Landmarks (56 - 100) ---
-          [56, "History", "In what year did the Falklands War between the UK and Argentina take place?", ["1979", "1982", "1991", "2003"], 1, "The Falklands War was fought in the spring of 1982."],
-          [57, "History", "Which Prime Minister introduced free secondary education in England and Wales under the Education Act 1944?", ["Winston Churchill", "Clement Attlee", "R.A. Butler (Education Minister under Churchill)", "Harold Macmillan"], 2, "The Education Act of 1944 is commonly referred to as the 'Butler Act'."],
-          [58, "History", "When did the First World War end?", ["11th November 1914 at 11:00 am", "11th November 1918 at 11:00 am", "11th November 1918 at 12:00 pm", "8th May 1945 at 11:00 am"], 1, "WWI ended on the 11th hour of the 11th day of the 11th month in 1918."],
-          [59, "History", "Which dynamic activist group was led by Emmeline Pankhurst?", ["The Chartists", "The Suffragettes", "The Roundheads", "The Fenians"], 1, "Emmeline Pankhurst founded the Women's Social and Political Union (WSPU), better known as the Suffragettes."],
-          [60, "History", "Which act united Great Britain and Ireland to form the United Kingdom in 1800?", ["The Act of Union", "The Treaty of Utrecht", "The Bill of Rights", "The Magna Carta"], 0, "The Act of Union 1800 united Great Britain and Ireland, effective 1801."],
-          [61, "History", "What was the main outcome of the Highland Clearances in Scotland during the 18th and 19th centuries?", ["The unification of Highland clans", "The eviction of crofters to make way for sheep farming", "The introduction of Protestant schools", "The building of a canal system"], 1, "The Highland Clearances saw thousands of crofters evicted from ancestral lands to facilitate large-scale sheep farming."],
-          [62, "History", "Which 19th-century philanthropist was famous for campaigning to improve conditions for children working in factories and coal mines?", ["Lord Shaftesbury", "William Wilberforce", "Robert Owen", "Clement Attlee"], 0, "Lord Shaftesbury (the Seventh Earl of Shaftesbury) championed historic factory acts that limited child labor."],
-          [63, "History", "Who was Elizabeth Fry, and what did she dedicate her life to reforming in the early 19th century?", ["Improving hospital sanitation", "Reforming prison conditions", "Abolishing child labor", "Establishing free schools"], 1, "Elizabeth Fry was a Christian philanthropist who spearheaded massive reforms of UK prison conditions, particularly for female inmates."],
-          [64, "History", "Which supersonic commercial passenger airliner was jointly developed by Great Britain and France, flying from 1969 to 2003?", ["Concorde", "Spitfire", "Comet", "Hurricane"], 0, "Concorde was the world's only highly successful commercial supersonic passenger aircraft."],
-          [65, "History", "Who was Thomas Becket, and what happened to him in Canterbury Cathedral in 1170?", ["He was a French general who surrendered", "He was the Archbishop of Canterbury who was murdered by the King's knights", "He was a rebel peasant who signed a treaty", "He was the first English printer who built a press"], 1, "Thomas Becket was murdered inside Canterbury Cathedral after an ongoing power clash with King Henry II."],
-          [66, "History", "What did Simon de Montfort's Parliament of 1265 first introduce to English legislative history?", ["The rule of absolute monarchy", "Elected representatives from towns and shires", "The House of Lords", "The role of the Prime Minister"], 1, "Simon de Montfort's Parliament of 1265 was the first to include elected representatives alongside barons."],
-          [67, "History", "What was the purpose of the 'Second Reform Act' of 1867?", ["It abolished the monarchy", "It extended the vote to urban working-class men and created more urban seats", "It gave women equal franchise", "It established the voting age of 18"], 1, "The Second Reform Act of 1867 doubled the size of the electorate, expanding voting rights to urban workers."],
-          [68, "History", "Which treaty, signed in 1998, helped bring a peaceful settlement and devolution to Northern Ireland?", ["The Treaty of Utrecht", "The Belfast Agreement (Good Friday Agreement)", "The Treaty of Versailles", "The Anglo-Irish Treaty"], 1, "The Good Friday Agreement established a power-sharing assembly and paved the way for peace in NI."],
-          [69, "History", "Sake Dean Mahomet opened the first curry house in Britain in which year?", ["1666", "1810", "1901", "1948"], 1, "Indian entrepreneur Sake Dean Mahomet opened the 'Hindoostane Coffee House' in London in 1810."],
-          [70, "History", "Which major milestone annexed Wales to the English Crown under King Edward I?", ["The Magna Carta", "The Statute of Rhuddlan", "The Act of Union", "The Bill of Rights"], 1, "King Edward I introduced the Statute of Rhuddlan in 1284, formalising the annexation of Wales."],
-          [71, "History", "Who were the Boers?", ["Viking invaders in northern Scotland", "Settlers of Dutch descent in South Africa who fought the British", "French Protestants who settled in London", "Soldiers who fought for Parliament in the Civil War"], 1, "The Boers fought the British in the Boer War of 1899 to 1902."],
-          [72, "History", "The Great Exhibition of 1851 was held inside which custom-built masterpiece in Hyde Park?", ["The Millennium Dome", "The Crystal Palace", "St Paul's Cathedral", "The Royal Crescent"], 1, "The Crystal Palace was a massive iron and glass exhibition hall built specifically for the event."],
-          [73, "History", "In which decade did Oliver Cromwell rule Britain as its military Lord Protector?", ["1610s", "1650s", "1680s", "1710s"], 1, "Oliver Cromwell ruled the English Commonwealth as Lord Protector from 1653 until his death in 1658."],
-          [74, "History", "The Treaty of Union in 1707 established which combined sovereign parliament?", ["The Parliament of Great Britain", "The Parliament of the United Kingdom", "The English Parliament", "The Commonwealth Parliament"], 0, "The Act of Union 1707 established the unified Parliament of Great Britain at Westminster."],
-          [75, "History", "Which 1833 Act abolished slavery throughout the vast majority of the British Empire?", ["The Magna Carta", "The Reform Act", "The Emancipation Act", "The Bill of Rights"], 2, "The Emancipation Act of 1833 freed slaves in almost all British colonies."],
-          [76, "History", "Which historical period is associated with rapid industrialization and Queen Victoria?", ["The Victorian Era", "The Tudor Period", "The Middle Ages", "The Restoration"], 0, "The Victorian Era (1837-1901) was marked by unprecedented industrial growth and imperial expansion."],
-          [77, "History", "What was the main purpose of the Magna Carta of 1215?", ["To limit the King's power and establish the rule of law", "To outline royal taxation", "To create a national parliament", "To declare independence from Rome"], 0, "The Magna Carta established that everyone, including the sovereign, was subject to the law."],
-          [78, "History", "Which document of 1689 firmly established a constitutional monarchy in England?", ["The Bill of Rights", "The Magna Carta", "The Habeas Corpus Act", "The Act of Union"], 0, "The Bill of Rights limited the crown's authority, guaranteeing parliamentary sovereignty."],
-          [79, "History", "When was the Statute of Rhuddlan enacted, annexing Wales to the Crown of England?", ["1066", "1215", "1284", "1314"], 2, "King Edward I introduced the Statute of Rhuddlan in 1284, annexing Wales to the Crown of England."],
-          [80, "History", "Which King was defeated and killed at the Battle of Bosworth Field in 1485?", ["Henry VII", "Richard III", "Edward IV", "Charles I"], 1, "Richard III of the House of York was killed at the Battle of Bosworth Field in 1485, ending the War of the Roses."],
-          [81, "History", "What was the 'Habeas Corpus Act' of 1679?", ["A law abolishing slavery", "A law preventing unlawful imprisonment", "A tax on windows", "The right for women to vote"], 1, "The Habeas Corpus Act of 1679 guaranteed that no one could be held prisoner unlawfully. 'Habeas Corpus' is Latin for 'you must present the person in court'."],
-          [82, "History", "During the Victorian period, what did the 'Repeal of the Corn Laws' in 1846 achieve?", ["It banned the farming of corn", "It allowed the import of cheap raw materials", "It abolished the monarchy", "It forced farmers to move to cities"], 1, "The repeal of the Corn Laws abolished tariffs on imported grain, allowing the import of cheap raw materials and lowering food prices."],
-          [83, "History", "What was the population of the UK in 1801?", ["Around 2 million", "Around 8 million", "Around 40 million", "Around 60 million"], 1, "In 1801, the population of the UK was roughly 8 million. By 1901, it was 40 million."],
-          [84, "History", "In 1913, what did the UK government promise to Ireland that was subsequently delayed by WWI?", ["Complete independence", "Home Rule", "Representation in Parliament", "Financial aid"], 1, "The British government promised 'Home Rule' for Ireland, but it was postponed due to the outbreak of the First World War."],
-          [85, "History", "What was the main cause of the English Civil War in 1642?", ["A dispute over trade with France", "The King's attempt to rule without Parliament", "The invasion of the Spanish Armada", "A disagreement over the succession of the throne"], 1, "Charles I believed in the Divine Right of Kings and tried to rule without Parliament, sparking the Civil War."],
-          [86, "History", "Which act joined England and Wales politically and administratively in the 16th century?", ["The Act of Union 1707", "The Laws in Wales Acts (Acts of Union) 1536-1542", "The Statute of Rhuddlan", "The Magna Carta"], 1, "During Henry VIII's reign, the Laws in Wales Acts formally united England and Wales."],
-          [87, "History", "What was the result of the Battle of Agincourt in 1415?", ["The French defeated the English", "The English defeated the French despite being vastly outnumbered", "The Spanish Armada was destroyed", "The Romans left Britain"], 1, "King Henry V's English army famously defeated a much larger French army at Agincourt."],
-          [88, "History", "What was the population of the UK in 1901?", ["Around 10 million", "Around 20 million", "Around 40 million", "Around 60 million"], 2, "The population of the UK in 1901 was around 40 million."],
-          [89, "History", "Which King was defeated and killed at the Battle of Hastings?", ["King Edward", "King Harold", "King William", "King Richard"], 1, "King Harold was defeated and killed at the Battle of Hastings in 1066."],
-          [90, "History", "During which war did the Battle of Agincourt take place?", ["The Crimean War", "The Hundred Years War", "The War of the Roses", "The English Civil War"], 1, "The Battle of Agincourt (1415) was a major English victory in the Hundred Years War."],
-          [91, "History", "In 1776, which British colonies declared their independence?", ["North African", "Asian", "North American", "South African"], 2, "13 North American colonies declared independence over 'no taxation without representation'."],
-          [92, "History", "Who fought in the English Civil war of 1642?", ["House of York and Lancaster", "Anglo-Saxons and Vikings", "Cavaliers and Roundheads", "House of Fraser and Stuart"], 2, "The Cavaliers supported the King, and the Roundheads supported Parliament."],
-          [93, "History", "Between 1680 and 1720 many refugees called Huguenots came to England from where?", ["Pakistan", "Germany", "India", "France"], 3, "They were French Protestants fleeing persecution."],
-          [94, "History", "Which Scottish king defeated the English at the Battle of Bannockburn?", ["King Charles I", "King James I", "Admiral Nelson", "Robert the Bruce"], 3, "Robert the Bruce kept Scotland unconquered in 1314."],
-          [95, "History", "What is known as the 'Dunkirk spirit'?", ["Bombing of London", "Evacuation of Allied soldiers from France during WWII", "New social classes", "Refugees from France"], 1, "Civilian volunteers in small boats rescued over 300,000 men."],
-          [96, "History", "Charles I believed in the 'Divine Right of Kings' so he tried:", ["To rule without Parliament", "To rule with approval", "To raise money", "To restore Catholicism"], 0, "He tried to rule without Parliament, sparking the Civil War."],
-          [97, "History", "What food shortage caused the famine in Ireland in the middle of the 19th century?", ["Corn", "Potato", "Wheat", "Oats"], 1, "The potato crop failed, causing a famine that killed a million people."],
-          [98, "History", "What happened to Charles I after he was in prison?", ["Moved to Spain", "Became a priest", "Escaped to France", "He was executed"], 3, "He was executed in 1649 after the Civil War."],
-          [99, "History", "What kind of disaster was the Black Death?", ["A plague", "An earthquake", "A famine", "A civil war"], 0, "It was a disease, probably a form of plague."],
-          [100, "History", "What country was in conflict with the UK for trading reasons during the 18th century?", ["Andorra", "Germany", "France", "Luxembourg"], 2, "Britain frequently clashed with France over overseas trade and settlements."],
-        
-          // --- Laws & Government (101 - 150) ---
-          [101, "Laws & Gov", "Does the UK have a single, written constitution?", ["Yes, since 1689", "No, the UK constitution is unwritten and uncodified"], 1, "The UK has an unwritten constitution made of statutes, common law, and conventions."],
-          [102, "Laws & Gov", "What is the Monarch's role in the UK government?", ["To pass laws and set taxes", "To serve as Head of State but remain politically neutral", "To lead the majority party in Parliament", "To serve as Head of the Judiciary"], 1, "The UK has a constitutional monarchy; the King reigns but does not rule."],
-          [103, "Laws & Gov", "How many Members of Parliament (MPs) are elected to the House of Commons?", ["500", "600", "650", "700"], 2, "There are 650 constituencies, each electing one MP to the House of Commons."],
-          [104, "Laws & Gov", "Who is the 'Speaker' in the House of Commons?", ["The leader of the Opposition", "An MP elected to keep order during debates and remain neutral", "The Prime Minister's deputy", "A civil servant representing the Monarch"], 1, "The Speaker is an MP who chairs debates, must remain completely neutral, and leaves their political party upon election."],
-          [105, "Laws & Gov", "What is the main role of a Parliamentary 'Whip'?", ["To punish MPs who break the law", "To ensure MPs attend and vote according to their party's policy", "To assist the Speaker in keeping order", "To drafts new bills for the Prime Minister"], 1, "Whips are MPs appointed to maintain party discipline and ensure party members vote on key issues."],
-          [106, "Laws & Gov", "Who are 'peers' in the House of Lords?", ["Elected local council leaders", "Appointed members who scrutinize bills but cannot veto them indefinitely", "Members of the royal family", "Judges from the Supreme Court"], 1, "Peers (Life and Hereditary) serve in the Lords; they can delay and amend bills, but cannot block them permanently."],
-          [107, "Laws & Gov", "At what age can a UK citizen run for election as an MP?", ["18", "21", "25", "30"], 0, "Since the Electoral Administration Act 2006, the minimum age to run for public office is 18."],
-          [108, "Laws & Gov", "What is the standard frequency of general elections in the UK?", ["Every 3 years", "Every 4 years", "At least every 5 years", "Every 10 years"], 2, "By law, a general election must be held at least every five years."],
-          [109, "Laws & Gov", "Which system is used to elect MPs to the House of Commons?", ["Proportional Representation", "First-Past-the-Post", "Single Transferable Vote", "Alternative Vote"], 1, "The UK uses the First-Past-the-Post system where the candidate with the most votes wins the seat."],
-          [110, "Laws & Gov", "What are the Crown Dependencies?", ["Territories like Gibraltar linked to the UK but not part of it", "Self-governing islands like the Isle of Man and Channel Islands", "Counties in the south of England", "Independent nations within the Commonwealth"], 1, "The Isle of Man and the Channel Islands (Jersey and Guernsey) are Crown Dependencies; they have their own parliaments."],
-          [111, "Laws & Gov", "Are British Overseas Territories (such as Gibraltar and the Falkland Islands) part of the United Kingdom?", ["Yes, they have full representation in Westminster", "No, they are linked to the UK but have their own governments", "Yes, but they are ruled directly by the Monarch", "No, they are completely sovereign and independent nations"], 1, "Overseas Territories are self-governing but linked to the UK, which remains responsible for their defense and foreign affairs."],
-          [112, "Laws & Gov", "Which devolved administration sits in Holyrood, Edinburgh?", ["The Welsh Government", "The Scottish Parliament", "The Northern Ireland Assembly", "The Greater London Authority"], 1, "The Scottish Parliament meets at Holyrood in Edinburgh."],
-          [113, "Laws & Gov", "Which voting system is used to elect members of the Northern Ireland Assembly?", ["First-Past-the-Post", "Single Transferable Vote (Proportional Representation)", "Alternative Vote", "Closed List System"], 1, "The Northern Ireland Assembly uses Single Transferable Vote to ensure fair party balance."],
-          [114, "Laws & Gov", "Who is responsible for civil service appointments in the UK?", ["The ruling political party", "Independent commissions, appointing solely on merit", "The Monarch directly", "The House of Lords"], 1, "Civil servants are politically neutral and appointed based on merit through open competition."],
-          [115, "Laws & Gov", "What is the age of criminal responsibility in Scotland?", ["10", "12", "14", "16"], 1, "The age of criminal responsibility is 12 in Scotland, whereas it is 10 in England, Wales, and Northern Ireland."],
-          [116, "Laws & Gov", "Minor criminal cases in England, Wales, and Northern Ireland are heard in which court?", ["Crown Court", "Magistrates' Court", "County Court", "High Court"], 1, "Magistrates' Courts handle over 95% of all criminal cases in England, Wales, and Northern Ireland."],
-          [117, "Laws & Gov", "Who typically hears cases in a Magistrates' Court?", ["A High Court Judge", "Unpaid volunteers from the community (Magistrates) OR a District Judge", "A sheriff and a jury", "A panel of MPs"], 1, "Most cases are heard by a bench of three lay magistrates, who are unpaid volunteers trained in the law."],
-          [118, "Laws & Gov", "What is the size of a standard jury in a Scottish court?", ["12", "14", "15", "20"], 2, "Scotland unique uses a 15-member jury for criminal trials, unlike the rest of the UK which uses 12."],
-          [119, "Laws & Gov", "What is the limit for a claim in the 'Small Claims Procedure' in Scotland?", ["£3,000", "£5,000", "£10,000", "£15,000"], 1, "The Scottish small claims limit is £5,000, while in England and Wales it is £10,000."],
-          [120, "Laws & Gov", "How are judges appointed in the UK?", ["By the Prime Minister based on party loyalty", "By an independent judicial appointments commission based on merit", "By popular election by the public", "By the Speaker of the House of Commons"], 1, "To maintain judicial independence, judges are appointed based on merit by an independent body."],
-          [121, "Laws & Gov", "In Scotland, what is a minor criminal case dealt with by?", ["A Crown Court", "A Justice of the Peace Court", "A Magistrates' Court", "A Youth Court"], 1, "In Scotland, minor criminal offences go to a Justice of the Peace Court. In England/Wales, it's a Magistrates' Court."],
-          [122, "Laws & Gov", "Which of these matters is NOT devolved to the Northern Ireland Assembly?", ["Education", "Health", "Defence", "Agriculture"], 2, "Defence, foreign affairs, and immigration are strongly reserved to the central UK government."],
-          [123, "Laws & Gov", "Who is the official head of the UK Judiciary in England and Wales?", ["The Prime Minister", "The Lord Chief Justice", "The Lord Chancellor", "The Monarch"], 1, "The Lord Chief Justice serves as the professional head of the judiciary."],
-          [124, "Laws & Gov", "Which court handles minor civil disputes and debt collection in England and Wales?", ["Crown Court", "Magistrates' Court", "County Court", "High Court"], 2, "County Courts handle civil matters like contract disputes, housing, and small claims."],
-          [125, "Laws & Gov", "Which group forms the main opposition in the House of Commons?", ["The House of Lords", "The party with the second-largest number of MPs", "The Civil Service", "The Judiciary"], 1, "The political party with the second-largest number of MPs becomes the official Opposition."],
-          [126, "Laws & Gov", "Who presides over the House of Commons?", ["The Prime Minister", "The Speaker", "The Monarch", "The Archbishop"], 1, "The Speaker presides over debates in the House of Commons and maintains order."],
-          [127, "Laws & Gov", "Who is the leader of the official Opposition party in Parliament?", ["The Speaker", "The MP leading the second-largest party in the House of Commons", "The Archbishop of Canterbury", "The Lord Chancellor"], 1, "The leader of the second-largest party in the Commons becomes the Leader of the Opposition."],
-          [128, "Laws & Gov", "What is the function of a jury in the UK legal system?", ["To decide the appropriate sentence for a guilty defendant", "To decide whether a defendant is guilty or not guilty based on evidence", "To arrest suspects and bring them to court", "To determine if a law is constitutional"], 1, "The jury decides the verdict of guilt; the judge decides the sentence."],
-          [129, "Laws & Gov", "What is the age of criminal responsibility in England, Wales, and Northern Ireland?", ["10", "12", "14", "16"], 0, "The legal age of criminal responsibility is 10 years old in England, Wales, and Northern Ireland."],
-          [130, "Laws & Gov", "Which court handles minor criminal offenses in England, Wales, and Northern Ireland?", ["The Magistrates' Court", "The Crown Court", "The High Court", "The Sheriff Court"], 0, "Over 95% of minor criminal offenses are dealt with inside a local Magistrates' Court."],
-          [131, "Laws & Gov", "What does the abbreviation 'MP' stand for?", ["Member of Parliament", "Minister of Police", "Master of Politics", "Mayor of the Parish"], 0, "MP stands for Member of Parliament, an elected legislative representative in the Commons."],
-          [132, "Laws & Gov", "In Parliament, what is a 'select committee' responsible for?", ["Selecting which bills become laws", "Investigating and scrutinising the work of specific government departments", "Appointing new peerages", "Choosing judicial candidates"], 1, "Select committees are cross-party committees of MPs that inspect department policy and spending."],
-          [133, "Laws & Gov", "By law, which form of discrimination is prohibited under the Equality Act 2010?", ["Discrimination based on political views", "Workplace discrimination based on age, race, sex, religion, or sexual orientation", "Discrimination based on wealth", "Discrimination based on educational degree"], 1, "The Equality Act 2010 protects nine characteristics from discrimination in employment and services."],
-          [134, "Laws & Gov", "When did same-sex marriage legally become law in England, Wales, and Scotland?", ["2005", "2010", "2014", "2020"], 2, "Same-sex marriage legislation came into force in England, Wales, and Scotland in 2014."],
-          [135, "Laws & Gov", "What is the main role of the civil service in the UK government?", ["To pass minor statutes", "To help the government carry out its policies neutrally, regardless of political party", "To represent the UK at the United Nations", "To arrest citizens breaking parliamentary codes"], 1, "Civil servants are neutral administrators who serve whichever government is elected into power."],
-          [136, "Laws & Gov", "Which devolved parliament meets in Cardiff, Wales?", ["The Senedd (Welsh Parliament)", "The Stormont Assembly", "The Welsh Council", "The Senedd of Monmouth"], 0, "The Welsh Parliament (Senedd Cymru) meets inside the Senedd building in Cardiff."],
-          [137, "Laws & Gov", "Which court hears the most serious civil disputes (e.g., massive commercial claims) in London?", ["The Magistrates' Court", "The High Court", "The County Court", "The Crown Court"], 1, "The High Court of Justice in London deals with highly complex and high-value civil trials."],
-          [138, "Laws & Gov", "Which Cabinet post is responsible for financial matters and writing the government's budget?", ["Home Secretary", "Foreign Secretary", "Chancellor of the Exchequer", "Speaker"], 2, "The Chancellor of the Exchequer serves as the government's chief financial minister."],
-          [139, "Laws & Gov", "What is 'Civil Law' mostly concerned with?", ["Punishing serious crimes", "Settling disputes between individuals or organizations", "Regulating the police force", "Managing international treaties"], 1, "Civil law deals with disputes between individuals or organizations, such as contracts or property issues."],
-          [140, "Laws & Gov", "Which official publication lists everything said in Parliament?", ["The Times", "Hansard", "The Daily Telegraph", "The Gazette"], 1, "Hansard is the official, substantially verbatim report of what is said in Parliament."],
-          [141, "Laws & Gov", "Who is the spiritual leader of the Church of England?", ["The Monarch", "The Archbishop of Canterbury", "The Prime Minister", "The Pope"], 1, "While the Monarch is the Supreme Governor, the Archbishop of Canterbury is the spiritual leader."],
-          [142, "Laws & Gov", "What is a 'Small Claims Court'?", ["A court for children", "A fast, informal court to resolve minor financial disputes", "A court for serious fraud", "A court that handles divorces"], 1, "The small claims procedure is an informal way to settle minor financial disputes without needing a lawyer."],
-          [143, "Laws & Gov", "Can court orders be obtained to protect a person from being forced into a marriage?", ["Yes", "No"], 0, "True. Forced Marriage Protection Orders protect people from being forced into a marriage."],
-          [144, "Laws & Gov", "The members of the House of Lords, known as peers, are elected by the people.", ["True", "False"], 1, "False. Peers are appointed, not democratically elected."],
-          [145, "Laws & Gov", "In England, Wales and NI, Youth Court cases are normally heard by (choose two):", ["Up to 3 specially trained magistrates AND a District Judge", "A sheriff AND a jury", "Members of the public", "High Court Judges"], 0, "Cases are heard by up to 3 specially trained magistrates or a District Judge. Public are not allowed."],
-          [146, "Laws & Gov", "The UK government has never suspended the Northern Ireland Assembly.", ["True", "False"], 1, "False. It has been suspended on a few occasions in the past."],
-          [147, "Laws & Gov", "What should you do to make a complaint about the police? (choose two)", ["Go to the Police station directly AND Write to the Chief Constable", "Write to House of Commons", "Write to your MP", "Call the army"], 0, "You can complain at a station, to the Chief Constable, or an independent body."],
-          [148, "Laws & Gov", "How are civil servants appointed?", ["Chosen on merit and form Liberal party", "Chosen randomly", "Chosen on merit and are politically neutral", "Appointed by monarch"], 2, "They are chosen on merit and remain politically neutral."],
-          [149, "Laws & Gov", "What name is given to the group of senior opposition MPs who challenge the government?", ["Shadow Cabinet", "Lobby groups", "Civil servants", "Support peers"], 0, "They form the shadow cabinet to put forward alternative policies."],
-          [150, "Laws & Gov", "Which two documents do you need to apply for a National Insurance number?", ["Documents proving identity AND permission to work", "Tenancy agreement AND Bank statement", "Contract from employer AND passport", "Library card AND Utility bill"], 0, "You need documents that prove your identity and that you have permission to work in the UK."],
-        
-          // --- Culture & Society (151 - 210) ---
-          [151, "Culture & Society", "What is the national anthem of the United Kingdom?", ["Rule, Britannia!", "God Save the King", "Land of Hope and Glory", "Jerusalem"], 1, "The national anthem is 'God Save the King' (or Queen, depending on the monarch's sex)."],
-          [152, "Culture & Society", "Who is the patron saint of England, and on which day is his saint's day celebrated?", ["St David (1st March)", "St George (23rd April)", "St Andrew (30th November)", "St Patrick (17th March)"], 1, "St George's Day is celebrated on 23rd April."],
-          [153, "Culture & Society", "Which patron saint is celebrated on the 1st of March in Wales?", ["St George", "St David", "St Patrick", "St Andrew"], 1, "St David's Day is the national day of Wales, celebrated on 1st March."],
-          [154, "Culture & Society", "When is St Andrew's Day celebrated in Scotland?", ["17th April", "31st December", "1st March", "30th November"], 3, "St Andrew's Day is celebrated on 30th November."],
-          [155, "Culture & Society", "Which national flag combines the crosses of St George, St Andrew, and St Patrick?", ["The Welsh Flag", "The Royal Standard", "The Union Jack", "The Commonwealth Flag"], 2, "The Union Jack is the national flag, created by layering the patron saints' flags."],
-          [156, "Culture & Society", "Which national symbol is associated with Northern Ireland?", ["The Daffodil", "The Thistle", "The Shamrock", "The Rose"], 2, "The Shamrock is the traditional national plant of Northern Ireland."],
-          [157, "Culture & Society", "What is a 'bank holiday'?", ["A day when only banks are open", "A public holiday when banks and many businesses close", "A day specifically for paying taxes", "A holiday exclusively for bank employees"], 1, "Bank holidays are public holidays when banks and other non-essential businesses close."],
-          [158, "Culture & Society", "The 40 days before Easter are known as what in the Christian calendar?", ["Advent", "Lent", "Epiphany", "Pentecost"], 1, "Lent is the 40-day period of fasting and prayer preceding Easter."],
-          [159, "Culture & Society", "What is the primary significance of Diwali?", ["A harvest festival", "The festival of lights, celebrated by Hindus, Sikhs, and Jains", "The Jewish New Year", "The end of Ramadan"], 1, "Diwali is the Festival of Lights, signifying the victory of light over darkness."],
-          [160, "Culture & Society", "Which festival celebrates the end of the Muslim holy month of fasting, Ramadan?", ["Eid al-Adha", "Eid al-Fitr", "Vaisakhi", "Hanukkah"], 1, "Eid al-Fitr is the festival marking the breaking of the fast at the end of Ramadan."],
-          [161, "Culture & Society", "What is the name of the eight-day Jewish festival of lights?", ["Hanukkah", "Passover", "Yom Kippur", "Rosh Hashanah"], 0, "Hanukkah is the Jewish festival of lights, usually celebrated in November or December."],
-          [162, "Culture & Society", "Which charity focuses on protecting and preserving historic buildings, coastlines, and countryside?", ["Shelter", "The National Trust", "Crisis", "Age UK"], 1, "The National Trust is the UK's largest conservation and heritage charity."],
-          [163, "Culture & Society", "Which 14th-century British author wrote 'The Canterbury Tales'?", ["William Shakespeare", "Geoffrey Chaucer", "John Milton", "William Wordsworth"], 1, "Geoffrey Chaucer is often called the Father of English Literature for his Middle English works."],
-          [164, "Culture & Society", "Which Victorian novelist wrote 'Oliver Twist' and 'Great Expectations'?", ["Jane Austen", "Thomas Hardy", "Charles Dickens", "George Eliot"], 2, "Charles Dickens was a prominent Victorian author famous for his social critiques."],
-          [165, "Culture & Society", "Which classic 1981 British sports drama film won four Academy Awards, including Best Picture?", ["The Third Man", "Chariots of Fire", "Lawrence of Arabia", "Brief Encounter"], 1, "Chariots of Fire tell the story of two British runners competing in the 1924 Olympics."],
-          [166, "Culture & Society", "What is a 'pantomime'?", ["A silent street performance", "A traditional comedic musical theatre production, usually performed around Christmas", "A formal royal parade", "A type of classical opera"], 1, "Pantomimes are family-friendly slapstick comedy plays based on popular fairy tales."],
-          [167, "Culture & Society", "Which classical music festival takes place over eight weeks during the summer in London?", ["The Proms", "Glastonbury", "Glyndebourne", "Womad"], 0, "The Henry Wood Promenade Concerts (The Proms) are organized by the BBC."],
-          [168, "Culture & Society", "What is 'Hogmanay'?", ["A traditional Welsh cake", "The Scottish word for New Year's Eve", "An English pub game", "A Northern Irish breakfast"], 1, "Hogmanay is the Scottish celebration of New Year's Eve, featuring unique customs like 'first footing'."],
-          [169, "Culture & Society", "Which of the following is a traditional food native to Wales?", ["Haggis", "Welsh cakes", "Ulster Fry", "Yorkshire Pudding"], 1, "Welsh cakes (flat, sweet griddle cakes) are a traditional Welsh sweet treat."],
-          [170, "Culture & Society", "What is the highest value banknote in circulation in the UK?", ["£20", "£50", "£100", "£500"], 1, "The £50 note is the highest denomination note printed by the Bank of England."],
-          [171, "Culture & Society", "What is the traditional Sunday meal in the UK?", ["Fish and Chips", "Curry", "Roast dinner", "Shepherd's Pie"], 2, "A traditional Sunday meal is a roast dinner, often featuring roasted meat, potatoes, vegetables, and gravy."],
-          [172, "Culture & Society", "What is the national flower of England?", ["The Tudor Rose", "The Thistle", "The Shamrock", "The Daffodil"], 0, "The Tudor Rose, combining Lancaster and York heraldry, represents England."],
-          [173, "Culture & Society", "Which of the following is one of the highest-grossing film franchises produced in the UK?", ["Harry Potter", "Spider-man", "The Lord of the Rings", "Indiana Jones"], 0, "Harry Potter and James Bond are two of the highest-grossing UK film franchises."],
-          [174, "Culture & Society", "Is the BBC controlled by the government?", ["Yes", "No"], 1, "No, it is independent of the government."],
-          [175, "Culture & Society", "What is the day when jokes are published in newspapers and telecast on TV?", ["April Fool's Day", "Boxing Day", "Halloween", "Valentine's Day"], 0, "1st April is April Fool's Day until midday."],
-          [176, "Culture & Society", "Women in Britain today make up about half of the workforce.", ["True", "False"], 0, "True. Women have equal rights and make up about half the workforce."],
-          [177, "Culture & Society", "Which novel written by JRR Tolkien was voted the country's best-loved novel in 2003?", ["Oliver Twist", "James Bond", "Pride and Prejudice", "The Lord of the Rings"], 3, "In 2003, the Lord of the Rings by JRR Tolkien was voted the best-loved novel."],
-          [178, "Culture & Society", "When is Halloween celebrated?", ["5th of November", "11th of November", "31st of October", "1st of April"], 2, "Halloween is celebrated on the 31st of October."],
-          [179, "Culture & Society", "What building was constructed in Hyde Park to hold the Great Exhibition of 1851?", ["The Crystal Palace", "Buckingham Palace", "Kensington Palace", "Apsley House"], 0, "In 1851, the Great Exhibition opened in Hyde Park in the Crystal Palace."],
-          [180, "Culture & Society", "What stories are associated with Geoffrey Chaucer?", ["The Cambridge Tales", "The Eastbourne Tales", "The Canterbury Tales", "The London Tales"], 2, "Geoffrey Chaucer wrote The Canterbury Tales."],
-          [181, "Culture & Society", "When is Boxing Day celebrated?", ["31st October", "26th December", "24th December", "01st January"], 1, "Boxing Day is the day after Christmas Day (26th December)."],
-          [182, "Culture & Society", "What is the name of the holiday when banks and many other businesses are closed for the day?", ["Credit Holidays", "Branch Holidays", "Bank Holidays", "Business Holidays"], 2, "Public holidays are known as Bank Holidays."],
-          [183, "Culture & Society", "Which of the following statements is correct regarding shopping in the UK?", ["Most shops in the UK are open seven days a week", "All shops close on Sundays and bank holidays", "Shops only open 5 days a week", "Shops are never open on bank holidays"], 0, "Most shops are open 7 days a week, although trading hours on Sundays and public holidays are generally reduced."],
-          [184, "Culture & Society", "Which of the following actresses has not won an Oscar?", ["Tilda Swinton", "Dame Judi Dench", "Kate Winslet", "Emily Watson"], 3, "British actors to have won Oscars include Colin Firth, Sir Antony Hopkins, Dame Judi Dench, Kate Winslet, and Tilda Swinton. Emily Watson has not."],
-          [185, "Culture & Society", "How is New Year's Eve called in Scotland?", ["Vaisakhi", "Hannukah", "Diwali", "Hogmanay"], 3, "In Scotland, the 31st of December (New Year's Eve) is called Hogmanay."],
-          [186, "Culture & Society", "Which flower is associated with Wales?", ["Daffodil", "Rose", "Shamrock", "Thistle"], 0, "The flower associated with Wales is the daffodil."],
-          [187, "Culture & Society", "Scotland has its own banknotes, which are valid everywhere in the UK.", ["True", "False"], 0, "This statement is true. Scotland and Northern Ireland have their own banknotes."],
-          [188, "Culture & Society", "When does Easter take place?", ["November or December", "January or February", "March or April", "May or June"], 2, "Easter takes place in March or April."],
-          [189, "Culture & Society", "Which two of the following are fundamental principles of British life?", ["Monarchy AND The rule of law", "The rule of law AND Democracy", "Democracy AND Join a political party", "Monarchy AND Join a political party"], 1, "The fundamental principles of British life include democracy, the rule of law, individual liberty, and tolerance."],
-          [190, "Culture & Society", "Which flower is associated with Scotland?", ["The Shamrock", "The Rose", "The Daffodil", "The Thistle"], 3, "The flower associated with Scotland is the thistle."],
-          [191, "Culture & Society", "When is St David's day celebrated?", ["1st March", "23rd April", "17th March", "30th November"], 0, "St David is the patron saint of Wales, and his day is celebrated on the 1st of March."],
-          [192, "Culture & Society", "Which flower is associated with Northern Ireland?", ["The daffodil", "The thistle", "The shamrock", "The rose"], 2, "The flower associated with Northern Ireland is the shamrock."],
-          [193, "Culture & Society", "£100 is the highest value note in circulation in the UK.", ["True", "False"], 1, "False. The highest value note in general circulation in the UK is the £50 note."],
-          [194, "Culture & Society", "Who sponsors The Proms, an eight-week summer season of orchestral classical music?", ["The Government", "The BBC", "The National Trust", "The Royal Family"], 1, "The BBC sponsors The Proms, an eight-week summer season of orchestral classical music."],
-          [195, "Culture & Society", "Which of the following is a traditional food from Wales?", ["Haggis", "Welsh cakes", "Ulster fry", "Cornish pasty"], 1, "Welsh cakes are a traditional food from Wales."],
-          [196, "Culture & Society", "What is the capital city of Northern Ireland?", ["Cardiff", "Edinburgh", "Dublin", "Belfast"], 3, "The capital city of Northern Ireland is Belfast."],
-          [197, "Culture & Society", "What do people traditionally eat on Shrove Tuesday?", ["Roast Beef", "Haggis", "Pancakes", "Hot Cross Buns"], 2, "Shrove Tuesday is commonly known as Pancake Day in the UK."],
-          [198, "Culture & Society", "What is a 'Pantomime'?", ["A type of political debate", "A traditional theatrical comedy, usually produced around Christmas", "A formal royal ceremony", "A type of classical music concert"], 1, "Pantomime is a traditional British theatrical comedy usually performed at Christmas time."],
-          [199, "Culture & Society", "What is the national flower of Wales?", ["Rose", "Daffodil", "Thistle", "Shamrock"], 1, "The Daffodil (alongside the leek) is heavily associated as the national symbol of Wales."],
-          [200, "Culture & Society", "What are the four fundamental principles of British life?", ["Democracy, the rule of law, individual liberty, and mutual tolerance", "Monarchy, taxation, state control, and isolationism", "Sovereignty, military service, welfare, and industry", "Collectivism, common law, local governance, and unionism"], 0, "The four core values defined in the official curriculum are democracy, the rule of law, individual liberty, and mutual tolerance of those with different faiths and beliefs."],
-        
-          // --- Geography, Demographics, & Landmarks (201 - 240) ---
-          [201, "Geography", "What is the approximate population of the United Kingdom?", ["45 million", "55 million", "67 million", "80 million"], 2, "The UK population is estimated to be approximately 67 million."],
-          [202, "Geography", "What proportion of the UK population lives in England?", ["Around 50%", "Around 65%", "Around 84%", "Around 95%"], 2, "England holds the vast majority of the population (around 56 million people)."],
-          [203, "Geography", "What is the highest mountain in Scotland and the United Kingdom?", ["Snowdon", "Scafell Pike", "Ben Nevis", "Slieve Donard"], 2, "Ben Nevis in Scotland stands at 1,345 meters, making it the tallest peak in the UK."],
-          [204, "Geography", "What is the highest mountain in Wales?", ["Ben Nevis", "Snowdon", "Scafell Pike", "Slieve Donard"], 1, "Snowdon (Yr Wyddfa) is the highest mountain in Wales (1,085 meters)."],
-          [205, "Geography", "What is the highest mountain in England?", ["Ben Nevis", "Snowdon", "Scafell Pike", "Slieve Donard"], 2, "Scafell Pike is the highest peak in England, located in the Lake District National Park."],
-          [206, "Geography", "What is the highest mountain in Northern Ireland?", ["Ben Nevis", "Snowdon", "Scafell Pike", "Slieve Donard"], 3, "Slieve Donard is the highest peak in Northern Ireland, located in the Mourne Mountains."],
-          [207, "Geography", "Which body of water separates Great Britain from Ireland?", ["The North Sea", "The English Channel", "The Irish Sea", "The Celtic Sea"], 2, "The Irish Sea lies between the islands of Great Britain and Ireland."],
-          [208, "Geography", "How many National Parks are there in England, Scotland, and Wales?", ["5", "10", "15", "20"], 2, "There are 15 National Parks in total (10 in England, 3 in Wales, and 2 in Scotland)."],
-          [209, "Geography", "Which national park is the largest in England?", ["The Peak District", "The Lake District", "The Yorkshire Dales", "Dartmoor"], 1, "The Lake District is England's largest National Park, covering over 2,300 square kilometers."],
-          [210, "Geography", "Where is Loch Lomond and the Trossachs National Park located?", ["England", "Wales", "Scotland", "Northern Ireland"], 2, "Loch Lomond and the Trossachs is located in western Scotland."],
-          [211, "Geography", "What is the capital city of Scotland?", ["Glasgow", "Aberdeen", "Dundee", "Edinburgh"], 3, "Edinburgh is the historic and administrative capital of Scotland."],
-          [212, "Geography", "What is the capital city of Wales?", ["Swansea", "Cardiff", "Newport", "Wrexham"], 1, "Cardiff was officially declared the capital of Wales in 1955."],
-          [213, "Geography", "What is the capital city of Northern Ireland?", ["Belfast", "Dublin", "Londonderry", "Armagh"], 0, "Belfast is the capital and largest city in Northern Ireland."],
-          [214, "Geography", "Which geographical line marks the longest distance on the British mainland?", ["Dover to York", "London to Edinburgh", "Land's End to John O'Groats", "Cardiff to Belfast"], 2, "The route from Land's End in Cornwall to John O'Groats in Scotland is the longest mainland distance (870 miles)."],
-          [215, "Geography", "Which unique geological formation of basalt columns is located in Northern Ireland?", ["The Needles", "The Giant's Causeway", "Stonehenge", "Loch Ness"], 1, "The Giant's Causeway is a famous UNESCO World Heritage site in County Antrim."],
-          [216, "Geography", "Where is the ecological visitor attraction, the Eden Project, located?", ["Devon", "Cornwall", "Dorset", "Somerset"], 1, "The Eden Project, featuring massive indoor biomes, is located in Cornwall."],
-          [217, "Geography", "What is the name of the central War Memorial located in Whitehall, London?", ["The Cenotaph", "The White Tower", "Westminster Abbey", "The Royal Crescent"], 0, "The Cenotaph is the site of the annual National Service of Remembrance on Remembrance Sunday."],
-          [218, "Geography", "The Channel Islands and the Isle of Man are part of the United Kingdom.", ["True", "False"], 1, "False. They are self-governing Crown Dependencies, not part of the UK."],
-          [219, "Geography", "Is the British Overseas Territory of St Helena represented in the UK Parliament?", ["Yes, it has its own MP", "No, it is self-governing and has no seats in Westminster", "Yes, but only in the House of Lords", "No, it is ruled directly by the Scottish Parliament"], 1, "Overseas Territories do not have seats in the Westminster Parliament."],
-          [220, "Geography", "What is the longest river in the United Kingdom?", ["The River Thames", "The River Severn", "The River Clyde", "The River Trent"], 1, "The River Severn is the longest river (220 miles), rising in Wales and flowing into England."],
-          [221, "Geography", "Where is Skara Brae, the best preserved prehistoric village in northern Europe, located?", ["Scotland", "Wales", "England", "Northern Ireland"], 0, "It is located on Orkney, off the north coast of Scotland."],
-          [222, "Geography", "Is St Helena part of the UK?", ["Yes", "No"], 1, "No, it is a British overseas territory linked to the UK, but not part of it."],
-          [223, "Geography", "Where is Theatreland?", ["Docklands", "East End", "London's West End", "South End"], 2, "The West End of London is famous for its theatres."],
-          [224, "Geography", "Which of the following is a Crown Dependency but not part of the UK?", ["Shetland", "Isle of Wight", "Isle of Man", "Anglesey"], 2, "The Isle of Man and Channel Islands are Crown Dependencies."],
-          [225, "Geography", "Which of the following castles is located in Scotland?", ["Bodiam Castle", "Powis Castle", "Caernarfon Castle", "Crathes Castle"], 3, "Crathes Castle is located in Scotland."],
-          [226, "Geography", "Which of the following territories is a Crown dependency but is NOT part of the UK?", ["Northern Ireland", "Wales", "Scotland", "The Channel Islands"], 3, "The Channel Islands and the Isle of Man are Crown dependencies."],
-          [227, "Geography", "Where are the Crown Jewels kept?", ["At the House of Commons", "At the Tower of London", "At Buckingham Palace", "At Windsor Castle"], 1, "The Crown Jewels are kept at the Tower of London."],
-          [228, "Geography", "Where is Big Ben located?", ["Buckingham Palace", "The Tower of London", "The Houses of the Parliament", "Trafalgar Square"], 2, "Big Ben is the nickname for the great bell of the clock at the Houses of Parliament."],
-          [229, "Geography", "Which sea separates Great Britain from continental Europe?", ["The Irish Sea", "The North Sea", "The English Channel", "The Baltic Sea"], 2, "The English Channel separates southern England from northern France."],
-          [230, "Geography", "Which sea separates Great Britain from Ireland?", ["The Irish Sea", "The North Sea", "The English Channel", "The Baltic Sea"], 0, "The Irish Sea is situated between the islands of Great Britain and Ireland."],
-          [231, "Geography", "Which part of the UK is situated on a separate island from Great Britain?", ["Scotland", "Wales", "England", "Northern Ireland"], 3, "Northern Ireland occupies the northeastern corner of the island of Ireland."],
-          [232, "Geography", "Where is the Eden Project?", ["London", "Scotland", "Cornwall", "Wales"], 2, "The Eden Project is a popular ecological attraction located in Cornwall."],
-          [233, "Geography", "Where is the Lake District National Park located?", ["Scotland", "Wales", "England", "Northern Ireland"], 2, "Lake District is in England."],
-          [234, "Geography", "There are 15 national parks in England, Wales and Scotland. What are national parks?", ["Giant greenhouses", "Land formations of volcanic lava", "Areas of protected countryside", "Medieval buildings"], 2, "National Parks are areas of protected countryside."],
-          [235, "Geography", "Is the British Overseas Territory of St Helena represented in the UK Parliament?", ["Yes, it has its own MP", "No, it is self-governing and has no seats in Westminster", "Yes, but only in the House of Lords", "No, it is ruled directly by the Scottish Parliament"], 1, "Overseas Territories do not have seats in the Westminster Parliament."],
-          [236, "Geography", "Where is Loch Lomond and the Trossachs National Park located?", ["England", "Wales", "Scotland", "Northern Ireland"], 2, "Loch Lomond and the Trossachs National Park is located in the west of Scotland."],
-          [237, "Geography", "What is the capital city of Wales?", ["Swansea", "Cardiff", "Newport", "Wrexham"], 1, "Cardiff has served as the official capital city of Wales since 1955."],
-          [238, "Geography", "What is the capital city of Scotland?", ["Glasgow", "Edinburgh", "Aberdeen", "St Andrews"], 1, "Edinburgh is the historic and beautiful capital city of Scotland."],
-          [239, "Geography", "Which body of water separates Great Britain from Ireland?", ["The North Sea", "The English Channel", "The Irish Sea", "The Celtic Sea"], 2, "The Irish Sea lies between the islands of Great Britain and Ireland."],
-          [240, "Geography", "Which of the following is a Crown Dependency but is NOT part of the UK?", ["The Isle of Man", "Shetland", "Anglesey", "The Isle of Wight"], 0, "The Isle of Man is a self-governing Crown Dependency located in the Irish Sea."],
-        
-          // --- People, Science, & Sports (241 - 300) ---
-          [241, "People", "Who invented the World Wide Web in 1989?", ["Alan Turing", "Sir Tim Berners-Lee", "Sir Frank Whittle", "Sir Robert Watson-Watt"], 1, "Sir Tim Berners-Lee invented the World Wide Web, which revolutionized global communications."],
-          [242, "People", "Which Scottish scientist famously discovered penicillin in 1928?", ["Alexander Fleming", "Ernest Rutherford", "Howard Florey", "Francis Crick"], 0, "Sir Alexander Fleming discovered the antibacterial properties of penicillin in 1928."],
-          [243, "People", "Who developed the first working mechanical television system in the 1920s?", ["Alan Turing", "John Logie Baird", "Alexander Graham Bell", "Frank Whittle"], 1, "Scottish engineer John Logie Baird transmitted the first moving television images in London."],
-          [244, "People", "Which British engineer invented the jet engine in the 1930s?", ["Isambard Kingdom Brunel", "Sir Frank Whittle", "Sir Christopher Cockerell", "James Watt"], 1, "Sir Frank Whittle patented the first turbojet engine design in 1930."],
-          [245, "People", "Who invented the hovercraft in the 1950s?", ["Sir Frank Whittle", "Sir Christopher Cockerell", "James Goodfellow", "Sir Peter Mansfield"], 1, "Sir Christopher Cockerell invented the hovercraft, testing it successfully in 1959."],
-          [246, "People", "Which Scottish engineer invented the Cash-dispensing ATM in the 1960s?", ["John Logie Baird", "James Goodfellow", "Sir Peter Mansfield", "Ian Wilmot"], 1, "James Goodfellow patented the personal identification number (PIN) system for ATMs."],
-          [247, "People", "Who co-discovered the double-helix structure of DNA in 1953?", ["Ernest Rutherford and Niels Bohr", "Francis Crick and James Watson", "Alexander Fleming and Howard Florey", "Sir Ian Wilmot and Keith Campbell"], 1, "Francis Crick and James Watson discovered the structure of DNA at Cambridge in 1953."],
-          [248, "People", "Which famous Victorian engineer designed the Clifton Suspension Bridge and the Great Western Railway?", ["George Stephenson", "Isambard Kingdom Brunel", "Richard Arkwright", "James Watt"], 1, "Isambard Kingdom Brunel was a visionary engineer of the Industrial Revolution."],
-          [249, "People", "Who led the team that successfully cloned 'Dolly the sheep' in 1996?", ["Sir Peter Mansfield", "Sir Ian Wilmot", "Sir Robert Edwards", "Francis Crick"], 1, "Sir Ian Wilmot and Keith Campbell cloned Dolly the sheep at the Roslin Institute in Scotland."],
-          [250, "People", "Which British scientist was awarded the Nobel Prize for inventing the MRI scanner?", ["Sir Robert Edwards", "Sir Peter Mansfield", "Sir Frank Whittle", "Sir Christopher Cockerell"], 1, "Sir Peter Mansfield co-developed Magnetic Resonance Imaging (MRI)."],
-          [251, "People", "Who was voted the greatest Briton of all time in a 2002 BBC poll?", ["William Shakespeare", "Winston Churchill", "Queen Elizabeth I", "Isaac Newton"], 1, "Winston Churchill won the poll for his wartime leadership and historical influence."],
-          [252, "People", "Which iconic British fashion designer in the 1960s is credited with popularizing the miniskirt?", ["Alexander McQueen", "Mary Quant", "Vivienne Westwood", "Stella McCartney"], 1, "Mary Quant was a key figure in the London 'Youthquake' fashion movement of the 1960s."],
-          [253, "People", "Who designed the iconic Royal Crescent in Bath?", ["Christopher Wren", "John Wood the Younger", "Robert Adam", "Edwin Lutyens"], 1, "John Wood the Younger designed the sweeping Royal Crescent, a masterpiece of Georgian architecture."],
-          [254, "People", "Who was the pioneer of the steam railway locomotive, building the world's first public inter-city line?", ["Isambard Kingdom Brunel", "George Stephenson", "James Watt", "Richard Arkwright"], 1, "George Stephenson built the historic Liverpool and Manchester Railway in 1830."],
-          [255, "Sports & Leisure", "Which Scottish town is internationally celebrated as the 'home of golf'?", ["Edinburgh", "St Andrews", "Inverness", "Glasgow"], 1, "St Andrews is home to the Royal and Ancient Golf Club, the historic rule-maker of the sport."],
-          [256, "Sports & Leisure", "Which historic test cricket series has been contested between England and Australia since 1882?", ["The Ashes", "The Six Nations", "The Open Championship", "The Wimbledon Cup"], 0, "The Ashes is played alternatingly in England and Australia, originating from a satirical obituary of English cricket."],
-          [257, "Sports & Leisure", "How many players are on the pitch for a single team in a Rugby Union match?", ["11", "13", "15", "18"], 2, "Rugby Union teams have 15 players, while Rugby League teams have 13."],
-          [258, "Sports & Leisure", "Where is the national stadium of English Rugby Union located?", ["Wembley", "Twickenham", "Murrayfield", "Hampden Park"], 1, "Twickenham Stadium in south-west London is the largest dedicated rugby stadium in the world."],
-          [259, "Sports & Leisure", "Where is the home stadium of the Scottish national rugby team?", ["Hampden Park", "Murrayfield", "Celtic Park", "Ibrox"], 1, "Murrayfield Stadium in Edinburgh is the home of Scottish Rugby Union."],
-          [260, "Sports & Leisure", "Which annual sporting event is a rowing race contested on the River Thames since 1829?", ["The Henley Regatta", "The Oxford and Cambridge Boat Race", "The London Marathon", "The Clipper Race"], 1, "The Boat Race is a popular university rowing contest held every spring."],
-          [261, "People", "Which famous 19th-century British author wrote under the pen name 'George Eliot'?", ["Mary Ann Evans", "Charlotte Brontë", "Mary Shelley", "Elizabeth Gaskell"], 0, "George Eliot was the pen name of Mary Ann Evans, who wrote classic works such as Middlemarch."],
-          [262, "People", "Who wrote the Victorian-era rural novels 'Far from the Madding Crowd' and 'Tess of the d'Urbervilles'?", ["Thomas Hardy", "Charles Dickens", "Graham Greene", "Evelyn Waugh"], 0, "Thomas Hardy's novels famously depicted the harsh rural realities of his semi-fictional county of Wessex."],
-          [263, "People", "Which Scottish author wrote the classic adventure stories 'Treasure Island' and 'Kidnapped'?", ["Robert Louis Stevenson", "Sir Arthur Conan Doyle", "Robert Burns", "Walter Scott"], 0, "Robert Louis Stevenson was an iconic Scottish travel writer, poet, and novelist."],
-          [264, "People", "Who wrote 'The Jungle Book' and the famous inspirational poem 'If—', winning the Nobel Prize in 1907?", ["Rudyard Kipling", "William Wordsworth", "Dylan Thomas", "John Milton"], 0, "Rudyard Kipling was awarded the Nobel Prize in Literature in 1907, representing British imperial literature."],
-          [265, "People", "Which 20th-century British author is celebrated for satirical novels like 'Decline and Fall' and 'Scoop'?", ["Evelyn Waugh", "Graham Greene", "Kingsley Amis", "George Eliot"], 0, "Evelyn Waugh was a prominent satirical novelist of the mid-20th century."],
-          [266, "People", "Who wrote the classic mid-20th-century academic comedy novel 'Lucky Jim'?", ["Kingsley Amis", "Evelyn Waugh", "Graham Greene", "E.M. Forster"], 0, "Kingsley Amis's first novel, Lucky Jim, became a classic of British academic satire."],
-          [267, "People", "Which novelist wrote political and religious thrillers such as 'Brighton Rock' and 'Our Man in Havana'?", ["Graham Greene", "Evelyn Waugh", "Kingsley Amis", "Thomas Hardy"], 0, "Graham Greene explored deep themes of morality, religion, and politics in his popular thrillers."],
-          [268, "People", "Which 20th-century British sculptor is globally famous for creating massive, abstract bronze figures?", ["Henry Moore", "Barbara Hepworth", "Thomas Chippendale", "John Constable"], 0, "Henry Moore is celebrated for his large-scale semi-abstract monumental bronze sculptures."],
-          [269, "People", "Which pioneering female abstract sculptor, born in Yorkshire, was a leading figure in modern British art?", ["Barbara Hepworth", "Clarice Cliff", "Mary Quant", "Vera Lynn"], 0, "Barbara Hepworth was a leading modernist sculptor who popularized abstract carving in Britain."],
-          [270, "People", "Which English landscape painter is famous for capturing rural scenes in masterpieces like 'The Hay Wain'?", ["John Constable", "J.M.W. Turner", "William Hogarth", "Dante Gabriel Rossetti"], 0, "John Constable is famous for landscape paintings of his native Suffolk area, now known as 'Constable Country'."],
-          [271, "People", "Which iconic British artist is known as the 'painter of light' for his dramatic, expressive landscape paintings?", ["J.M.W. Turner", "John Constable", "Thomas Gainsborough", "Dante Gabriel Rossetti"], 0, "Joseph Mallord William Turner was a Romantic landscape painter celebrated for his revolutionary use of light and color."],
-          [272, "People", "Who was Thomas Gainsborough, and what was his primary artistic focus during the 18th century?", ["Portrait painting", "Landscape engraving", "Sculpture", "Political caricature"], 0, "Thomas Gainsborough was one of the most famous portrait and landscape painters of 18th-century Britain."],
-          [273, "People", "Which 18th-century English painter is famous for moralizing satirical print series like 'A Rake's Progress'?", ["William Hogarth", "Thomas Gainsborough", "J.M.W. Turner", "John Constable"], 0, "William Hogarth pioneered sequential moral painting, heavily influencing satirical cartooning."],
-          [274, "People", "Which 19th-century painter and poet co-founded the Pre-Raphaelite Brotherhood?", ["Dante Gabriel Rossetti", "William Hogarth", "John Constable", "Thomas Gainsborough"], 0, "Dante Gabriel Rossetti was an English illustrator, painter, and poet who founded the Pre-Raphaelites."],
-          [275, "People", "Which late 19th-century comic opera partnership wrote 'The Mikado' and 'The Pirates of Penzance'?", ["Gilbert and Sullivan", "Andrew Lloyd Webber and Tim Rice", "Purcell and Britten", "Elgar and Vaughan Williams"], 0, "W.S. Gilbert and Arthur Sullivan created widely popular comic operas that remain performed globally."],
-          [276, "People", "Which legendary British composer wrote world-famous musicals such as 'Cats' and 'The Phantom of the Opera'?", ["Andrew Lloyd Webber", "Benjamin Britten", "Sir Edward Elgar", "Henry Purcell"], 0, "Andrew Lloyd Webber has composed several of the most commercially successful musicals in history."],
-          [277, "People", "Who was Henry Purcell, and what was his primary contribution to British culture?", ["He was a baroque composer and organist at Westminster Abbey", "He was a classical portrait painter", "He was an architect who designed Bath", "He was an early Prime Minister"], 0, "Henry Purcell was an influential 17th-century Baroque composer who served as organist at Westminster Abbey."],
-          [278, "People", "Which English composer is famous for the 'Pomp and Circumstance' marches played at the Proms?", ["Sir Edward Elgar", "Ralph Vaughan Williams", "Benjamin Britten", "Henry Purcell"], 0, "Sir Edward Elgar composed the Land of Hope and Glory march, a staple of the Last Night of the Proms."],
-          [279, "People", "Which composer wrote 'Fantasia on a Theme by Thomas Tallis' and heavily collected traditional English folk music?", ["Ralph Vaughan Williams", "Sir Edward Elgar", "Benjamin Britten", "Henry Purcell"], 0, "Ralph Vaughan Williams was a central figure in the 20th-century revival of English classical music."],
-          [280, "People", "Who was the leading 20th-century British opera composer who wrote 'Peter Grimes' and 'War Requiem'?", ["Benjamin Britten", "Sir Edward Elgar", "Ralph Vaughan Williams", "Henry Purcell"], 0, "Benjamin Britten was an exceptionally talented modern classical composer who revived English opera."],
-          [281, "People", "Which beloved British singer became known as the 'Forces' Sweetheart' during World War II for songs like 'We'll Meet Again'?", ["Dame Vera Lynn", "Mary Quant", "Clarice Cliff", "Tanni Grey-Thompson"], 0, "Dame Vera Lynn's songs gave vital hope to soldiers and civilians alike during the darkest hours of WWII."],
-          [282, "People", "Which Scottish physician co-discovered insulin, saving millions of lives of people with diabetes?", ["John Macleod", "Alexander Fleming", "William Harvey", "Francis Crick"], 0, "John Macleod co-won the Nobel Prize in Medicine in 1923 for the discovery and isolation of insulin."],
-          [283, "People", "Which British astronomer built the giant, pioneering radio telescope at Jodrell Bank in Cheshire?", ["Sir Bernard Lovell", "Sir Peter Mansfield", "Sir Frank Whittle", "Sir Tim Berners-Lee"], 0, "Sir Bernard Lovell constructed the Lovell Telescope, one of the most powerful steering telescopes in history."],
-          [284, "People", "Which medical pioneers successfully achieved the birth of Louise Brown, the first test-tube baby, in 1978?", ["Sir Robert Edwards and Patrick Steptoe", "Ian Wilmot and Keith Campbell", "Alexander Fleming and John Macleod", "William Harvey and William Harvey"], 0, "Edwards and Steptoe pioneered in-vitro fertilisation (IVF), culminating in the historic 1978 birth."],
-          [285, "People", "Which legendary British rower won gold medals at five consecutive Olympic Games from 1984 to 2000?", ["Sir Steve Redgrave", "Sir Roger Bannister", "Bradley Wiggins", "Chris Hoy"], 0, "Sir Steve Redgrave is widely regarded as one of the greatest Olympic rowers in history."],
-          [286, "People", "Which highly successful British Paralympian won 11 gold medals in wheelchair racing across five Paralympic Games?", ["Baroness Tanni Grey-Thompson", "Jessica Ennis-Hill", "Kelly Holmes", "Ellen MacArthur"], 0, "Tanni Grey-Thompson is one of the most celebrated wheelchair athletes in Paralympic history."],
-          [287, "People", "Who became the first person to sail around the world single-handed and non-stop in a record-breaking 71 days in 2004?", ["Dame Ellen MacArthur", "Dame Kelly Holmes", "Baroness Tanni Grey-Thompson", "Jessica Ennis-Hill"], 0, "Dame Ellen MacArthur set the record for the fastest solo circumnavigation of the globe."],
-          [288, "People", "Who was Sir Christopher Wren?", ["An astronomer and the architect who rebuilt St Paul's Cathedral after the Great Fire of 1666", "A classical portrait painter of the 18th century", "A famous general in the English Civil War", "The first Prime Minister of Great Britain"], 0, "Christopher Wren was a brilliant polymath and architect who designed St Paul's Cathedral and 51 other city churches."],
-          [289, "People", "Who designed the Cenotaph war memorial in Whitehall, London?", ["Sir Christopher Wren", "Sir Edwin Lutyens", "Robert Adam", "Lancelot 'Capability' Brown"], 1, "Sir Edwin Lutyens was a famous architect who designed the Cenotaph in Whitehall for Remembrance Day."],
-          [290, "People", "Which famous 18th-century designer was nicknamed 'Capability' for his naturalistic landscape gardens?", ["Lancelot Brown", "Thomas Chippendale", "Robert Adam", "Edwin Lutyens"], 0, "Lancelot 'Capability' Brown created beautifully natural landscape gardens on grand estate grounds."],
-          [291, "People", "Which master of wood carving is famous for his elegant Georgian-era furniture designs?", ["Thomas Chippendale", "Robert Adam", "Clarice Cliff", "William Caxton"], 0, "Thomas Chippendale was the leading cabinet-maker and designer of wooden furniture in 18th-century England."],
-          [292, "People", "Which pioneer developed carding and spinning machines during the early Industrial Revolution?", ["Richard Arkwright", "George Stephenson", "Isambard Kingdom Brunel", "James Watt"], 0, "Richard Arkwright modernized textile manufacturing with steam and water-powered spinning looms."],
-          [293, "People", "Which Victorian engineer designed the Great Western Railway and the Clifton Suspension Bridge?", ["Isambard Kingdom Brunel", "George Stephenson", "Richard Arkwright", "James Watt"], 0, "Isambard Kingdom Brunel was a visionary engineer of tunnels, docks, rails, and ships."],
-          [294, "People", "Who pioneered the steam railway engine, building the Stockton and Darlington Railway?", ["George Stephenson", "Isambard Kingdom Brunel", "James Watt", "Richard Arkwright"], 0, "George Stephenson's engine 'Active' pulled the world's first public steam-powered train in 1825."],
-          [295, "People", "Who is widely regarded as the founder of modern nursing for her work during the Crimean War?", ["Florence Nightingale", "Emmeline Pankhurst", "Mary Seacole", "Elizabeth Fry"], 0, "Florence Nightingale established pioneering sanitary nursing methods at military hospitals during the Crimean War."],
-          [296, "People", "Who co-discovered the double-helix structure of the DNA molecule in 1953?", ["Francis Crick and James Watson", "Alexander Fleming and Howard Florey", "Peter Mansfield and Robert Edwards", "Ernest Rutherford and John Macleod"], 0, "Francis Crick and James Watson mapped DNA at Cavendish Laboratory in Cambridge."],
-          [297, "People", "Who was the first female Prime Minister of the United Kingdom?", ["Margaret Thatcher", "Theresa May", "Queen Victoria", "Emmeline Pankhurst"], 0, "Margaret Thatcher, representing the Conservatives, served as PM from 1979 to 1990."],
-          [298, "People", "Who designed the Cenotaph in Whitehall, London?", ["Sir Edwin Lutyens", "Sir Christopher Wren", "Robert Adam", "Lancelot Brown"], 0, "The Cenotaph, constructed as a monument for the fallen of WWI, was designed by Edwin Lutyens."],
-          [299, "People", "Who discovered penicillin in 1928?", ["Alexander Fleming", "John Macleod", "Francis Crick", "James Watson"], 0, "Sir Alexander Fleming discovered the medical properties of penicillin mold in 1928."],
-          [300, "People", "Which British engineer invented the hovercraft, successfully testing his design on the water in 1959?", ["Sir Frank Whittle", "Sir Christopher Cockerell", "Sir Peter Mansfield", "James Goodfellow"], 1, "Sir Christopher Cockerell used empty tin cans and a vacuum motor to develop the initial hovercraft principles."]
+        /* DEFAULT 10 SAMPLE QUESTIONS DATABANK FOR LOCAL FALLBACK WITH MEMORY TIPS */
+        const defaultRawData = [
+          [1, "History", "Which two languages were used across England during the Middle Ages?", ["Welsh and Gaelic", "Norman French and Anglo-Saxon", "Latin and Celtic", "Nordic and English"], 1, "The king and noblemen spoke Norman French; peasants spoke Anglo-Saxon.", "French for the fancy folks at court, Saxon for the struggling peasants!"],
+          [2, "History", "In 1776, which British colonies declared their independence?", ["North African", "Asian", "North American", "South African"], 2, "13 North American colonies declared independence over 'no taxation without representation'.", "America said: 'No tea tax, we want our own map!' in 1776."],
+          [3, "History", "When was England ruled by a republic and not by a monarch?", ["When Elizabeth I died", "When Charles I was executed", "When the Magna Carta was signed", "After the Battle of Hastings"], 1, "After Charles I was executed in 1649, England became a republic called the Commonwealth.", "Oliver Cromwell put a 'well' over the Crown (republic) after Charles lost his head in 1649."],
+          [4, "Culture & Society", "Which of the following is one of the highest-grossing film franchises produced in the UK?", ["Harry Potter", "Spider-man", "The Lord of the Rings", "Indiana Jones"], 0, "Harry Potter and James Bond are two of the highest-grossing UK film franchises.", "Potter and Bond are the ultimate UK cash goldmines."],
+          [5, "History", "When did the first farmers come to Britain?", ["10,000 years ago", "6,000 years ago", "15,000 years ago", "2,000 years ago"], 1, "The first farmers arrived in Britain about 6,000 years ago from south-east Europe.", "Farming has 6 letters -> 6,000 years ago!"],
+          [6, "History", "When did the First World War end?", ["12.00 pm 11th Nov 1914", "12.00 pm 11th Nov 1918", "11.00 am 11th Nov 1914", "11.00 am 11th Nov 1918"], 3, "WWI ended at 11.00 am on 11th November 1918.", "The 11th hour of the 11th day of the 11th month in 1918. All the 11s!"],
+          [7, "Laws & Gov", "Can court orders be obtained to protect a person from being forced into a marriage?", ["Yes", "No"], 0, "True. Forced Marriage Protection Orders protect people from being forced into a marriage.", "The law always says YES to protecting your choice of who you marry."],
+          [8, "Sports & Leisure", "What medal did Mary Peters win in the 1972 Olympics?", ["No medals", "Silver", "Gold", "Bronze"], 2, "She won an Olympic gold medal in the pentathlon in 1972.", "Mary Peters won pure gold in her running gears."],
+          [9, "Laws & Gov", "In England, Wales and NI, Youth Court cases are normally heard by (choose two):", ["Up to 3 specially trained magistrates AND a District Judge", "A sheriff AND a jury", "Members of the public", "High Court Judges"], 0, "Cases are heard by up to 3 specially trained magistrates or a District Judge. Public are not allowed.", "Three key people keep youth cases quiet and private."],
+          [10, "People", "What was invented by Alan Turing in the 1930s?", ["The jet engine", "The television", "The Turing machine", "The ball pen"], 2, "A Turing machine is a theoretical mathematical device that influenced modern computers.", "Turing invented the Turing machine — his name is right in the answer!"]
         ];
 
-        // Rehydrate data into structured objects
-        const QUESTION_BANK = rawData.map(d => ({
+        const DEFAULT_QUESTION_BANK = defaultRawData.map(d => ({
           id: d[0],
           category: d[1],
           text: d[2],
           options: d[3],
           correctAnswer: d[3][d[4]],
-          explanation: d[5]
+          explanation: d[5],
+          tip: d[6] || ""
         }));
 
         function App() {
-          const [currentScreen, setCurrentScreen] = useState('home');
+          const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study
           const [activeQuestions, setActiveQuestions] = useState([]);
           const [currentIndex, setCurrentIndex] = useState(0);
           const [userAnswers, setUserAnswers] = useState({});
           const [showExplanation, setShowExplanation] = useState(false);
           const [isDarkMode, setIsDarkMode] = useState(false);
           
-          // New states for the auto-navigate timer
+          // Test Timer States
+          const [elapsedTime, setElapsedTime] = useState(0);
+          const [finalTestTime, setFinalTestTime] = useState(0);
+
+          // Settings Modal open/close state
+          const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+          // Dynamic Question Bank States
+          const [questions, setQuestions] = useState([]);
+          const [loadingQuestions, setLoadingQuestions] = useState(true);
+          const [usingExternal, setUsingExternal] = useState(false);
+
+          // Study & Review Mode State
+          const [studyIndex, setStudyIndex] = useState(0);
+
+          // Auto-navigate states
           const [autoNavProgress, setAutoNavProgress] = useState(0);
           const [isAutoNavCancelled, setIsAutoNavCancelled] = useState(false);
 
@@ -409,6 +121,13 @@
               const saved = localStorage.getItem('ukLifeAutoNavDelay');
               return saved ? parseInt(saved, 10) : 3;
             } catch(e) { return 3; }
+          });
+
+          const [mockTestSize, setMockTestSize] = useState(() => {
+            try {
+              const saved = localStorage.getItem('ukLifeMockTestSize');
+              return saved ? parseInt(saved, 10) : 24;
+            } catch(e) { return 24; }
           });
 
           const [quizHistory, setQuizHistory] = useState(() => {
@@ -432,6 +151,77 @@
             } catch(e) { return new Set(); }
           });
 
+          // Dynamic detection of external questions file
+          useEffect(() => {
+            let hasResolved = false;
+
+            const handleFallback = () => {
+              if (hasResolved) return;
+              hasResolved = true;
+              setQuestions(DEFAULT_QUESTION_BANK);
+              setUsingExternal(false);
+              setLoadingQuestions(false);
+            };
+
+            const handleSuccess = (externalData) => {
+              if (hasResolved) return;
+              hasResolved = true;
+              const mapped = externalData.map(d => ({
+                id: d[0],
+                category: d[1],
+                text: d[2],
+                options: d[3],
+                correctAnswer: d[3][d[4]],
+                explanation: d[5],
+                tip: d[6] || ""
+              }));
+              setQuestions(mapped);
+              setUsingExternal(true);
+              setLoadingQuestions(false);
+            };
+
+            // Check if dynamically preloaded statically
+            if (window.EXTERNAL_QUESTIONS && Array.isArray(window.EXTERNAL_QUESTIONS) && window.EXTERNAL_QUESTIONS.length > 0) {
+              handleSuccess(window.EXTERNAL_QUESTIONS);
+              return;
+            }
+
+            // Create dynamic script node to avoid local CORS issues
+            const script = document.createElement('script');
+            script.src = 'questions_bank.js';
+            script.async = true;
+            
+            script.onload = () => {
+              if (window.EXTERNAL_QUESTIONS && Array.isArray(window.EXTERNAL_QUESTIONS) && window.EXTERNAL_QUESTIONS.length > 0) {
+                handleSuccess(window.EXTERNAL_QUESTIONS);
+              } else {
+                handleFallback();
+              }
+            };
+
+            script.onerror = () => {
+              handleFallback();
+            };
+
+            document.body.appendChild(script);
+
+            // Timeout safety guard (1.2s max scan time)
+            const timer = setTimeout(() => {
+              handleFallback();
+            }, 1200);
+
+            return () => {
+              clearTimeout(timer);
+              if (script.parentNode) {
+                script.parentNode.removeChild(script);
+              }
+            };
+          }, []);
+
+          // Helper to get score values safely for backwards compatibility
+          const getScoreValue = (entry) => typeof entry === 'number' ? entry : entry.score;
+          const getTotalValue = (entry) => typeof entry === 'number' ? 24 : entry.total;
+
           useEffect(() => {
             localStorage.setItem('ukLifeAutoNav', JSON.stringify(autoNavigate));
           }, [autoNavigate]);
@@ -439,6 +229,10 @@
           useEffect(() => {
             localStorage.setItem('ukLifeAutoNavDelay', autoNavDelay);
           }, [autoNavDelay]);
+
+          useEffect(() => {
+            localStorage.setItem('ukLifeMockTestSize', mockTestSize);
+          }, [mockTestSize]);
 
           useEffect(() => {
             localStorage.setItem('ukLifeQuizHistory', JSON.stringify(quizHistory));
@@ -460,6 +254,19 @@
             mediaQuery.addEventListener('change', handler);
             return () => mediaQuery.removeEventListener('change', handler);
           }, []);
+
+          // Live Test Timer Increment effect
+          useEffect(() => {
+            let timer;
+            if (currentScreen === 'quiz') {
+              timer = setInterval(() => {
+                setElapsedTime(prev => prev + 1);
+              }, 1000);
+            } else {
+              clearInterval(timer);
+            }
+            return () => clearInterval(timer);
+          }, [currentScreen]);
 
           // Enhanced Auto-advance effect with visual progress timer
           useEffect(() => {
@@ -484,50 +291,71 @@
             return () => clearInterval(interval);
           }, [showExplanation, currentIndex, autoNavigate, autoNavDelay, currentScreen, isAutoNavCancelled, userAnswers, activeQuestions]);
 
-          // Generates a mock test with enhanced randomization logic
-          const generateQuiz = (focusWeak = false) => {
+          // Format seconds into MM:SS
+          const formatTime = (secs) => {
+            const m = Math.floor(secs / 60);
+            const s = secs % 60;
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+          };
+
+          // Format seconds into readable English (e.g. 1m 45s)
+          const formatTimeReadable = (secs) => {
+            if (!secs) return "0s";
+            const m = Math.floor(secs / 60);
+            const s = secs % 60;
+            if (m === 0) return `${s}s`;
+            return `${m}m ${s}s`;
+          };
+
+          // Generates a mock test with support for standard (configurable size), weak-targeted, or marathon mode (all Qs)
+          const generateQuiz = (focusWeak = false, marathonMode = false) => {
             let pool = [];
             let updatedSeen = new Set(recentlySeen);
+            const targetSize = marathonMode ? questions.length : Math.min(mockTestSize, questions.length);
 
-            if (focusWeak) {
-              const weakQuestions = QUESTION_BANK.filter(q => {
+            if (marathonMode) {
+              pool = [...questions].sort(() => 0.5 - Math.random());
+            } else if (focusWeak) {
+              const weakQuestions = questions.filter(q => {
                 const stats = questionHistory[q.id];
                 return stats && stats.correct < stats.attempts;
               });
 
               const shuffledWeak = [...weakQuestions].sort(() => 0.5 - Math.random());
-              pool = shuffledWeak.slice(0, 24);
+              pool = shuffledWeak.slice(0, targetSize);
 
-              if (pool.length < 24) {
-                let available = QUESTION_BANK.filter(q => !pool.includes(q) && !updatedSeen.has(q.id));
-                if (available.length < (24 - pool.length)) {
+              if (pool.length < targetSize) {
+                let available = questions.filter(q => !pool.includes(q) && !updatedSeen.has(q.id));
+                if (available.length < (targetSize - pool.length)) {
                     updatedSeen.clear();
-                    available = QUESTION_BANK.filter(q => !pool.includes(q));
+                    available = questions.filter(q => !pool.includes(q));
                 }
                 const shuffledOther = [...available].sort(() => 0.5 - Math.random());
-                pool = [...pool, ...shuffledOther.slice(0, 24 - pool.length)];
+                pool = [...pool, ...shuffledOther.slice(0, targetSize - pool.length)];
               }
             } else {
-              const weakQuestions = QUESTION_BANK.filter(q => {
+              const weakQuestions = questions.filter(q => {
                 const stats = questionHistory[q.id];
                 return stats && stats.correct < stats.attempts;
               });
               const shuffledWeak = [...weakQuestions].sort(() => 0.5 - Math.random());
-              const selectedWeak = shuffledWeak.slice(0, 5); 
+              const selectedWeak = shuffledWeak.slice(0, Math.min(5, weakQuestions.length)); 
 
-              let available = QUESTION_BANK.filter(q => !selectedWeak.includes(q) && !updatedSeen.has(q.id));
-              if (available.length < (24 - selectedWeak.length)) {
+              let available = questions.filter(q => !selectedWeak.includes(q) && !updatedSeen.has(q.id));
+              if (available.length < (targetSize - selectedWeak.length)) {
                   updatedSeen.clear();
-                  available = QUESTION_BANK.filter(q => !selectedWeak.includes(q));
+                  available = questions.filter(q => !selectedWeak.includes(q));
               }
               const shuffledOther = [...available].sort(() => 0.5 - Math.random());
-              const selectedOther = shuffledOther.slice(0, 24 - selectedWeak.length);
+              const selectedOther = shuffledOther.slice(0, targetSize - selectedWeak.length);
 
               pool = [...selectedWeak, ...selectedOther].sort(() => 0.5 - Math.random());
             }
 
-            pool.forEach(q => updatedSeen.add(q.id));
-            setRecentlySeen(updatedSeen);
+            if (!marathonMode) {
+              pool.forEach(q => updatedSeen.add(q.id));
+              setRecentlySeen(updatedSeen);
+            }
 
             setActiveQuestions(pool);
             setCurrentIndex(0);
@@ -535,7 +363,13 @@
             setShowExplanation(false);
             setIsAutoNavCancelled(false);
             setAutoNavProgress(0);
+            setElapsedTime(0); // Reset timer
             setCurrentScreen('quiz');
+          };
+
+          const startStudyMode = () => {
+            setStudyIndex(0);
+            setCurrentScreen('study');
           };
 
           const handleAnswer = (answer) => {
@@ -574,7 +408,18 @@
 
           const finishQuiz = () => {
             const score = calculateScore();
-            const newHistory = [...quizHistory, score];
+            const total = activeQuestions.length;
+            
+            setFinalTestTime(elapsedTime);
+
+            const newEntry = {
+              score,
+              total,
+              timeTaken: elapsedTime,
+              date: new Date().toLocaleDateString()
+            };
+            
+            const newHistory = [...quizHistory, newEntry];
             setQuizHistory(newHistory);
             setCurrentScreen('results');
           };
@@ -591,7 +436,7 @@
 
           const getCategoryStats = () => {
             const stats = {};
-            QUESTION_BANK.forEach(q => {
+            questions.forEach(q => {
               if (!stats[q.category]) {
                 stats[q.category] = { totalSeen: 0, correct: 0 };
               }
@@ -615,39 +460,57 @@
                   <BookOpen size={32} />
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-50 mb-3 tracking-tight">Life in the UK: Exam Prep</h1>
+                
                 <div className="flex items-center justify-center gap-2 mb-6">
                     <Brain size={18} className="text-indigo-500 dark:text-indigo-400" />
-                    <span className="text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Vast Question Bank Loaded ({QUESTION_BANK.length} Qs)</span>
+                    <span className="text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Master dynamic training system</span>
                 </div>
+
                 <p className="text-slate-600 dark:text-slate-300 mb-6 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-                  We extracted every question from the official mocks and syllabus. Your mock tests will automatically mix in questions you've previously failed.
+                  Master the official syllabus details with smart spacing, persistent weak-area tracking, and customizable auto-navigation.
                 </p>
                 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto">
                   {activeQuestions.length > 0 && currentIndex < activeQuestions.length && currentScreen !== 'results' && (
                     <button 
                       onClick={() => setCurrentScreen('quiz')}
-                      className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95 text-base"
+                      className="sm:col-span-2 bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95 text-base"
                     >
                       <Play size={20} />
-                      Resume Test
+                      Resume Interrupted Test
                     </button>
                   )}
 
                   <button 
-                    onClick={() => generateQuiz(false)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 text-base"
+                    onClick={() => generateQuiz(false, false)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 text-base"
                   >
-                    {activeQuestions.length > 0 && currentIndex < activeQuestions.length ? <RefreshCcw size={20} /> : <Play size={20} />}
-                    {activeQuestions.length > 0 && currentIndex < activeQuestions.length ? 'Restart New Test' : 'Start Mock Test'}
+                    <Play size={20} />
+                    Standard Test ({Math.min(mockTestSize, questions.length)} Qs)
+                  </button>
+
+                  <button 
+                    onClick={() => generateQuiz(false, true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-600/30 hover:scale-105 active:scale-95 text-base"
+                  >
+                    <Activity size={20} />
+                    Marathon Mode (All Qs)
+                  </button>
+
+                  <button 
+                    onClick={startStudyMode}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95 text-base"
+                  >
+                    <GraduationCap size={20} />
+                    Study & Review Mode
                   </button>
                   
                   <button 
                     onClick={() => setCurrentScreen('analysis')}
-                    className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 text-base"
+                    className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 text-base"
                   >
                     <BarChart3 size={20} />
-                    View History
+                    View Statistics
                   </button>
                 </div>
 
@@ -661,7 +524,7 @@
                     <div className="text-center">
                       <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Avg Score</p>
                       <p className="text-3xl font-black text-slate-800 dark:text-slate-50">
-                        {Math.round(quizHistory.reduce((a, b) => a + b, 0) / quizHistory.length)}<span className="text-xl text-slate-400 dark:text-slate-500">/24</span>
+                        {Math.round(quizHistory.reduce((sum, entry) => sum + getScoreValue(entry), 0) / quizHistory.length)}<span className="text-xl text-slate-400 dark:text-slate-500">/{Math.round(quizHistory.reduce((sum, entry) => sum + getTotalValue(entry), 0) / quizHistory.length)}</span>
                       </p>
                     </div>
                   </div>
@@ -681,32 +544,14 @@
             return (
               <div className="max-w-4xl mx-auto py-4 px-2 sm:px-4">
                 <div className="mb-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-3">
-                    <span className="text-sm uppercase tracking-wider">Question {currentIndex + 1} of {activeQuestions.length}</span>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <label className="flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 bg-white dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
-                        <input 
-                          type="checkbox" 
-                          checked={autoNavigate}
-                          onChange={(e) => setAutoNavigate(e.target.checked)}
-                          className="w-3 h-3 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
-                        />
-                        <span>Auto-next</span>
-                      </label>
-                      
-                      {autoNavigate && (
-                        <select 
-                          value={autoNavDelay} 
-                          onChange={(e) => setAutoNavDelay(Number(e.target.value))}
-                          className="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-2 py-1.5 text-slate-600 dark:text-slate-300 outline-none cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                        >
-                          <option value={1}>1s Delay</option>
-                          <option value={2}>2s Delay</option>
-                          <option value={3}>3s Delay</option>
-                          <option value={5}>5s Delay</option>
-                        </select>
-                      )}
-
+                  <div className="flex justify-between items-center text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                    <span className="text-sm uppercase tracking-wider font-bold">Question {currentIndex + 1} of {activeQuestions.length}</span>
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm text-slate-700 dark:text-slate-300 font-mono text-sm">
+                        <Clock size={15} className="animate-pulse text-blue-500" />
+                        <span>{formatTime(elapsedTime)}</span>
+                      </div>
                       <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
                     </div>
                   </div>
@@ -757,7 +602,7 @@
                   </div>
                 </div>
 
-                {/* MODAL POPUP FOR EXPLANATION */}
+                {/* MODAL POPUP FOR EXPLANATION & MEMORY TIPS */}
                 {hasAnswered && (
                   <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
                     <div className={`w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border-4 ${isCorrect ? 'border-green-400 dark:border-green-500' : 'border-orange-400 dark:border-orange-500'} p-6 sm:p-8 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh] overflow-y-auto`}>
@@ -766,13 +611,28 @@
                         <div className={`shrink-0 p-3 rounded-full ${isCorrect ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}`}>
                           {isCorrect ? <CheckCircle2 size={36} /> : <AlertTriangle size={36} />}
                         </div>
-                        <div>
+                        <div className="text-left w-full">
                           <h3 className={`text-2xl font-black uppercase tracking-wider mb-2 ${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
                             {isCorrect ? 'Correct!' : 'Incorrect'}
                           </h3>
                           <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed">
                             {question.explanation}
                           </p>
+
+                          {/* Injected Memory Tip on Incorrect Answers */}
+                          {!isCorrect && question.tip && (
+                            <div className="mt-5 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/50 dark:bg-indigo-950/20 animate-in slide-in-from-bottom-2 duration-300">
+                              <div className="flex gap-2.5 items-start">
+                                <Brain className="text-indigo-500 shrink-0 mt-0.5" size={18} />
+                                <div>
+                                  <h5 className="text-xs font-extrabold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 mb-1">Memory Trick</h5>
+                                  <p className="text-sm text-indigo-950 dark:text-indigo-300 italic font-medium">
+                                    "{question.tip}"
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -823,9 +683,127 @@
             );
           };
 
+          const renderStudy = () => {
+            const question = questions[studyIndex];
+            if (!question) return null;
+            const progress = ((studyIndex + 1) / questions.length) * 100;
+
+            return (
+              <div className="max-w-4xl mx-auto py-4 px-2 sm:px-4">
+                <div className="mb-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-3">
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="text-emerald-600 dark:text-emerald-400" size={20} />
+                      <span className="text-sm uppercase tracking-wider font-bold">Study Mode — Question {studyIndex + 1} of {questions.length}</span>
+                    </div>
+                    <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-100 dark:border-emerald-800/50 shadow-sm">{question.category}</span>
+                  </div>
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
+                    <div 
+                      className="bg-emerald-500 dark:bg-emerald-400 h-full rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 animate-in slide-in-from-right-8 duration-300">
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 leading-tight tracking-tight">{question.text}</h2>
+                  
+                  <div className="space-y-3 mb-6">
+                    {question.options.map((option, idx) => {
+                      const isCorrectAnswer = option === question.correctAnswer;
+                      let btnClass = "w-full text-left p-3 sm:p-4 rounded-xl border-2 text-base sm:text-lg font-medium leading-snug ";
+                      
+                      if (isCorrectAnswer) {
+                        btnClass += "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 shadow-sm";
+                      } else {
+                        btnClass += "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-500 opacity-60 cursor-not-allowed";
+                      }
+
+                      return (
+                        <div key={idx} className={btnClass}>
+                          <div className="flex items-center justify-between gap-3">
+                            <span>{option}</span>
+                            {isCorrectAnswer && <CheckCircle2 className="text-green-500 shrink-0" size={24}/>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Fact & Mnemonic Details Container */}
+                  <div className="flex flex-col gap-4 mb-6">
+                    <div className="p-4 rounded-xl border-2 shadow-sm bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/50">
+                      <div className="flex gap-3">
+                        <div className="shrink-0 p-1.5 rounded-full h-fit bg-emerald-100 dark:bg-emerald-800/30 text-emerald-600 dark:text-emerald-400">
+                          <Info size={20} />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-extrabold mb-1 uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                            Explanation & Fact
+                          </h4>
+                          <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                            {question.explanation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Integrated Memory Trick Display */}
+                    {question.tip && (
+                      <div className="p-4 rounded-xl border-2 shadow-sm bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800/50 animate-in fade-in duration-300">
+                        <div className="flex gap-3">
+                          <div className="shrink-0 p-1.5 rounded-full h-fit bg-indigo-100 dark:bg-indigo-800/30 text-indigo-600 dark:text-indigo-400">
+                            <Brain size={20} />
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-extrabold mb-1 uppercase tracking-wider text-indigo-800 dark:text-indigo-400">
+                              Memory Trick
+                            </h4>
+                            <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed italic font-medium">
+                              "{question.tip}"
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <button 
+                      onClick={() => studyIndex > 0 && setStudyIndex(studyIndex - 1)}
+                      disabled={studyIndex === 0}
+                      className={`flex items-center gap-1 px-4 py-2.5 rounded-xl font-bold transition-all text-base ${studyIndex === 0 ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200'}`}
+                    >
+                      <ChevronLeft size={20} />
+                      Prev
+                    </button>
+
+                    <button 
+                      onClick={() => setCurrentScreen('home')}
+                      className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md text-base"
+                    >
+                      Exit Study
+                    </button>
+
+                    <button 
+                      onClick={() => studyIndex < questions.length - 1 ? setStudyIndex(studyIndex + 1) : setCurrentScreen('home')}
+                      className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl transition-all shadow-md text-base"
+                    >
+                      {studyIndex === questions.length - 1 ? 'Finish' : 'Next'}
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
           const renderResults = () => {
             const score = calculateScore();
-            const isPass = score >= 18; 
+            const totalQs = activeQuestions.length;
+            const passTarget = Math.ceil(totalQs * 0.75);
+            const isPass = score >= passTarget; 
 
             return (
               <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6 animate-in zoom-in duration-300">
@@ -837,10 +815,16 @@
                   <h2 className="text-3xl font-black text-slate-800 dark:text-slate-50 mb-2 tracking-tight">
                     {isPass ? 'Congratulations! You Passed' : 'Keep Studying! You Failed'}
                   </h2>
-                  <p className="text-base text-slate-500 dark:text-slate-400 mb-6 font-medium">You need 18 out of 24 to pass the official test.</p>
+                  <p className="text-base text-slate-500 dark:text-slate-400 mb-6 font-medium">You need {passTarget} out of {totalQs} (75%) to pass.</p>
                   
-                  <div className="text-6xl font-black text-slate-800 dark:text-slate-50 mb-6 tracking-tighter">
-                    {score}<span className="text-4xl text-slate-400 dark:text-slate-500">/24</span>
+                  <div className="flex flex-col items-center justify-center gap-2 mb-6">
+                    <div className="text-6xl font-black text-slate-800 dark:text-slate-50 tracking-tighter">
+                      {score}<span className="text-4xl text-slate-400 dark:text-slate-500">/{totalQs}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-bold px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 mt-2">
+                      <Clock size={16} className="text-blue-500" />
+                      <span>Time Taken: {formatTimeReadable(finalTestTime)}</span>
+                    </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
@@ -883,30 +867,26 @@
               );
             }
 
-            // Advanced Analytics Calculations
             const stats = getCategoryStats();
             const categories = Object.keys(stats).filter(cat => stats[cat].totalSeen > 0);
             const weakCount = getWeakQuestionsCount();
             
             const totalTests = quizHistory.length;
-            const passedTests = quizHistory.filter(s => s >= 18).length;
+            const passedTests = quizHistory.filter(s => getScoreValue(s) >= Math.ceil(getTotalValue(s) * 0.75)).length;
             const passRate = Math.round((passedTests / totalTests) * 100) || 0;
             
             const uniqueQuestionsSeen = Object.keys(questionHistory).length;
-            const coveragePercent = Math.round((uniqueQuestionsSeen / QUESTION_BANK.length) * 100);
+            const coveragePercent = Math.round((uniqueQuestionsSeen / questions.length) * 100);
             
-            const totalAttempts = Object.values(questionHistory).reduce((sum, q) => sum + q.attempts, 0);
-            const estTimeMins = Math.round((totalAttempts * 15) / 60); // Est 15 sec per question
+            const totalTimeTakenSecs = quizHistory.reduce((sum, entry) => sum + (entry.timeTaken || 0), 0);
+            const estTimeMins = totalTimeTakenSecs > 0 ? Math.round(totalTimeTakenSecs / 60) : Math.round((Object.values(questionHistory).reduce((sum, q) => sum + q.attempts, 0) * 15) / 60);
             
-            // Preparedness formula: Mix of coverage (40%) and recent pass rate (60%)
             const recentHistory = quizHistory.slice(-5);
-            const recentPassRate = recentHistory.length ? Math.round((recentHistory.filter(s => s >= 18).length / recentHistory.length) * 100) : passRate;
+            const recentPassRate = recentHistory.length ? Math.round((recentHistory.filter(s => getScoreValue(s) >= Math.ceil(getTotalValue(s) * 0.75)).length / recentHistory.length) * 100) : passRate;
             const preparednessScore = Math.min(100, Math.round((recentPassRate * 0.6) + ((coveragePercent * 2) * 0.4)));
 
             return (
               <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
-                
-                {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                   <div className="flex items-center gap-4">
                     <button 
@@ -932,10 +912,7 @@
                   )}
                 </div>
 
-                {/* Top Metrics Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                  
-                  {/* Preparedness Score */}
                   <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
                     <div className="relative z-10">
                       <div className="flex justify-between items-start mb-2">
@@ -950,7 +927,6 @@
                     <Activity size={100} className="absolute -right-4 -bottom-4 text-white opacity-10" />
                   </div>
 
-                  {/* Pass Rate */}
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                       <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Pass Rate</p>
@@ -964,21 +940,19 @@
                     </div>
                   </div>
 
-                  {/* Questions Coverage */}
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Questions Coverage</p>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Bank Coverage</p>
                       <div className="p-1.5 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                         <PieChart size={16} />
                       </div>
                     </div>
                     <div>
                       <span className="text-3xl font-black text-slate-800 dark:text-slate-50">{coveragePercent}%</span>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{uniqueQuestionsSeen} of {QUESTION_BANK.length} unique questions</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{uniqueQuestionsSeen} of {questions.length} unique questions</p>
                     </div>
                   </div>
 
-                  {/* Est Time Spent */}
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
                       <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Time Practicing</p>
@@ -991,12 +965,11 @@
                         <span className="text-3xl font-black text-slate-800 dark:text-slate-50">{estTimeMins}</span>
                         <span className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">mins</span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Across {totalAttempts} questions answered</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Across active training sessions</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Detailed Category Analysis */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-5 sm:p-8 mb-8">
                   <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-50 mb-6 flex items-center gap-2">
                     <BookOpen size={20} className="text-blue-500" />
@@ -1059,6 +1032,17 @@
             );
           };
 
+          // Render Loading Indicator while Scanning for external JS file
+          if (loadingQuestions) {
+            return (
+              <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 transition-colors duration-300">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mb-4"></div>
+                <p className="text-slate-600 dark:text-slate-300 font-bold text-lg">Scanning for questions_bank.js...</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">Falling back to default sample bank if not found</p>
+              </div>
+            );
+          }
+
           return (
             <div className={`${isDarkMode ? 'dark' : ''}`}>
               <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-200 dark:selection:bg-blue-900 transition-colors duration-300">
@@ -1069,7 +1053,7 @@
                       <span className="hidden sm:inline">UK Life Prep</span>
                     </div>
                     
-                    <div className="flex items-center gap-1.5 sm:gap-3">
+                    <div className="flex items-center gap-1 sm:gap-3">
                       <div className="hidden md:flex items-center justify-center p-1.5 rounded-full text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 mr-1">
                         {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
                       </div>
@@ -1090,10 +1074,20 @@
                         <span className="hidden sm:inline">History</span>
                       </button>
 
-                      {currentScreen === 'quiz' && (
+                      {/* Settings Gear Button */}
+                      <button 
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
+                        title="Configure App Settings"
+                      >
+                        <Settings size={18} />
+                        <span className="hidden sm:inline">Settings</span>
+                      </button>
+
+                      {(currentScreen === 'quiz' || currentScreen === 'study') && (
                         <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
                       )}
-                      {currentScreen === 'quiz' && (
+                      {(currentScreen === 'quiz' || currentScreen === 'study') && (
                         <button 
                           onClick={() => setCurrentScreen('home')}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -1109,9 +1103,115 @@
                 <main className="pb-8 pt-4">
                   {currentScreen === 'home' && renderHome()}
                   {currentScreen === 'quiz' && renderQuiz()}
+                  {currentScreen === 'study' && renderStudy()}
                   {currentScreen === 'results' && renderResults()}
                   {currentScreen === 'analysis' && renderAnalysis()}
                 </main>
+
+                {/* ADVANCED SETTINGS MODAL */}
+                {isSettingsOpen && (
+                  <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
+                    <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 p-6 sm:p-8 animate-in zoom-in-95 duration-300">
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-50 flex items-center gap-2">
+                          <Settings size={22} className="text-blue-500" />
+                          App Settings
+                        </h3>
+                        <button
+                          onClick={() => setIsSettingsOpen(false)}
+                          className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-500 dark:text-slate-400 transition-colors"
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+
+                      <div className="space-y-6">
+                        {/* Mock Test Size Configuration */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Mock Test Question Count</label>
+                          <select
+                            value={mockTestSize}
+                            onChange={(e) => setMockTestSize(Number(e.target.value))}
+                            className="w-full font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-blue-500 transition-colors"
+                          >
+                            <option value={10}>10 Questions</option>
+                            <option value={15}>15 Questions</option>
+                            <option value={20}>20 Questions</option>
+                            <option value={24}>24 Questions (Official Standard)</option>
+                            <option value={40}>40 Questions</option>
+                            <option value={50}>50 Questions</option>
+                          </select>
+                        </div>
+
+                        {/* Auto-next Toggle */}
+                        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                          <div>
+                            <label className="text-base font-bold text-slate-800 dark:text-slate-200 block">Auto-next Questions</label>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">Advance automatically on correct answers</span>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={autoNavigate}
+                            onChange={(e) => setAutoNavigate(e.target.checked)}
+                            className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                          />
+                        </div>
+
+                        {/* Delay Speed Select */}
+                        {autoNavigate && (
+                          <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Auto-next Delay Time</label>
+                            <select
+                              value={autoNavDelay}
+                              onChange={(e) => setAutoNavDelay(Number(e.target.value))}
+                              className="w-full font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-blue-500 transition-colors"
+                            >
+                              <option value={1}>1 Second</option>
+                              <option value={2}>2 Seconds</option>
+                              <option value={3}>3 Seconds</option>
+                              <option value={5}>5 Seconds</option>
+                            </select>
+                          </div>
+                        )}
+
+                        {/* Question Database Status Indicators */}
+                        <div className="p-4 rounded-2xl border bg-slate-50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800 space-y-3">
+                          <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Question Source Data</h4>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Database Size</span>
+                            <span className="text-xs font-black px-2.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-md border border-blue-100 dark:border-blue-950">{questions.length} Questions</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Active Source</span>
+                            <span className={`text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${usingExternal ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900 text-green-700 dark:text-green-400' : 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-400'}`}>
+                              {usingExternal ? 'questions_bank.js' : 'Default Samples'}
+                            </span>
+                          </div>
+                          {!usingExternal && (
+                            <p className="text-[10px] leading-relaxed text-slate-400 dark:text-slate-500 mt-1">
+                              To load your entire 300+ custom question database, simply upload a <code>questions_bank.js</code> file in the same directory.
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Reset History / Local Storage */}
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to clear your statistics, failed questions memory, and exam history? This cannot be undone.")) {
+                              localStorage.clear();
+                              window.location.reload();
+                            }
+                          }}
+                          className="w-full border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 font-bold py-3 rounded-xl transition-all text-sm flex items-center justify-center gap-2"
+                        >
+                          <RefreshCcw size={16} />
+                          Reset Progress & Stats
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
               </div>
             </div>
           );
