@@ -81,7 +81,7 @@
           tip: d[6] || ""
         }));
 
-        const APP_VERSION = "v2.4";
+        const APP_VERSION = "v2.5";
 
         function App() {
           const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings
@@ -747,38 +747,8 @@
                     })}
                   </div>
 
-                  {/* INLINE EXPLANATION & MEMORY TIPS (Material Tonal Surface) */}
-                  {hasAnswered && (
-                    <div className={`mt-6 p-6 sm:p-8 rounded-3xl border-2 ${isCorrect ? 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-900/30' : 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-900/30'} animate-in slide-in-from-top-4 duration-300`}>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className={`shrink-0 p-2 rounded-full ${isCorrect ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' : 'bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200'}`}>
-                          {isCorrect ? <CheckCircle2 size={24} /> : <AlertTriangle size={24} />}
-                        </div>
-                        <h3 className={`text-xl font-bold ${isCorrect ? 'text-green-800 dark:text-green-400' : 'text-orange-800 dark:text-orange-400'}`}>
-                          {isCorrect ? 'Correct!' : 'Incorrect'}
-                        </h3>
-                      </div>
-                      
-                      <p className={`text-lg leading-relaxed ${isCorrect ? 'text-green-950 dark:text-green-100' : 'text-orange-950 dark:text-orange-100'}`}>
-                        {question.explanation}
-                      </p>
-
-                      {!isCorrect && question.tip && (
-                        <div className="mt-5 pt-5 border-t border-orange-300/50 dark:border-orange-800/50">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Brain className="text-indigo-600 dark:text-indigo-400" size={18} />
-                            <h5 className="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Memory Trick</h5>
-                          </div>
-                          <p className="text-lg leading-relaxed font-medium text-slate-800 dark:text-slate-200">
-                            "{question.tip}"
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* NAVIGATION FOOTER */}
-                  <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+                  {/* NAVIGATION FOOTER (Moved below options) */}
+                  <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
                     <button 
                       onClick={() => {
                         setIsAutoNavCancelled(true);
@@ -842,6 +812,36 @@
                       )}
                     </div>
                   </div>
+
+                  {/* INLINE EXPLANATION & MEMORY TIPS (Moved below navigation) */}
+                  {hasAnswered && (
+                    <div className={`mt-8 p-6 sm:p-8 rounded-3xl border-2 ${isCorrect ? 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-900/30' : 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-900/30'} animate-in slide-in-from-top-4 duration-300`}>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`shrink-0 p-2 rounded-full ${isCorrect ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' : 'bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200'}`}>
+                          {isCorrect ? <CheckCircle2 size={24} /> : <AlertTriangle size={24} />}
+                        </div>
+                        <h3 className={`text-xl font-bold ${isCorrect ? 'text-green-800 dark:text-green-400' : 'text-orange-800 dark:text-orange-400'}`}>
+                          {isCorrect ? 'Correct!' : 'Incorrect'}
+                        </h3>
+                      </div>
+                      
+                      <p className={`text-lg leading-relaxed ${isCorrect ? 'text-green-950 dark:text-green-100' : 'text-orange-950 dark:text-orange-100'}`}>
+                        {question.explanation}
+                      </p>
+
+                      {!isCorrect && question.tip && (
+                        <div className="mt-5 pt-5 border-t border-orange-300/50 dark:border-orange-800/50">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Brain className="text-indigo-600 dark:text-indigo-400" size={18} />
+                            <h5 className="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Memory Trick</h5>
+                          </div>
+                          <p className="text-lg leading-relaxed font-medium text-slate-800 dark:text-slate-200">
+                            "{question.tip}"
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );
