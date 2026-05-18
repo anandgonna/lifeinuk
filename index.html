@@ -81,7 +81,7 @@
           tip: d[6] || ""
         }));
 
-        const APP_VERSION = "v1.6";
+        const APP_VERSION = "v1.7";
 
         function App() {
           const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings
@@ -344,13 +344,26 @@
               pool = shuffledWeak.slice(0, targetSize);
 
               if (pool.length < targetSize) {
-                let available = questions.filter(q => !pool.includes(q) && !updatedSeen.has(q.id));
-                if (available.length < (targetSize - pool.length)) {
-                    updatedSeen.clear();
-                    available = questions.filter(q => !pool.includes(q));
+                const numNeeded = targetSize - pool.length;
+                
+                // Prioritize unseen questions first to fill the gap
+                const unseenQuestions = questions.filter(q => !questionHistory[q.id] && !pool.includes(q));
+                const shuffledUnseen = [...unseenQuestions].sort(() => 0.5 - Math.random());
+                
+                if (shuffledUnseen.length >= numNeeded) {
+                  pool = [...pool, ...shuffledUnseen.slice(0, numNeeded)];
+                } else {
+                  pool = [...pool, ...shuffledUnseen];
+                  const stillNeeded = targetSize - pool.length;
+                  
+                  let availableSeen = questions.filter(q => !pool.includes(q) && !updatedSeen.has(q.id));
+                  if (availableSeen.length < stillNeeded) {
+                      updatedSeen.clear();
+                      availableSeen = questions.filter(q => !pool.includes(q));
+                  }
+                  const shuffledSeen = [...availableSeen].sort(() => 0.5 - Math.random());
+                  pool = [...pool, ...shuffledSeen.slice(0, stillNeeded)];
                 }
-                const shuffledOther = [...available].sort(() => 0.5 - Math.random());
-                pool = [...pool, ...shuffledOther.slice(0, targetSize - pool.length)];
               }
             } else {
               const weakQuestions = questions.filter(q => {
@@ -360,13 +373,42 @@
               const shuffledWeak = [...weakQuestions].sort(() => 0.5 - Math.random());
               const selectedWeak = shuffledWeak.slice(0, Math.min(5, weakQuestions.length)); 
 
-              let available = questions.filter(q => !selectedWeak.includes(q) && !updatedSeen.has(q.id));
-              if (available.length < (targetSize - selectedWeak.length)) {
-                  updatedSeen.clear();
-                  available = questions.filter(q => !selectedWeak.includes(q));
+              const numNeeded = targetSize - selectedWeak.length;
+              
+              // 1. Get strictly UNSEEN questions first
+              const unseenQuestions = questions.filter(q => !questionHistory[q.id] && !selectedWeak.includes(q));
+              const shuffledUnseen = [...unseenQuestions].sort(() => 0.5 - Math.random());
+
+              let selectedOther = [];
+
+              if (shuffledUnseen.length >= numNeeded) {
+                // We have enough unseen questions to fill the test
+                selectedOther = shuffledUnseen.slice(0, numNeeded);
+              } else {
+                // Take all available unseen questions
+                selectedOther = [...shuffledUnseen];
+                const stillNeeded = numNeeded - selectedOther.length;
+
+                // 2. Fallback to seen questions that aren't recently seen
+                let availableSeen = questions.filter(q => 
+                    questionHistory[q.id] && 
+                    !selectedWeak.includes(q) && 
+                    !selectedOther.includes(q) &&
+                    !updatedSeen.has(q.id)
+                );
+
+                if (availableSeen.length < stillNeeded) {
+                    updatedSeen.clear(); // Reset recently seen if we run out
+                    availableSeen = questions.filter(q => 
+                        questionHistory[q.id] && 
+                        !selectedWeak.includes(q) && 
+                        !selectedOther.includes(q)
+                    );
+                }
+
+                const shuffledSeen = [...availableSeen].sort(() => 0.5 - Math.random());
+                selectedOther = [...selectedOther, ...shuffledSeen.slice(0, stillNeeded)];
               }
-              const shuffledOther = [...available].sort(() => 0.5 - Math.random());
-              const selectedOther = shuffledOther.slice(0, targetSize - selectedWeak.length);
 
               pool = [...selectedWeak, ...selectedOther].sort(() => 0.5 - Math.random());
             }
