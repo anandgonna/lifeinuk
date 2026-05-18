@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life in the UK: Mock Test App</title>
+    <title>Life in the UK: PWA Mock Test App</title>
     
     <!-- Load Open Sans Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -338,7 +338,7 @@
             } else if (focusWeak) {
               const weakQuestions = questions.filter(q => {
                 const stats = questionHistory[q.id];
-                return stats && stats.correct < stats.attempts;
+                return stats && (stats.attempts > stats.correct) && (stats.correct < 3);
               });
 
               const shuffledWeak = [...weakQuestions].sort(() => 0.5 - Math.random());
@@ -356,7 +356,7 @@
             } else {
               const weakQuestions = questions.filter(q => {
                 const stats = questionHistory[q.id];
-                return stats && stats.correct < stats.attempts;
+                return stats && (stats.attempts > stats.correct) && (stats.correct < 3);
               });
               const shuffledWeak = [...weakQuestions].sort(() => 0.5 - Math.random());
               const selectedWeak = shuffledWeak.slice(0, Math.min(5, weakQuestions.length)); 
@@ -484,7 +484,7 @@
           };
 
           const getWeakQuestionsCount = () => {
-             return Object.values(questionHistory).filter(stats => stats.correct < stats.attempts).length;
+             return Object.values(questionHistory).filter(stats => (stats.attempts > stats.correct) && (stats.correct < 3)).length;
           };
 
           const renderHome = () => (
@@ -934,9 +934,15 @@
             const totalTimeTakenSecs = quizHistory.reduce((sum, entry) => sum + (entry.timeTaken || 0), 0);
             const estTimeMins = totalTimeTakenSecs > 0 ? Math.round(totalTimeTakenSecs / 60) : Math.round((Object.values(questionHistory).reduce((sum, q) => sum + q.attempts, 0) * 15) / 60);
             
-            const recentHistory = quizHistory.slice(-5);
-            const recentPassRate = recentHistory.length ? Math.round((recentHistory.filter(s => getScoreValue(s) >= Math.ceil(getTotalValue(s) * 0.75)).length / recentHistory.length) * 100) : passRate;
-            const preparednessScore = Math.min(100, Math.round((recentPassRate * 0.6) + ((coveragePercent * 2) * 0.4))) || 0;
+            let totalSeenAttempts = 0;
+            let totalSeenCorrect = 0;
+            Object.values(questionHistory).forEach(stats => {
+                totalSeenAttempts += stats.attempts;
+                totalSeenCorrect += stats.correct;
+            });
+            const overallAccuracy = totalSeenAttempts > 0 ? (totalSeenCorrect / totalSeenAttempts) * 100 : 0;
+            
+            const preparednessScore = Math.min(100, Math.round((coveragePercent / 100) * overallAccuracy)) || 0;
 
             return (
               <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
@@ -980,7 +986,7 @@
                       <div className="flex items-end gap-2">
                         <span className="text-4xl font-black">{preparednessScore}%</span>
                       </div>
-                      <p className="text-xs text-indigo-200 mt-2 font-medium">Ready for the real exam</p>
+                      <p className="text-xs text-indigo-200 mt-2 font-medium">Based on {coveragePercent}% coverage & {Math.round(overallAccuracy)}% accuracy</p>
                     </div>
                     <Activity size={100} className="absolute -right-4 -bottom-4 text-white opacity-10" />
                   </div>
@@ -1003,7 +1009,7 @@
                   {/* Bank Coverage */}
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-2">
-                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Bank Coverage</p>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Questions Coverage</p>
                       <div className="p-1.5 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                         <PieChart size={16} />
                       </div>
