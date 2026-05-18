@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Life in the UK: PWA Mock Test App</title>
     
-    <!-- Load Open Sans Font -->
+    <!-- Load Roboto Font (Material Design Standard) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
 
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,7 +18,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Open Sans"', 'sans-serif'],
+                        sans: ['"Roboto"', 'sans-serif'],
                     }
                 }
             }
@@ -44,7 +44,7 @@
     }
     </script>
 </head>
-<body class="antialiased bg-slate-50 font-sans transition-colors duration-300">
+<body class="antialiased bg-slate-100 dark:bg-[#0f172a] font-sans transition-colors duration-300">
     <div id="root"></div>
 
     <!-- Your React Application -->
@@ -54,7 +54,7 @@
         import { 
           BookOpen, Trophy, AlertTriangle, CheckCircle2, XCircle, 
           RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun, Target, X,
-          Clock, PieChart, Activity, ChevronLeft, ChevronRight, GraduationCap, Settings, Eye, EyeOff
+          Clock, PieChart, Activity, ChevronLeft, ChevronRight, GraduationCap, Settings, Eye, EyeOff, Monitor
         } from 'lucide-react';
 
         /* DEFAULT 10 SAMPLE QUESTIONS DATABANK FOR LOCAL FALLBACK WITH MEMORY TIPS */
@@ -81,14 +81,21 @@
           tip: d[6] || ""
         }));
 
-        const APP_VERSION = "v1.9";
+        const APP_VERSION = "v2.4";
 
         function App() {
           const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings
           const [activeQuestions, setActiveQuestions] = useState([]);
           const [currentIndex, setCurrentIndex] = useState(0);
           const [userAnswers, setUserAnswers] = useState({});
-          const [showExplanation, setShowExplanation] = useState(false);
+          
+          // Theme States
+          const [themePreference, setThemePreference] = useState(() => {
+            try {
+              const saved = localStorage.getItem('ukLifeTheme');
+              return saved ? saved : 'system';
+            } catch(e) { return 'system'; }
+          });
           const [isDarkMode, setIsDarkMode] = useState(false);
           
           // Test Timer States
@@ -277,14 +284,28 @@
             }
           }, [studyIndex, currentScreen, questions]);
 
-          // Auto theme detection
+          // Comprehensive Theme Detection & Application
           useEffect(() => {
+            localStorage.setItem('ukLifeTheme', themePreference);
+            
             const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            setIsDarkMode(mediaQuery.matches);
-            const handler = (e) => setIsDarkMode(e.matches);
+            
+            const applyTheme = () => {
+              if (themePreference === 'dark') {
+                setIsDarkMode(true);
+              } else if (themePreference === 'light') {
+                setIsDarkMode(false);
+              } else {
+                setIsDarkMode(mediaQuery.matches);
+              }
+            };
+            
+            applyTheme();
+            
+            const handler = () => applyTheme();
             mediaQuery.addEventListener('change', handler);
             return () => mediaQuery.removeEventListener('change', handler);
-          }, []);
+          }, [themePreference]);
 
           // Live Test Timer Increment effect
           useEffect(() => {
@@ -304,8 +325,10 @@
             let interval;
             const duration = autoNavDelay * 1000; 
             const updateInterval = 30; 
+            
+            const hasAnswered = userAnswers[currentIndex] !== undefined;
 
-            if (currentScreen === 'quiz' && showExplanation && autoNavigate && !isAutoNavCancelled) {
+            if (currentScreen === 'quiz' && hasAnswered && autoNavigate && !isAutoNavCancelled) {
               const isCorrect = userAnswers[currentIndex] === activeQuestions[currentIndex]?.correctAnswer;
               if (isCorrect) {
                 let elapsed = 0;
@@ -320,7 +343,7 @@
               }
             }
             return () => clearInterval(interval);
-          }, [showExplanation, currentIndex, autoNavigate, autoNavDelay, currentScreen, isAutoNavCancelled, userAnswers, activeQuestions]);
+          }, [currentIndex, autoNavigate, autoNavDelay, currentScreen, isAutoNavCancelled, userAnswers, activeQuestions]);
 
           // Format seconds into MM:SS
           const formatTime = (secs) => {
@@ -443,7 +466,6 @@
             setActiveQuestions(shuffledPool);
             setCurrentIndex(0);
             setUserAnswers({}); 
-            setShowExplanation(false);
             setIsAutoNavCancelled(false);
             setAutoNavProgress(0);
             setElapsedTime(0); // Reset timer
@@ -460,7 +482,7 @@
           };
 
           const handleAnswer = (answer) => {
-            if (showExplanation) return; 
+            if (userAnswers[currentIndex] !== undefined) return; 
             const isCorrect = answer === activeQuestions[currentIndex].correctAnswer;
             const qId = activeQuestions[currentIndex].id;
 
@@ -471,7 +493,6 @@
             
             setIsAutoNavCancelled(false);
             setAutoNavProgress(0);
-            setShowExplanation(true);
 
             // Reactive Update: Questions coverage registers instantly inside the DB tracker
             setQuestionHistory(prev => ({
@@ -486,7 +507,6 @@
           const nextQuestion = () => {
             if (currentIndex < activeQuestions.length - 1) {
               setCurrentIndex(currentIndex + 1);
-              setShowExplanation(false);
               setIsAutoNavCancelled(false);
               setAutoNavProgress(0);
             } else {
@@ -566,15 +586,15 @@
             return (
               <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
                 {/* Hero Section */}
-                <div className="bg-white dark:bg-slate-800 p-6 sm:p-10 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 mb-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 text-center sm:text-left transition-all">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center shrink-0 shadow-inner">
-                    <BookOpen size={40} className="sm:w-12 sm:h-12" />
+                <div className="bg-white dark:bg-slate-800 p-8 sm:p-12 rounded-3xl shadow-md border border-slate-300 dark:border-slate-700/50 mb-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10 text-center sm:text-left transition-all">
+                  <div className="w-20 h-20 sm:w-28 sm:h-28 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center shrink-0">
+                    <BookOpen size={44} className="sm:w-14 sm:h-14" strokeWidth={1.5} />
                   </div>
                   <div className="flex-1">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-50 mb-3 tracking-tight">Life in the UK: Exam Prep</h1>
+                    <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-slate-50 mb-3 tracking-tight">Life in the UK: Exam Prep</h1>
                     <div className="flex items-center justify-center sm:justify-start gap-2 mb-4">
-                        <Brain size={18} className="text-indigo-500 dark:text-indigo-400" />
-                        <span className="text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Master dynamic training system</span>
+                        <Brain size={18} className="text-indigo-600 dark:text-indigo-400" />
+                        <span className="text-xs sm:text-sm font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest">Master dynamic training system</span>
                     </div>
                     <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
                       Master the official syllabus details with smart spacing, persistent weak-area tracking, and customizable auto-navigation.
@@ -582,7 +602,7 @@
                   </div>
                 </div>
 
-                <h2 className="text-xl font-extrabold text-slate-800 dark:text-slate-50 mb-6 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-50 mb-6 flex items-center gap-2 px-2">
                   <Activity size={20} className="text-blue-500" />
                   Training Modes
                 </h2>
@@ -592,7 +612,7 @@
                   {activeQuestions.length > 0 && currentIndex < activeQuestions.length && currentScreen !== 'results' && (
                     <button 
                       onClick={() => setCurrentScreen('quiz')}
-                      className="lg:col-span-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/30 hover:scale-[1.02] active:scale-95 text-base"
+                      className="lg:col-span-4 bg-orange-500 hover:bg-orange-600 text-white font-medium py-4 px-6 rounded-full flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] text-base"
                     >
                       <Play size={20} />
                       Resume Interrupted Test
@@ -601,7 +621,7 @@
 
                   <button 
                     onClick={() => generateQuiz(false, false)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 text-base"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-5 rounded-full flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] text-base"
                   >
                     <Play size={20} />
                     Standard Test ({Math.min(mockTestSize, questions.length)} Qs)
@@ -609,7 +629,7 @@
 
                   <button 
                     onClick={() => generateQuiz(false, true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-600/30 hover:scale-105 active:scale-95 text-base"
+                    className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/40 dark:hover:bg-purple-900/60 text-purple-900 dark:text-purple-100 border border-purple-300 dark:border-purple-800 font-medium py-4 px-5 rounded-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base"
                   >
                     <Activity size={20} />
                     Marathon Mode
@@ -617,7 +637,7 @@
 
                   <button 
                     onClick={handleStudyModeClick}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/30 hover:scale-105 active:scale-95 text-base"
+                    className="bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:hover:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-800 font-medium py-4 px-5 rounded-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base"
                   >
                     <GraduationCap size={20} />
                     Study & Review
@@ -625,7 +645,7 @@
                   
                   <button 
                     onClick={() => setCurrentScreen('analysis')}
-                    className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-100 font-bold py-4 px-5 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 text-base shadow-sm"
+                    className="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 font-medium py-4 px-5 rounded-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base shadow-sm border border-slate-300 dark:border-slate-600"
                   >
                     <BarChart3 size={20} />
                     View Stats
@@ -634,28 +654,28 @@
 
                 {/* Home Stats Footer */}
                 {quizHistory.length > 0 && (
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 sm:p-8 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col sm:flex-row flex-wrap items-center justify-around gap-6 sm:gap-8">
+                  <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-10 border border-slate-300 dark:border-slate-700 shadow-md flex flex-col sm:flex-row flex-wrap items-center justify-around gap-6 sm:gap-8">
                     <div className="text-center">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Preparedness</p>
-                      <p className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{preparednessScore}%</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Preparedness</p>
+                      <p className="text-4xl font-bold text-indigo-600 dark:text-indigo-400">{preparednessScore}%</p>
                     </div>
                     <div className="hidden sm:block w-px h-16 bg-slate-200 dark:bg-slate-700"></div>
                     <div className="text-center">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Tests Taken</p>
-                      <p className="text-4xl font-black text-slate-800 dark:text-slate-50">{quizHistory.length}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Tests Taken</p>
+                      <p className="text-4xl font-bold text-slate-800 dark:text-slate-50">{quizHistory.length}</p>
                     </div>
                     <div className="hidden sm:block w-px h-16 bg-slate-200 dark:bg-slate-700"></div>
                     <div className="text-center">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Avg Score</p>
-                      <p className="text-4xl font-black text-slate-800 dark:text-slate-50">
-                        {Math.round(quizHistory.reduce((sum, entry) => sum + getScoreValue(entry), 0) / quizHistory.length)}<span className="text-2xl text-slate-400 dark:text-slate-500">/{Math.round(quizHistory.reduce((sum, entry) => sum + getTotalValue(entry), 0) / quizHistory.length)}</span>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest mb-1">Avg Score</p>
+                      <p className="text-4xl font-bold text-slate-800 dark:text-slate-50">
+                        {Math.round(quizHistory.reduce((sum, entry) => sum + getScoreValue(entry), 0) / quizHistory.length)}<span className="text-2xl text-slate-500 dark:text-slate-400 font-medium">/{Math.round(quizHistory.reduce((sum, entry) => sum + getTotalValue(entry), 0) / quizHistory.length)}</span>
                       </p>
                     </div>
                   </div>
                 )}
                 
                 <div className="mt-8 text-center pb-4">
-                  <p className="text-slate-400 dark:text-slate-500 text-sm font-bold">Version {APP_VERSION}</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Version {APP_VERSION}</p>
                 </div>
               </div>
             );
@@ -663,52 +683,50 @@
 
           const renderQuiz = () => {
             const question = activeQuestions[currentIndex];
-            const hasAnswered = showExplanation;
+            const hasAnswered = userAnswers[currentIndex] !== undefined;
             const isCorrect = userAnswers[currentIndex] === question?.correctAnswer;
             const progress = ((currentIndex) / activeQuestions.length) * 100;
 
             if (!question) return null;
 
             return (
-              <div className="max-w-4xl mx-auto py-4 px-2 sm:px-4">
-                <div className="mb-4">
-                  <div className="flex flex-wrap justify-between items-center text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-y-2 gap-x-3">
+              <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6">
+                <div className="mb-6">
+                  <div className="flex flex-wrap justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-400 mb-3 gap-y-2 gap-x-3">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm uppercase tracking-wider font-bold">Question {currentIndex + 1} of {activeQuestions.length}</span>
-                      <span className="px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
+                      <span className="uppercase tracking-wider font-bold">Question {currentIndex + 1} of {activeQuestions.length}</span>
+                      <span className="px-3 py-1 text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-full">{question.category}</span>
                     </div>
                     
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm text-slate-700 dark:text-slate-300 font-mono text-sm ml-auto">
-                      <Clock size={15} className="animate-pulse text-blue-500 shrink-0" />
+                    <div className="flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/40 px-3.5 py-1.5 rounded-full text-blue-800 dark:text-blue-200 font-mono text-sm ml-auto border border-blue-200 dark:border-blue-800">
+                      <Clock size={16} className="animate-pulse" />
                       <span>{formatTime(elapsedTime)}</span>
                     </div>
                   </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
                     <div 
-                      className="bg-blue-500 dark:bg-blue-400 h-full rounded-full transition-all duration-500 ease-out relative"
+                      className="bg-blue-600 dark:bg-blue-500 h-full rounded-full transition-all duration-500 ease-out"
                       style={{ width: `${progress}%` }}
-                    >
-                      <div className="absolute inset-0 bg-white/20 dark:bg-white/10 w-full h-full"></div>
-                    </div>
+                    ></div>
                   </div>
                 </div>
 
-                <div key={question.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 animate-in slide-in-from-right-8 duration-300">
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-50 mb-4 leading-tight tracking-tight">{question.text}</h2>
+                <div key={question.id} className="animate-in slide-in-from-right-8 duration-300">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 mb-8 leading-snug tracking-tight">{question.text}</h2>
                   
                   <div className="space-y-3">
                     {question.options.map((option, idx) => {
-                      let btnClass = "w-full text-left p-3 sm:p-4 rounded-xl border-2 text-base sm:text-lg font-medium leading-snug ";
+                      let btnClass = "w-full text-left p-4 sm:p-5 rounded-3xl border-2 text-base sm:text-lg font-medium leading-snug transition-all ";
                       
                       if (!hasAnswered) {
-                        btnClass += "border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-700 dark:text-slate-200 shadow-sm hover:shadow";
+                        btnClass += "bg-white dark:bg-slate-800 shadow-sm hover:bg-blue-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:border-blue-400";
                       } else {
                         if (option === question.correctAnswer) {
-                          btnClass += "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 shadow-sm";
+                          btnClass += "bg-green-100 dark:bg-green-900/40 border-green-500 dark:border-green-500/60 text-green-900 dark:text-green-100 shadow-sm";
                         } else if (option === userAnswers[currentIndex]) {
-                          btnClass += "border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 shadow-sm";
+                          btnClass += "bg-red-100 dark:bg-red-900/40 border-red-500 dark:border-red-500/60 text-red-900 dark:text-red-100 shadow-sm";
                         } else {
-                          btnClass += "border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed";
+                          btnClass += "bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-500 opacity-70 border-slate-200 dark:border-slate-700 cursor-not-allowed";
                         }
                       }
 
@@ -721,91 +739,110 @@
                         >
                           <div className="flex items-center justify-between gap-3">
                             <span>{option}</span>
-                            {hasAnswered && option === question.correctAnswer && <CheckCircle2 className="text-green-500 shrink-0" size={24}/>}
-                            {hasAnswered && option === userAnswers[currentIndex] && option !== question.correctAnswer && <XCircle className="text-red-500 shrink-0" size={24}/>}
+                            {hasAnswered && option === question.correctAnswer && <CheckCircle2 className="text-green-600 dark:text-green-400 shrink-0" size={24}/>}
+                            {hasAnswered && option === userAnswers[currentIndex] && option !== question.correctAnswer && <XCircle className="text-red-600 dark:text-red-400 shrink-0" size={24}/>}
                           </div>
                         </button>
                       );
                     })}
                   </div>
-                </div>
 
-                {/* MODAL POPUP FOR EXPLANATION & MEMORY TIPS */}
-                {hasAnswered && (
-                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
-                    <div className={`w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border-4 ${isCorrect ? 'border-green-400 dark:border-green-500' : 'border-orange-400 dark:border-orange-500'} p-6 sm:p-8 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh] overflow-y-auto`}>
-                      
-                      <div className="mb-6 w-full text-left">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className={`shrink-0 p-1.5 rounded-full ${isCorrect ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}`}>
-                            {isCorrect ? <CheckCircle2 size={24} /> : <AlertTriangle size={24} />}
-                          </div>
-                          <h3 className={`text-2xl font-black uppercase tracking-wider ${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                            {isCorrect ? 'Correct!' : 'Incorrect'}
-                          </h3>
+                  {/* INLINE EXPLANATION & MEMORY TIPS (Material Tonal Surface) */}
+                  {hasAnswered && (
+                    <div className={`mt-6 p-6 sm:p-8 rounded-3xl border-2 ${isCorrect ? 'bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-900/30' : 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-900/30'} animate-in slide-in-from-top-4 duration-300`}>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className={`shrink-0 p-2 rounded-full ${isCorrect ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200' : 'bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200'}`}>
+                          {isCorrect ? <CheckCircle2 size={24} /> : <AlertTriangle size={24} />}
                         </div>
-                        
-                        <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed">
-                          {question.explanation}
-                        </p>
-
-                        {/* Injected Memory Tip on Incorrect Answers */}
-                        {!isCorrect && question.tip && (
-                          <div className="mt-4 animate-in slide-in-from-bottom-2 duration-300">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <Brain className="text-indigo-600 dark:text-indigo-400" size={18} />
-                              <h5 className="text-sm font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Memory Trick</h5>
-                            </div>
-                            <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed italic font-medium">
-                              "{question.tip}"
-                            </p>
-                          </div>
-                        )}
+                        <h3 className={`text-xl font-bold ${isCorrect ? 'text-green-800 dark:text-green-400' : 'text-orange-800 dark:text-orange-400'}`}>
+                          {isCorrect ? 'Correct!' : 'Incorrect'}
+                        </h3>
                       </div>
+                      
+                      <p className={`text-lg leading-relaxed ${isCorrect ? 'text-green-950 dark:text-green-100' : 'text-orange-950 dark:text-orange-100'}`}>
+                        {question.explanation}
+                      </p>
 
-                      <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-700">
-                        {isCorrect && autoNavigate && !isAutoNavCancelled ? (
-                          <div className="flex flex-col gap-4">
-                            <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden shadow-inner">
+                      {!isCorrect && question.tip && (
+                        <div className="mt-5 pt-5 border-t border-orange-300/50 dark:border-orange-800/50">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Brain className="text-indigo-600 dark:text-indigo-400" size={18} />
+                            <h5 className="text-sm font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Memory Trick</h5>
+                          </div>
+                          <p className="text-lg leading-relaxed font-medium text-slate-800 dark:text-slate-200">
+                            "{question.tip}"
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* NAVIGATION FOOTER */}
+                  <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+                    <button 
+                      onClick={() => {
+                        setIsAutoNavCancelled(true);
+                        setCurrentIndex(currentIndex - 1);
+                      }}
+                      disabled={currentIndex === 0}
+                      className={`flex items-center gap-1.5 px-5 py-3 rounded-full font-medium transition-all text-sm sm:text-base ${currentIndex === 0 ? 'bg-transparent text-slate-400 dark:text-slate-600 cursor-not-allowed' : 'bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 dark:text-slate-200 shadow-sm active:scale-95'}`}
+                    >
+                      <ChevronLeft size={20} />
+                      <span>Prev</span>
+                    </button>
+
+                    <div className="flex items-center gap-3">
+                       {hasAnswered && isCorrect && autoNavigate && !isAutoNavCancelled && (
+                         <button 
+                           onClick={() => setIsAutoNavCancelled(true)}
+                           className="hidden sm:flex items-center gap-1.5 px-4 py-3 rounded-full font-medium text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors text-sm"
+                         >
+                           <X size={18} /> Cancel Auto
+                         </button>
+                       )}
+
+                       {currentIndex < activeQuestions.length - 1 ? (
+                        <button 
+                          onClick={() => {
+                            setIsAutoNavCancelled(true);
+                            nextQuestion();
+                          }}
+                          disabled={!hasAnswered}
+                          className={`group relative overflow-hidden flex items-center gap-2 px-8 py-3.5 rounded-full font-medium transition-all text-base ${!hasAnswered ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-md active:scale-95'}`}
+                        >
+                          {/* Auto Timer Progress Border - Radial Wipe Thick Border */}
+                          {hasAnswered && isCorrect && autoNavigate && !isAutoNavCancelled && (
+                            <>
                               <div 
-                                className="bg-blue-500 dark:bg-blue-400 h-full ease-linear"
-                                style={{ width: `${autoNavProgress}%`, transition: 'width 30ms linear' }}
+                                className="absolute inset-0 pointer-events-none transition-all duration-75"
+                                style={{ 
+                                  background: `conic-gradient(rgba(255,255,255,0.9) ${autoNavProgress}%, transparent 0)`
+                                }}
                               ></div>
-                            </div>
-                            <div className="flex justify-between items-center gap-4">
-                              <span className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:inline">Next question...</span>
-                              <div className="flex w-full sm:w-auto gap-2">
-                                <button 
-                                  onClick={() => setIsAutoNavCancelled(true)}
-                                  className="flex-1 sm:flex-initial bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 px-4 py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 text-base whitespace-nowrap"
-                                >
-                                  <X size={20} />
-                                  Wait
-                                </button>
-                                <button 
-                                  onClick={nextQuestion}
-                                  className="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 text-base shadow-md hover:scale-[1.02] active:scale-95 whitespace-nowrap"
-                                >
-                                  Next
-                                  <ArrowRight size={20} />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <button 
-                            onClick={nextQuestion}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:scale-[1.02] active:scale-95 text-xl sm:text-lg"
-                          >
-                            {currentIndex < activeQuestions.length - 1 ? 'Next Question' : 'View Results'}
-                            <ArrowRight size={24} className="sm:w-5 sm:h-5" />
-                          </button>
-                        )}
-                      </div>
-
+                              <div className="absolute inset-[4px] rounded-full bg-blue-600 group-hover:bg-blue-700 pointer-events-none transition-colors"></div>
+                            </>
+                          )}
+                          <span className="relative z-10 flex items-center gap-1">
+                            Next
+                          </span>
+                          <ChevronRight size={20} className="relative z-10" />
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            setIsAutoNavCancelled(true);
+                            finishQuiz();
+                          }}
+                          disabled={!hasAnswered}
+                          className={`flex items-center gap-2 px-8 py-3.5 rounded-full font-medium transition-all text-base ${!hasAnswered ? 'bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-600 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md active:scale-95'}`}
+                        >
+                          Finish
+                          <CheckCircle2 size={20} />
+                        </button>
+                      )}
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           };
@@ -816,54 +853,53 @@
             const progress = ((studyIndex + 1) / questions.length) * 100;
 
             return (
-              <div className="max-w-4xl mx-auto py-4 px-2 sm:px-4">
-                <div className="mb-4">
-                  <div className="flex flex-wrap justify-between items-center text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2 gap-y-2 gap-x-3">
+              <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6">
+                <div className="mb-6">
+                  <div className="flex flex-wrap justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-400 mb-3 gap-y-2 gap-x-3">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <GraduationCap className="text-emerald-600 dark:text-emerald-400 shrink-0" size={18} />
-                      <span className="text-sm uppercase tracking-wider font-bold">Study — Q{studyIndex + 1} of {questions.length}</span>
-                      <span className="px-2 py-0.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-md border border-emerald-100 dark:border-emerald-800/50 shadow-sm">{question.category}</span>
+                      <GraduationCap className="text-emerald-600 dark:text-emerald-500 shrink-0" size={20} />
+                      <span className="uppercase tracking-wider font-bold">Study — Q{studyIndex + 1} of {questions.length}</span>
+                      <span className="px-3 py-1 text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-full">{question.category}</span>
                     </div>
                   </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden shadow-inner">
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
                     <div 
-                      className="bg-emerald-500 dark:bg-emerald-400 h-full rounded-full transition-all duration-300 ease-out"
+                      className="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 animate-in slide-in-from-right-8 duration-300">
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-50 leading-tight tracking-tight">{question.text}</h2>
+                <div className="animate-in slide-in-from-right-8 duration-300">
+                  <div className="flex items-start justify-between gap-4 mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 leading-snug tracking-tight">{question.text}</h2>
                     <button 
                       onClick={() => setHideIncorrectStudy(!hideIncorrectStudy)}
-                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors mt-1"
+                      className="shrink-0 flex items-center justify-center p-2.5 rounded-full bg-white border border-slate-300 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm transition-colors mt-1"
                       title={hideIncorrectStudy ? "Show all options" : "Hide incorrect options"}
                     >
-                      {hideIncorrectStudy ? <Eye size={14} /> : <EyeOff size={14} />}
-                      <span className="hidden sm:inline">{hideIncorrectStudy ? "Show All" : "Hide Wrong"}</span>
+                      {hideIncorrectStudy ? <Eye size={18} /> : <EyeOff size={18} />}
                     </button>
                   </div>
                   
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-3 mb-8">
                     {studyOptions.map((option, idx) => {
                       const isCorrectAnswer = option === question.correctAnswer;
                       if (hideIncorrectStudy && !isCorrectAnswer) return null;
 
-                      let btnClass = "w-full text-left p-2.5 sm:p-3 rounded-xl border-2 text-base sm:text-lg font-medium leading-snug ";
+                      let btnClass = "w-full text-left p-4 sm:p-5 rounded-3xl border-2 text-base sm:text-lg font-medium leading-snug ";
                       
                       if (isCorrectAnswer) {
-                        btnClass += "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 shadow-sm";
+                        btnClass += "bg-green-100 border-green-500 text-green-900 dark:bg-green-900/40 dark:border-green-500/50 dark:text-green-100 shadow-sm";
                       } else {
-                        btnClass += "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-500 opacity-60 cursor-not-allowed";
+                        btnClass += "bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 opacity-70 border-slate-200 dark:border-slate-700";
                       }
 
                       return (
                         <div key={idx} className={btnClass}>
                           <div className="flex items-center justify-between gap-3">
                             <span>{option}</span>
-                            {isCorrectAnswer && <CheckCircle2 className="text-green-500 shrink-0" size={24}/>}
+                            {isCorrectAnswer && <CheckCircle2 className="text-green-600 dark:text-green-400 shrink-0" size={24}/>}
                           </div>
                         </div>
                       );
@@ -871,17 +907,17 @@
                   </div>
 
                   {/* Fact & Mnemonic Details Container */}
-                  <div className="flex flex-col gap-2.5 mb-5">
-                    <div className="p-3 sm:p-4 rounded-xl border-2 shadow-sm bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/50">
-                      <div className="flex gap-3">
-                        <div className="shrink-0 p-1.5 rounded-full h-fit bg-emerald-100 dark:bg-emerald-800/30 text-emerald-600 dark:text-emerald-400">
-                          <Info size={20} />
+                  <div className="flex flex-col gap-4 mb-8">
+                    <div className="p-5 sm:p-6 rounded-3xl bg-emerald-50 dark:bg-emerald-900/10 border-2 border-emerald-200 dark:border-emerald-800/30">
+                      <div className="flex gap-4">
+                        <div className="shrink-0 p-2 rounded-full h-fit bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200">
+                          <Info size={24} />
                         </div>
                         <div>
-                          <h4 className="text-base sm:text-lg font-extrabold mb-1 uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                          <h4 className="text-lg font-bold mb-1 text-emerald-900 dark:text-emerald-400">
                             Explanation & Fact
                           </h4>
-                          <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                          <p className="text-base sm:text-lg text-emerald-950 dark:text-emerald-100 leading-relaxed">
                             {question.explanation}
                           </p>
                         </div>
@@ -890,16 +926,16 @@
 
                     {/* Integrated Memory Trick Display */}
                     {question.tip && (
-                      <div className="p-3 sm:p-4 rounded-xl border-2 shadow-sm bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800/50 animate-in fade-in duration-300">
-                        <div className="flex gap-3">
-                          <div className="shrink-0 p-1.5 rounded-full h-fit bg-indigo-100 dark:bg-indigo-800/30 text-indigo-600 dark:text-indigo-400">
-                            <Brain size={20} />
+                      <div className="p-5 sm:p-6 rounded-3xl bg-indigo-50 dark:bg-indigo-900/10 border-2 border-indigo-200 dark:border-indigo-800/30 animate-in fade-in duration-300">
+                        <div className="flex gap-4">
+                          <div className="shrink-0 p-2 rounded-full h-fit bg-indigo-200 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200">
+                            <Brain size={24} />
                           </div>
                           <div>
-                            <h4 className="text-base sm:text-lg font-extrabold mb-1 uppercase tracking-wider text-indigo-800 dark:text-indigo-400">
+                            <h4 className="text-lg font-bold mb-1 text-indigo-900 dark:text-indigo-400">
                               Memory Trick
                             </h4>
-                            <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed italic font-medium">
+                            <p className="text-base sm:text-lg text-indigo-950 dark:text-indigo-100 leading-relaxed font-medium italic">
                               "{question.tip}"
                             </p>
                           </div>
@@ -912,7 +948,7 @@
                     <button 
                       onClick={() => studyIndex > 0 && setStudyIndex(studyIndex - 1)}
                       disabled={studyIndex === 0}
-                      className={`flex items-center gap-1 px-4 py-2.5 rounded-xl font-bold transition-all text-base ${studyIndex === 0 ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200'}`}
+                      className={`flex items-center gap-1.5 px-5 py-3 rounded-full font-medium transition-all text-base ${studyIndex === 0 ? 'bg-transparent text-slate-400 dark:text-slate-600 cursor-not-allowed' : 'bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 dark:text-slate-200 shadow-sm active:scale-95'}`}
                     >
                       <ChevronLeft size={20} />
                       Prev
@@ -920,7 +956,7 @@
 
                     <button 
                       onClick={() => setCurrentScreen('home')}
-                      className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md text-base"
+                      className="bg-transparent hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-3 px-6 rounded-full transition-all text-base"
                     >
                       Exit Study
                     </button>
@@ -933,7 +969,7 @@
                           setCurrentScreen('home');
                         }
                       }}
-                      className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl transition-all shadow-md text-base"
+                      className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-8 py-3 rounded-full transition-all shadow-md active:scale-95 text-base"
                     >
                       {studyIndex === questions.length - 1 ? 'Finish' : 'Next'}
                       <ChevronRight size={20} />
@@ -952,38 +988,38 @@
             const weakCount = getWeakQuestionsCount();
 
             return (
-              <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6 animate-in zoom-in duration-300">
-                <div className="bg-white dark:bg-slate-800 p-6 sm:p-10 rounded-2xl shadow-xl text-center border border-slate-100 dark:border-slate-700/50">
-                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner ${isPass ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400'}`}>
-                    <Trophy size={40} />
+              <div className="max-w-3xl mx-auto py-8 px-4 sm:px-6 animate-in zoom-in duration-300">
+                <div className="bg-white dark:bg-slate-800 p-8 sm:p-12 rounded-3xl shadow-md text-center border border-slate-300 dark:border-slate-700">
+                  <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 ${isPass ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400'}`}>
+                    <Trophy size={48} />
                   </div>
                   
-                  <h2 className="text-3xl font-black text-slate-800 dark:text-slate-50 mb-2 tracking-tight">
+                  <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-50 mb-2 tracking-tight">
                     {isPass ? 'Congratulations! You Passed' : 'Keep Studying! You Failed'}
                   </h2>
-                  <p className="text-base text-slate-500 dark:text-slate-400 mb-6 font-medium">You need {passTarget} out of {totalQs} (75%) to pass.</p>
+                  <p className="text-base text-slate-600 dark:text-slate-400 mb-8 font-medium">You need {passTarget} out of {totalQs} (75%) to pass.</p>
                   
-                  <div className="flex flex-col items-center justify-center gap-2 mb-6">
-                    <div className="text-6xl font-black text-slate-800 dark:text-slate-50 tracking-tighter">
-                      {score}<span className="text-4xl text-slate-400 dark:text-slate-500">/{totalQs}</span>
+                  <div className="flex flex-col items-center justify-center gap-2 mb-10">
+                    <div className="text-7xl font-bold text-slate-900 dark:text-slate-50 tracking-tighter">
+                      {score}<span className="text-4xl text-slate-500 dark:text-slate-400 font-medium">/{totalQs}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-sm font-bold px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 mt-2">
-                      <Clock size={16} className="text-blue-500" />
+                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-sm font-medium px-4 py-2 rounded-full mt-3 border border-slate-300 dark:border-slate-700">
+                      <Clock size={16} className="text-blue-600" />
                       <span>Time Taken: {formatTimeReadable(finalTestTime)}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <button 
                       onClick={() => setCurrentScreen('analysis')}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 text-base"
+                      className="bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:hover:bg-indigo-900/60 border border-indigo-300 text-indigo-900 dark:text-indigo-100 font-medium py-3.5 px-6 rounded-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base"
                     >
                       <BarChart3 size={20} />
                       View Stats
                     </button>
                     <button 
                       onClick={() => generateQuiz(false)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 text-base"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3.5 px-6 rounded-full flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] text-base"
                     >
                       <RefreshCcw size={20} />
                       Take a New Test
@@ -991,14 +1027,14 @@
                     <button 
                       onClick={() => weakCount > 0 ? generateQuiz(true) : null}
                       disabled={weakCount === 0}
-                      className={`font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all text-base ${weakCount > 0 ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'}`}
+                      className={`font-medium py-3.5 px-6 rounded-full flex items-center justify-center gap-2 transition-all text-base ${weakCount > 0 ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-md active:scale-[0.98]' : 'bg-slate-100 border border-slate-300 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'}`}
                     >
                       <Target size={20} />
                       Practise Weak Areas {weakCount > 0 ? `(${weakCount})` : ''}
                     </button>
                     <button 
                       onClick={() => setCurrentScreen('home')}
-                      className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 text-base"
+                      className="bg-white border border-slate-300 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-medium py-3.5 px-6 rounded-full flex items-center justify-center gap-2 transition-all shadow-sm text-base"
                     >
                       <Home size={20} />
                       Return Home
@@ -1038,35 +1074,35 @@
               <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
                 
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
                   <div className="flex items-center gap-4">
                     <button 
                       onClick={() => setCurrentScreen('home')}
-                      className="p-2.5 bg-white dark:bg-slate-800 rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+                      className="p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
                     >
-                      <Home size={20} />
+                      <Home size={22} />
                     </button>
                     <div>
-                      <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-50 tracking-tight">Performance Analytics</h2>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Based on {totalTests} mock tests taken</p>
+                      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">Performance Analytics</h2>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Based on {totalTests} mock tests taken</p>
                     </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <button 
                       onClick={() => generateQuiz(false)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 text-sm sm:text-base w-full sm:w-auto"
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] text-sm sm:text-base w-full sm:w-auto"
                     >
                       <RefreshCcw size={18} />
-                      Take a New Mock Test
+                      New Mock Test
                     </button>
                     {weakCount > 0 && (
                       <button 
                         onClick={() => generateQuiz(true)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 text-sm sm:text-base w-full sm:w-auto"
+                        className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-6 rounded-full flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] text-sm sm:text-base w-full sm:w-auto"
                       >
                         <Target size={18} />
-                        Practise Weak Areas ({weakCount} Qs)
+                        Practise Weak Areas ({weakCount})
                       </button>
                     )}
                   </div>
@@ -1074,13 +1110,13 @@
 
                 {/* Motivational Banner when 0 tests taken */}
                 {totalTests === 0 && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left shadow-sm">
-                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800/50 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center shrink-0">
-                      <Trophy size={24} />
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-3xl p-6 sm:p-8 mb-8 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left shadow-sm">
+                    <div className="w-14 h-14 bg-blue-200 dark:bg-blue-800/50 text-blue-800 dark:text-blue-300 rounded-full flex items-center justify-center shrink-0">
+                      <Trophy size={28} />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-1">Ready to track your progress?</h3>
-                      <p className="text-sm text-blue-600 dark:text-blue-400">You haven't taken any mock tests yet. Your dashboard is currently empty. Take your first test to build your stats and improve your preparedness score!</p>
+                      <h3 className="text-xl font-bold text-blue-900 dark:text-blue-200 mb-1.5">Ready to track your progress?</h3>
+                      <p className="text-base text-blue-800 dark:text-blue-300">You haven't taken any mock tests yet. Your dashboard is currently empty. Take your first test to build your stats and improve your preparedness score!</p>
                     </div>
                   </div>
                 )}
@@ -1089,70 +1125,70 @@
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   
                   {/* Preparedness Score */}
-                  <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+                  <div className="bg-indigo-600 rounded-3xl p-6 text-white shadow-md relative overflow-hidden">
                     <div className="relative z-10">
                       <div className="flex justify-between items-start mb-2">
-                        <p className="text-indigo-100 text-xs sm:text-sm font-bold uppercase tracking-wider">Preparedness</p>
-                        <Brain size={20} className="text-indigo-200" />
+                        <p className="text-indigo-200 text-xs sm:text-sm font-bold uppercase tracking-wider">Preparedness</p>
+                        <Brain size={20} className="text-indigo-300" />
                       </div>
                       <div className="flex items-end gap-2">
-                        <span className="text-4xl font-black">{preparednessScore}%</span>
+                        <span className="text-4xl font-bold">{preparednessScore}%</span>
                       </div>
                       <p className="text-xs text-indigo-200 mt-2 font-medium">Based on {coveragePercent}% coverage & {Math.round(overallAccuracy)}% accuracy</p>
                     </div>
-                    <Activity size={100} className="absolute -right-4 -bottom-4 text-white opacity-10" />
+                    <Activity size={120} className="absolute -right-6 -bottom-6 text-indigo-500 opacity-40" strokeWidth={1} />
                   </div>
 
                   {/* Pass Rate */}
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
+                  <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-md flex flex-col justify-between border border-slate-300 dark:border-slate-700">
                     <div className="flex justify-between items-start mb-2">
-                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Pass Rate</p>
-                      <div className={`p-1.5 rounded-lg ${passRate >= 75 ? 'bg-green-100 text-green-600 dark:bg-green-900/30' : 'bg-red-100 text-red-600 dark:bg-red-900/30'}`}>
-                        <Trophy size={16} />
+                      <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Pass Rate</p>
+                      <div className={`p-2 rounded-full ${passRate >= 75 ? 'bg-green-100 text-green-700 dark:bg-green-900/40' : 'bg-red-100 text-red-700 dark:bg-red-900/40'}`}>
+                        <Trophy size={18} />
                       </div>
                     </div>
                     <div>
-                      <span className={`text-3xl font-black ${passRate >= 75 ? 'text-green-600 dark:text-green-400' : 'text-slate-800 dark:text-slate-50'}`}>{passRate}%</span>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{passedTests} passed out of {totalTests}</p>
+                      <span className={`text-4xl font-bold ${passRate >= 75 ? 'text-green-600 dark:text-green-400' : 'text-slate-800 dark:text-slate-50'}`}>{passRate}%</span>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{passedTests} passed out of {totalTests}</p>
                     </div>
                   </div>
 
                   {/* Bank Coverage */}
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
+                  <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-md flex flex-col justify-between border border-slate-300 dark:border-slate-700">
                     <div className="flex justify-between items-start mb-2">
-                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Questions Coverage</p>
-                      <div className="p-1.5 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                        <PieChart size={16} />
+                      <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Qs Coverage</p>
+                      <div className="p-2 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                        <PieChart size={18} />
                       </div>
                     </div>
                     <div>
-                      <span className="text-3xl font-black text-slate-800 dark:text-slate-50">{coveragePercent}%</span>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{uniqueQuestionsSeen} of {questions.length} unique questions</p>
+                      <span className="text-4xl font-bold text-slate-800 dark:text-slate-50">{coveragePercent}%</span>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">{uniqueQuestionsSeen} of {questions.length} unique questions</p>
                     </div>
                   </div>
 
                   {/* Est Time Spent */}
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 shadow-sm flex flex-col justify-between">
+                  <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-md flex flex-col justify-between border border-slate-300 dark:border-slate-700">
                     <div className="flex justify-between items-start mb-2">
-                      <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Time Practicing</p>
-                      <div className="p-1.5 rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
-                        <Clock size={16} />
+                      <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-wider">Practicing</p>
+                      <div className="p-2 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
+                        <Clock size={18} />
                       </div>
                     </div>
                     <div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-slate-800 dark:text-slate-50">{estTimeMins}</span>
-                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">mins</span>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-4xl font-bold text-slate-800 dark:text-slate-50">{estTimeMins}</span>
+                        <span className="text-base font-bold text-slate-600 dark:text-slate-400 mb-1">mins</span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Across active training sessions</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">Across training sessions</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Detailed Category Analysis */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-5 sm:p-8 mb-8">
-                  <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-50 mb-6 flex items-center gap-2">
-                    <BookOpen size={20} className="text-blue-500" />
+                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-md border border-slate-300 dark:border-slate-700 p-6 sm:p-10 mb-8">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 mb-8 flex items-center gap-2">
+                    <BookOpen size={22} className="text-blue-600 dark:text-blue-400" />
                     Syllabus Breakdown
                   </h3>
 
@@ -1164,49 +1200,48 @@
                       const correctPct = total > 0 ? (correct / total) * 100 : 0;
                       const incorrectPct = total > 0 ? (incorrect / total) * 100 : 0;
                       
-                      // Overall coverage percentage in this specific category
                       const coveragePct = total > 0 ? Math.round(((correct + incorrect) / total) * 100) : 0;
                       const isComplete = coveragePct === 100;
 
                       return (
-                        <div key={cat} className="p-6 rounded-2xl border bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-sm transition-colors flex flex-col items-center text-center gap-4 hover:shadow-md">
+                        <div key={cat} className="p-6 rounded-3xl bg-white dark:bg-slate-800/50 border-2 border-slate-200 dark:border-slate-700 transition-colors flex flex-col items-center text-center gap-4 hover:border-slate-300 dark:hover:border-slate-600 shadow-sm">
                           
                           <div className="flex items-center justify-center gap-2 flex-wrap w-full">
-                            <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100">{cat}</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{cat}</h3>
                             {incorrect > 0 && <AlertTriangle size={18} className="text-orange-500 dark:text-orange-400 shrink-0" />}
                             {isComplete && incorrect === 0 && <CheckCircle2 size={18} className="text-green-500 dark:text-green-400 shrink-0" />}
                           </div>
 
                           {/* BIG Donut Chart */}
                           <div 
-                            className="w-32 h-32 sm:w-40 sm:h-40 rounded-full relative flex items-center justify-center shadow-md my-2 shrink-0"
+                            className="w-32 h-32 sm:w-40 sm:h-40 rounded-full relative flex items-center justify-center shadow-sm my-2 shrink-0 border border-slate-100 dark:border-slate-700"
                             style={{
-                              background: `conic-gradient(#22c55e 0% ${correctPct}%, #f97316 ${correctPct}% ${correctPct + incorrectPct}%, ${isDarkMode ? '#334155' : '#cbd5e1'} ${correctPct + incorrectPct}% 100%)`
+                              background: `conic-gradient(#22c55e 0% ${correctPct}%, #f97316 ${correctPct}% ${correctPct + incorrectPct}%, ${isDarkMode ? '#334155' : '#e2e8f0'} ${correctPct + incorrectPct}% 100%)`
                             }}
                           >
-                            <div className="w-20 h-20 sm:w-28 sm:h-28 bg-slate-50 dark:bg-slate-800/90 rounded-full absolute shadow-inner flex flex-col items-center justify-center">
-                               <span className="text-2xl sm:text-3xl font-black text-slate-700 dark:text-slate-200">{coveragePct}%</span>
+                            <div className="w-20 h-20 sm:w-28 sm:h-28 bg-white dark:bg-slate-800 rounded-full absolute shadow-inner flex flex-col items-center justify-center border border-slate-100 dark:border-slate-700">
+                               <span className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100">{coveragePct}%</span>
                                <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mt-0.5">Covered</span>
                             </div>
                           </div>
 
                           {/* Legend / Stats block */}
                           <div className="flex flex-col items-center gap-2 text-xs sm:text-sm w-full mt-2">
-                            <div className="flex items-center justify-center gap-1.5 text-slate-600 dark:text-slate-400 font-bold bg-white dark:bg-slate-900 px-3 py-1 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 w-full max-w-[160px]">
+                            <div className="flex items-center justify-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold bg-slate-100 dark:bg-slate-900 px-4 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 w-full max-w-[180px]">
                                 <span className="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0"></span>
                                 {total} Total Qs
                             </div>
-                            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-1">
-                                <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400 font-bold">
+                            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-2">
+                                <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400 font-medium">
                                     <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0"></span>
                                     {correct} Mastered
                                 </div>
-                                <div className="flex items-center gap-1.5 text-orange-700 dark:text-orange-400 font-bold">
+                                <div className="flex items-center gap-1.5 text-orange-700 dark:text-orange-400 font-medium">
                                     <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0"></span>
                                     {incorrect} Weak
                                 </div>
-                                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-500 font-bold">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-600 border border-slate-300 dark:border-slate-500 shrink-0"></span>
+                                <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-medium">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600 border border-slate-400 dark:border-slate-500 shrink-0"></span>
                                     {unseen} Unseen
                                 </div>
                             </div>
@@ -1229,36 +1264,38 @@
                   <div className="flex items-center gap-4">
                     <button 
                       onClick={() => setCurrentScreen('home')}
-                      className="p-2.5 bg-white dark:bg-slate-800 rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+                      className="p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
                     >
-                      <Home size={20} />
+                      <Home size={22} />
                     </button>
                     <div>
-                      <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-50 tracking-tight">App Settings</h2>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Configure your training experience</p>
+                      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">App Settings</h2>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Configure your training experience</p>
                     </div>
                   </div>
-                  <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm self-start sm:self-auto">
+                  <div className="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700 px-4 py-2 rounded-full text-sm font-bold self-start sm:self-auto shadow-sm">
                     Version {APP_VERSION}
                   </div>
                 </div>
 
                 {/* Main Settings Form */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 p-6 sm:p-8 space-y-8">
+                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-md border border-slate-300 dark:border-slate-700 p-6 sm:p-10 space-y-8">
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                       {/* Column 1 */}
                       <div className="space-y-8">
                           {/* Mock Test Size Configuration */}
                           <div className="space-y-3">
-                            <label className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                              <Target size={18} className="text-blue-500" />
-                              Mock Test Question Count
+                            <label className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
+                              <div className="p-2 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 rounded-full">
+                                <Target size={18} />
+                              </div>
+                              Mock Test Size
                             </label>
                             <select
                               value={mockTestSize}
                               onChange={(e) => setMockTestSize(Number(e.target.value))}
-                              className="w-full font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-blue-500 transition-colors"
+                              className="w-full font-medium bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-4 text-slate-800 dark:text-slate-100 outline-none cursor-pointer focus:border-blue-500 transition-colors shadow-sm appearance-none"
                             >
                               <option value={10}>10 Questions</option>
                               <option value={15}>15 Questions</option>
@@ -1271,23 +1308,25 @@
 
                           {/* Question Database Status Indicators */}
                           <div className="space-y-3">
-                             <label className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                              <Brain size={18} className="text-blue-500" />
-                              Question Source Data
+                             <label className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
+                              <div className="p-2 bg-purple-100 dark:bg-purple-900/50 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400 rounded-full">
+                                <Brain size={18} />
+                              </div>
+                              Question Database
                             </label>
-                            <div className="p-4 rounded-xl border bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 space-y-3">
+                            <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 shadow-sm space-y-4">
                               <div className="flex items-center justify-between">
-                                <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Database Size</span>
-                                <span className="text-xs font-black px-2.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 rounded-md border border-blue-200 dark:border-blue-800">{questions.length} Questions</span>
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Database Size</span>
+                                <span className="text-xs font-bold px-3 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-200 rounded-full">{questions.length} Questions</span>
                               </div>
                               <div className="flex items-center justify-between">
-                                <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Active Source</span>
-                                <span className={`text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${usingExternal ? 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-900 text-green-700 dark:text-green-400' : 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-400'}`}>
+                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Active Source</span>
+                                <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${usingExternal ? 'bg-green-100 border-green-300 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300' : 'bg-orange-100 border-orange-300 text-orange-800 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-300'}`}>
                                   {usingExternal ? 'questions_bank.js' : 'Default Samples'}
                                 </span>
                               </div>
                               {!usingExternal && (
-                                <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-400 mt-2">
+                                <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400 mt-2">
                                   To load your entire 300+ custom question database, simply upload a <code>questions_bank.js</code> file in the same directory.
                                 </p>
                               )}
@@ -1299,20 +1338,22 @@
                       <div className="space-y-8">
                           {/* Auto-next Toggle */}
                           <div className="space-y-3">
-                            <label className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                              <Play size={18} className="text-blue-500" />
-                              Auto-next Questions
+                            <label className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
+                              <div className="p-2 bg-green-100 dark:bg-green-900/50 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-full">
+                                <Play size={18} className="ml-0.5" />
+                              </div>
+                              Auto-Advance
                             </label>
-                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-3xl cursor-pointer shadow-sm" onClick={() => setAutoNavigate(!autoNavigate)}>
                               <div>
-                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200 block">Advance on correct answers</span>
-                                <span className="text-xs text-slate-500 dark:text-slate-400">Jump to next automatically</span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block">Advance on correct</span>
+                                <span className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 block">Jump to next automatically</span>
                               </div>
                               <input
                                 type="checkbox"
                                 checked={autoNavigate}
-                                onChange={(e) => setAutoNavigate(e.target.checked)}
-                                className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                                readOnly
+                                className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 pointer-events-none accent-blue-600"
                               />
                             </div>
                           </div>
@@ -1320,11 +1361,11 @@
                           {/* Delay Speed Select */}
                           {autoNavigate && (
                             <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                              <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Auto-next Delay Time</label>
+                              <label className="text-sm font-bold text-slate-800 dark:text-slate-300">Delay Time</label>
                               <select
                                 value={autoNavDelay}
                                 onChange={(e) => setAutoNavDelay(Number(e.target.value))}
-                                className="w-full font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 text-slate-700 dark:text-slate-200 outline-none cursor-pointer focus:border-blue-500 transition-colors"
+                                className="w-full font-medium bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-2xl p-4 text-slate-800 dark:text-slate-100 outline-none cursor-pointer focus:border-blue-500 transition-colors shadow-sm appearance-none"
                               >
                                 <option value={1}>1 Second</option>
                                 <option value={2}>2 Seconds</option>
@@ -1336,21 +1377,47 @@
 
                           {/* Study Mode Settings */}
                           <div className="space-y-3 pt-2">
-                            <label className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                              <GraduationCap size={18} className="text-blue-500" />
+                            <label className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
+                              <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 rounded-full">
+                                <GraduationCap size={18} />
+                              </div>
                               Study Mode
                             </label>
-                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-3xl cursor-pointer shadow-sm" onClick={() => setHideIncorrectStudy(!hideIncorrectStudy)}>
                               <div>
-                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200 block">Hide wrong answers</span>
-                                <span className="text-xs text-slate-500 dark:text-slate-400">Show only the correct option</span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block">Hide wrong answers</span>
+                                <span className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 block">Show only the correct option</span>
                               </div>
                               <input
                                 type="checkbox"
                                 checked={hideIncorrectStudy}
-                                onChange={(e) => setHideIncorrectStudy(e.target.checked)}
-                                className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                                readOnly
+                                className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 pointer-events-none accent-blue-600"
                               />
+                            </div>
+                          </div>
+
+                          {/* Appearance Settings */}
+                          <div className="space-y-3 pt-2">
+                            <label className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
+                              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-400 rounded-full">
+                                <Monitor size={18} />
+                              </div>
+                              Appearance
+                            </label>
+                            <div className="flex bg-slate-200 dark:bg-slate-900 rounded-2xl p-1.5 border border-slate-300 dark:border-slate-700 shadow-inner">
+                              {['system', 'light', 'dark'].map((t) => (
+                                <button
+                                  key={t}
+                                  onClick={() => setThemePreference(t)}
+                                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-xl transition-all ${themePreference === t ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-700 dark:text-blue-400 border border-slate-300 dark:border-slate-600' : 'text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-transparent'}`}
+                                >
+                                  {t === 'light' && <Sun size={16} />}
+                                  {t === 'dark' && <Moon size={16} />}
+                                  {t === 'system' && <Monitor size={16} />}
+                                  <span className="capitalize hidden sm:inline">{t}</span>
+                                </button>
+                              ))}
                             </div>
                           </div>
                       </div>
@@ -1367,7 +1434,7 @@
                             window.location.reload();
                           }
                         }}
-                        className="w-full border-2 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 font-bold py-3.5 rounded-xl transition-all text-base flex items-center justify-center gap-2"
+                        className="w-full bg-white dark:bg-slate-900 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border-2 border-red-200 dark:border-red-900 font-bold py-4 rounded-full transition-all text-base flex items-center justify-center gap-2 shadow-sm"
                       >
                         <RefreshCcw size={18} />
                         Reset Progress & Stats
@@ -1381,32 +1448,42 @@
           // Render Loading Indicator while Scanning for external JS file
           if (loadingQuestions) {
             return (
-              <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 transition-colors duration-300">
+              <div className="min-h-screen bg-slate-100 dark:bg-[#0f172a] flex flex-col items-center justify-center p-4 transition-colors duration-300">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mb-4"></div>
-                <p className="text-slate-600 dark:text-slate-300 font-bold text-lg">Scanning for questions_bank.js...</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">Falling back to default sample bank if not found</p>
+                <p className="text-slate-700 dark:text-slate-300 font-bold text-lg">Scanning for questions_bank.js...</p>
+                <p className="text-xs text-slate-500 dark:text-slate-500 mt-2 font-medium">Falling back to default sample bank if not found</p>
               </div>
             );
           }
 
           return (
             <div className={`${isDarkMode ? 'dark' : ''}`}>
-              <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-200 dark:selection:bg-blue-900 transition-colors duration-300">
-                <header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/50 sticky top-0 z-50 shadow-sm">
-                  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-black text-xl cursor-pointer tracking-tight" onClick={() => setCurrentScreen('home')}>
-                      <BookOpen size={24} />
+              <div className="min-h-screen bg-slate-100 dark:bg-[#0f172a] font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-200 dark:selection:bg-blue-900 transition-colors duration-300">
+                <header className="bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-md sticky top-0 z-50 border-b border-slate-300 dark:border-slate-800 shadow-sm">
+                  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-bold text-xl cursor-pointer tracking-tight" onClick={() => setCurrentScreen('home')}>
+                      <BookOpen size={26} strokeWidth={2.5} />
                       <span className="hidden sm:inline">UK Life Prep</span>
                     </div>
                     
-                    <div className="flex items-center gap-1 sm:gap-3">
-                      <div className="hidden md:flex items-center justify-center p-1.5 rounded-full text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 mr-1">
-                        {isDarkMode ? <Moon size={16} /> : <Sun size={16} />}
-                      </div>
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <button 
+                        onClick={() => {
+                          if (themePreference === 'system') setThemePreference('light');
+                          else if (themePreference === 'light') setThemePreference('dark');
+                          else setThemePreference('system');
+                        }}
+                        className="hidden md:flex items-center justify-center p-2 rounded-full text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors mr-2"
+                        title={`Theme: ${themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}`}
+                      >
+                        {themePreference === 'light' && <Sun size={20} />}
+                        {themePreference === 'dark' && <Moon size={20} />}
+                        {themePreference === 'system' && <Monitor size={20} />}
+                      </button>
 
                       <button 
                         onClick={() => setCurrentScreen('home')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${currentScreen === 'home' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentScreen === 'home' ? 'bg-blue-100 border border-blue-200 text-blue-800 dark:bg-blue-900/40 dark:border-blue-800 dark:text-blue-200' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 border border-transparent'}`}
                       >
                         <Home size={18} />
                         <span className="hidden sm:inline">Home</span>
@@ -1414,39 +1491,37 @@
                       
                       <button 
                         onClick={() => setCurrentScreen('analysis')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${currentScreen === 'analysis' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentScreen === 'analysis' ? 'bg-blue-100 border border-blue-200 text-blue-800 dark:bg-blue-900/40 dark:border-blue-800 dark:text-blue-200' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 border border-transparent'}`}
                       >
                         <BarChart3 size={18} />
                         <span className="hidden sm:inline">Stats</span>
                       </button>
 
-                      {/* Settings Gear Button */}
                       <button 
                         onClick={() => setCurrentScreen('settings')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors ${currentScreen === 'settings' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
-                        title="Configure App Settings"
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentScreen === 'settings' ? 'bg-blue-100 border border-blue-200 text-blue-800 dark:bg-blue-900/40 dark:border-blue-800 dark:text-blue-200' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 border border-transparent'}`}
                       >
                         <Settings size={18} />
                         <span className="hidden sm:inline">Settings</span>
                       </button>
 
                       {(currentScreen === 'quiz' || currentScreen === 'study') && (
-                        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
+                        <div className="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-2 hidden sm:block"></div>
                       )}
                       {(currentScreen === 'quiz' || currentScreen === 'study') && (
                         <button 
                           onClick={() => setCurrentScreen('home')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          className="flex items-center justify-center p-2 rounded-full text-red-600 hover:bg-red-100 dark:text-red-500 dark:hover:bg-red-900/30 transition-colors"
+                          title="Quit Session"
                         >
-                          <XCircle size={18} />
-                          <span className="hidden lg:inline">Quit</span>
+                          <XCircle size={22} />
                         </button>
                       )}
                     </div>
                   </div>
                 </header>
 
-                <main className="pb-8 pt-4">
+                <main className="pb-10 pt-2">
                   {currentScreen === 'home' && renderHome()}
                   {currentScreen === 'quiz' && renderQuiz()}
                   {currentScreen === 'study' && renderStudy()}
@@ -1457,14 +1532,14 @@
 
                 {/* STUDY MODE RESUME CHOICE MODAL */}
                 {isStudyResumeModalOpen && (
-                  <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
-                    <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 p-6 sm:p-8 animate-in zoom-in-95 duration-300 text-center">
-                      <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-8 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-300 text-center">
+                      <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-5">
                         <GraduationCap size={32} />
                       </div>
-                      <h3 className="text-2xl font-black text-slate-800 dark:text-slate-50 mb-2">Saved Study Session</h3>
-                      <p className="text-slate-600 dark:text-slate-400 mb-6 text-sm">
-                        You have an active study session. Would you like to resume from your last position or start fresh from the first question?
+                      <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">Resume Session</h3>
+                      <p className="text-slate-600 dark:text-slate-400 mb-8 text-sm">
+                        You have an active study session. Resume from your last position or start fresh?
                       </p>
 
                       <div className="flex flex-col gap-3">
@@ -1473,7 +1548,7 @@
                             setIsStudyResumeModalOpen(false);
                             setCurrentScreen('study');
                           }}
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3.5 rounded-full transition-all shadow-md"
                         >
                           Resume from Q{studyIndex + 1}
                         </button>
@@ -1483,13 +1558,13 @@
                             setStudyIndex(0);
                             setCurrentScreen('study');
                           }}
-                          className="w-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-250 font-bold py-3 rounded-xl transition-all"
+                          className="w-full bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-medium py-3.5 rounded-full transition-all"
                         >
                           Restart from Beginning
                         </button>
                         <button
                           onClick={() => setIsStudyResumeModalOpen(false)}
-                          className="w-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-450 hover:bg-slate-50 dark:hover:bg-slate-700/50 py-3 rounded-xl font-bold transition-all text-sm"
+                          className="w-full text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800/50 py-3.5 rounded-full font-bold transition-all text-sm mt-2"
                         >
                           Cancel
                         </button>
