@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life in the UK: PWA Mock Test App</title>
+    <title>Life in the UK: Mock Test App</title>
     
     <!-- Load Open Sans Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -589,7 +589,7 @@
                       {/* Reactive Coverage badge showing instantly calculated stats */}
                       <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm flex items-center gap-1">
                         <Target size={14} className="text-indigo-500" />
-                        Live Coverage: {Math.round((Object.keys(questionHistory).length / questions.length) * 100)}%
+                        Live Coverage: {Math.round((Object.keys(questionHistory).length / questions.length) * 100) || 0}%
                       </span>
                       <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">{question.category}</span>
                     </div>
@@ -740,7 +740,7 @@
                     <div className="flex items-center gap-2">
                       <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm flex items-center gap-1">
                         <Target size={14} className="text-indigo-500" />
-                        Live Coverage: {Math.round((Object.keys(questionHistory).length / questions.length) * 100)}%
+                        Live Coverage: {Math.round((Object.keys(questionHistory).length / questions.length) * 100) || 0}%
                       </span>
                       <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-100 dark:border-emerald-800/50 shadow-sm">{question.category}</span>
                     </div>
@@ -929,14 +929,14 @@
             const passRate = Math.round((passedTests / totalTests) * 100) || 0;
             
             const uniqueQuestionsSeen = Object.keys(questionHistory).length;
-            const coveragePercent = Math.round((uniqueQuestionsSeen / questions.length) * 100);
+            const coveragePercent = questions.length > 0 ? Math.round((uniqueQuestionsSeen / questions.length) * 100) : 0;
             
             const totalTimeTakenSecs = quizHistory.reduce((sum, entry) => sum + (entry.timeTaken || 0), 0);
             const estTimeMins = totalTimeTakenSecs > 0 ? Math.round(totalTimeTakenSecs / 60) : Math.round((Object.values(questionHistory).reduce((sum, q) => sum + q.attempts, 0) * 15) / 60);
             
             const recentHistory = quizHistory.slice(-5);
             const recentPassRate = recentHistory.length ? Math.round((recentHistory.filter(s => getScoreValue(s) >= Math.ceil(getTotalValue(s) * 0.75)).length / recentHistory.length) * 100) : passRate;
-            const preparednessScore = Math.min(100, Math.round((recentPassRate * 0.6) + ((coveragePercent * 2) * 0.4)));
+            const preparednessScore = Math.min(100, Math.round((recentPassRate * 0.6) + ((coveragePercent * 2) * 0.4))) || 0;
 
             return (
               <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
@@ -994,7 +994,8 @@
                       </div>
                     </div>
                     <div>
-                      <span className={`text-3xl font-black ${passRate >= 75 ? text-green-600 : 'text-slate-800 dark:text-slate-50'}`}>{passRate}%</span>
+                      {/* FIX: Properly formatted ternary operator using quoted strings for Tailwind classes */}
+                      <span className={`text-3xl font-black ${passRate >= 75 ? 'text-green-600 dark:text-green-400' : 'text-slate-800 dark:text-slate-50'}`}>{passRate}%</span>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{passedTests} passed out of {totalTests}</p>
                     </div>
                   </div>
