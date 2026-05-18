@@ -28,7 +28,7 @@
     <!-- PWA Setup: Manifest and Theme Color -->
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#1e293b" />
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI1NjNlYiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZT0iIzI1NjNlYiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIgM2g2YTQgNCAwIDAgMSA0IDR2MTRhMyAzIDAgMCAwLTMtM0gyeiIvPjxwYXRoIGQ9Ik0yMiAzaC02YTQgNCAwIDAgMC00IDR2MTRhMyAzIDAgMCAxIDMtM2g3eiIvPjwvc3ZnPg==" />
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI1NjNlYiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yIDNoNmE0IDQgMCAwIDEgNCA0djE0YTMgMyAwIDAgMC0zLTNIMnoiLz48cGF0aCBkPSJNMjIgM2gtNmE0IDQgMCAwIDAtNCA0djE0YTMgMyAwIDAgMSAzLTNoN3oiLz48L3N2Zz4=" />
 
     <!-- Load Babel to compile React JSX in the browser -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -81,7 +81,7 @@
           tip: d[6] || ""
         }));
 
-        const APP_VERSION = "v1.7";
+        const APP_VERSION = "v1.8";
 
         function App() {
           const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings
@@ -327,6 +327,7 @@
           };
 
           // Generates a mock test with support for standard (configurable size), weak-targeted, or marathon mode (all Qs)
+          // Prioritizes completely UNSEEN questions when filling gaps
           const generateQuiz = (focusWeak = false, marathonMode = false) => {
             let pool = [];
             let updatedSeen = new Set(recentlySeen);
@@ -522,8 +523,6 @@
               if (!history) {
                 stats[q.category].unseen += 1;
               } else {
-                // Uses the same logic as your weak areas: 
-                // It's considered "incorrect/weak" until you answer it correctly enough times to master it.
                 const isWeak = history.attempts > history.correct && history.correct < 3;
                 if (isWeak) {
                   stats[q.category].incorrect += 1;
@@ -644,7 +643,7 @@
                 )}
                 
                 <div className="mt-8 text-center pb-4">
-                  <p className="text-slate-400 dark:text-slate-500 text-sm font-bold">App Version {APP_VERSION}</p>
+                  <p className="text-slate-400 dark:text-slate-500 text-sm font-bold">Version {APP_VERSION}</p>
                 </div>
               </div>
             );
@@ -724,31 +723,32 @@
                   <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
                     <div className={`w-full max-w-lg bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border-4 ${isCorrect ? 'border-green-400 dark:border-green-500' : 'border-orange-400 dark:border-orange-500'} p-6 sm:p-8 animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh] overflow-y-auto`}>
                       
-                      <div className="flex items-start gap-4 mb-6">
-                        <div className={`shrink-0 p-3 rounded-full ${isCorrect ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}`}>
-                          {isCorrect ? <CheckCircle2 size={36} /> : <AlertTriangle size={36} />}
-                        </div>
-                        <div className="text-left w-full">
-                          <h3 className={`text-2xl font-black uppercase tracking-wider mb-2 ${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                      <div className="mb-6 w-full text-left">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`shrink-0 p-1.5 rounded-full ${isCorrect ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'}`}>
+                            {isCorrect ? <CheckCircle2 size={24} /> : <AlertTriangle size={24} />}
+                          </div>
+                          <h3 className={`text-2xl font-black uppercase tracking-wider ${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
                             {isCorrect ? 'Correct!' : 'Incorrect'}
                           </h3>
-                          <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed">
-                            {question.explanation}
-                          </p>
-
-                          {/* Injected Memory Tip on Incorrect Answers */}
-                          {!isCorrect && question.tip && (
-                            <div className="mt-4 animate-in slide-in-from-bottom-2 duration-300">
-                              <div className="flex items-center gap-1.5 mb-1">
-                                <Brain className="text-indigo-600 dark:text-indigo-400" size={18} />
-                                <h5 className="text-sm font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Memory Trick</h5>
-                              </div>
-                              <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed italic font-medium">
-                                "{question.tip}"
-                              </p>
-                            </div>
-                          )}
                         </div>
+                        
+                        <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed">
+                          {question.explanation}
+                        </p>
+
+                        {/* Injected Memory Tip on Incorrect Answers */}
+                        {!isCorrect && question.tip && (
+                          <div className="mt-4 animate-in slide-in-from-bottom-2 duration-300">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <Brain className="text-indigo-600 dark:text-indigo-400" size={18} />
+                              <h5 className="text-sm font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Memory Trick</h5>
+                            </div>
+                            <p className="text-slate-700 dark:text-slate-300 text-lg leading-relaxed italic font-medium">
+                              "{question.tip}"
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-700">
@@ -928,6 +928,7 @@
             const totalQs = activeQuestions.length;
             const passTarget = Math.ceil(totalQs * 0.75);
             const isPass = score >= passTarget; 
+            const weakCount = getWeakQuestionsCount();
 
             return (
               <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6 animate-in zoom-in duration-300">
@@ -951,12 +952,28 @@
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
                     <button 
                       onClick={() => setCurrentScreen('analysis')}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 text-base"
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/30 hover:scale-105 active:scale-95 text-base"
                     >
-                      Analyze My Weaknesses
+                      <BarChart3 size={20} />
+                      View Stats
+                    </button>
+                    <button 
+                      onClick={() => generateQuiz(false)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 text-base"
+                    >
+                      <RefreshCcw size={20} />
+                      Take a New Test
+                    </button>
+                    <button 
+                      onClick={() => weakCount > 0 ? generateQuiz(true) : null}
+                      disabled={weakCount === 0}
+                      className={`font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 transition-all text-base ${weakCount > 0 ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 hover:scale-105 active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'}`}
+                    >
+                      <Target size={20} />
+                      Practise Weak Areas {weakCount > 0 ? `(${weakCount})` : ''}
                     </button>
                     <button 
                       onClick={() => setCurrentScreen('home')}
@@ -973,7 +990,6 @@
 
           const renderAnalysis = () => {
             const stats = getCategoryStats();
-            // Show all categories to maintain the dashboard layout even at 0 tests
             const categories = questions.length > 0 ? [...new Set(questions.map(q => q.category))] : [];
             const weakCount = getWeakQuestionsCount();
             
@@ -1015,15 +1031,24 @@
                     </div>
                   </div>
 
-                  {weakCount > 0 && (
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <button 
-                      onClick={() => generateQuiz(true)}
-                      className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 text-sm sm:text-base w-full sm:w-auto"
+                      onClick={() => generateQuiz(false)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 text-sm sm:text-base w-full sm:w-auto"
                     >
-                      <Target size={18} />
-                      Practice Weak Areas ({weakCount} Qs)
+                      <RefreshCcw size={18} />
+                      Take a New Mock Test
                     </button>
-                  )}
+                    {weakCount > 0 && (
+                      <button 
+                        onClick={() => generateQuiz(true)}
+                        className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 text-sm sm:text-base w-full sm:w-auto"
+                      >
+                        <Target size={18} />
+                        Practise Weak Areas ({weakCount} Qs)
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Motivational Banner when 0 tests taken */}
@@ -1036,12 +1061,6 @@
                       <h3 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-1">Ready to track your progress?</h3>
                       <p className="text-sm text-blue-600 dark:text-blue-400">You haven't taken any mock tests yet. Your dashboard is currently empty. Take your first test to build your stats and improve your preparedness score!</p>
                     </div>
-                    <button 
-                      onClick={() => generateQuiz(false)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:scale-105 active:scale-95 shrink-0 whitespace-nowrap"
-                    >
-                      Start Mock Test
-                    </button>
                   </div>
                 )}
 
@@ -1072,7 +1091,6 @@
                       </div>
                     </div>
                     <div>
-                      {/* FIX: Properly formatted ternary operator using quoted strings for Tailwind classes */}
                       <span className={`text-3xl font-black ${passRate >= 75 ? 'text-green-600 dark:text-green-400' : 'text-slate-800 dark:text-slate-50'}`}>{passRate}%</span>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{passedTests} passed out of {totalTests}</p>
                     </div>
@@ -1177,16 +1195,6 @@
                       );
                     })}
                   </div>
-                </div>
-
-                <div className="flex justify-center pb-8">
-                  <button 
-                    onClick={() => generateQuiz(false)}
-                    className="bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white font-bold py-3.5 px-8 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:scale-105 active:scale-95 text-base w-full sm:w-auto justify-center"
-                  >
-                    <RefreshCcw size={20} />
-                    Take a New Mock Test
-                  </button>
                 </div>
               </div>
             );
