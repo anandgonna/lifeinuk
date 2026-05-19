@@ -81,7 +81,7 @@
           tip: d[6] || ""
         }));
 
-        const APP_VERSION = "v3.1";
+        const APP_VERSION = "v3.1.5";
 
         function App() {
           const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings
@@ -562,30 +562,25 @@
             return correct;
           };
 
-          const getCategoryStats = () => {
+        const getCategoryStats = () => {
             const stats = {};
             questions.forEach(q => {
               if (!stats[q.category]) {
-                stats[q.category] = { total: 0, correct: 0, incorrect: 0, unseen: 0 };
+                stats[q.category] = { total: 0, correct: 0 };
               }
-              
               stats[q.category].total += 1;
-              
-              const history = questionHistory[q.id];
-              if (!history) {
-                stats[q.category].unseen += 1;
-              } else {
-                const isWeak = history.attempts > history.correct && history.correct < 3;
-                if (isWeak) {
-                  stats[q.category].incorrect += 1;
-                } else {
-                  stats[q.category].correct += 1;
-                }
+              if (questionHistory[q.id]?.correct > 0) {
+                stats[q.category].correct += questionHistory[q.id].correct;
               }
             });
-            return stats;
+            
+            // Sort keys alphabetically for consistent UI
+            return Object.keys(stats).sort().reduce((acc, key) => {
+              acc[key] = stats[key];
+              return acc;
+            }, {});
           };
-
+            
           const getWeakQuestionsCount = () => {
              return Object.values(questionHistory).filter(stats => (stats.attempts > stats.correct) && (stats.correct < 3)).length;
           };
