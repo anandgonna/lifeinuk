@@ -81,7 +81,7 @@
           tip: d[6] || ""
         }));
 
-        const APP_VERSION = "v2.6";
+        const APP_VERSION = "v3.0";
 
         function App() {
           const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings
@@ -105,25 +105,11 @@
           // Study Resume Prompt Modal state
           const [isStudyResumeModalOpen, setIsStudyResumeModalOpen] = useState(false);
 
-          // Dynamic Question Bank States
-          const [questions, setQuestions] = useState([]);
-          const [loadingQuestions, setLoadingQuestions] = useState(true);
-          const [usingExternal, setUsingExternal] = useState(false);
-
-          // Study & Review Mode State
-          const [studyIndex, setStudyIndex] = useState(() => {
-            try {
-              const saved = localStorage.getItem('ukLifeStudyIndex');
-              return saved ? parseInt(saved, 10) : 0;
-            } catch(e) { return 0; }
-          });
-          const [studyOptions, setStudyOptions] = useState([]);
-
           // Auto-navigate states
           const [autoNavProgress, setAutoNavProgress] = useState(0);
           const [isAutoNavCancelled, setIsAutoNavCancelled] = useState(false);
 
-          // Persistent Local Storage State
+          // Persistent Settings States
           const [autoNavigate, setAutoNavigate] = useState(() => {
             try {
               const saved = localStorage.getItem('ukLifeAutoNav');
@@ -145,28 +131,6 @@
             } catch(e) { return 24; }
           });
 
-          const [quizHistory, setQuizHistory] = useState(() => {
-            try {
-              const saved = localStorage.getItem('ukLifeQuizHistory');
-              return saved ? JSON.parse(saved) : [];
-            } catch(e) { return []; }
-          }); 
-          
-          const [questionHistory, setQuestionHistory] = useState(() => {
-            try {
-              const saved = localStorage.getItem('ukLifeQuestionHistory');
-              return saved ? JSON.parse(saved) : {};
-            } catch(e) { return {}; }
-          });
-
-          const [recentlySeen, setRecentlySeen] = useState(() => {
-            try {
-              const saved = localStorage.getItem('ukLifeRecentlySeen');
-              return saved ? new Set(JSON.parse(saved)) : new Set();
-            } catch(e) { return new Set(); }
-          });
-
-          // Study Mode Settings State
           const [hideIncorrectStudy, setHideIncorrectStudy] = useState(() => {
             try {
               const saved = localStorage.getItem('ukLifeHideIncorrect');
@@ -174,108 +138,164 @@
             } catch(e) { return true; }
           });
 
-          // Dynamic detection of external questions file
+          // Dynamic Question Bank States (Dual Engine)
+          const [standardQuestions, setStandardQuestions] = useState([]);
+          const [examQuestions, setExamQuestions] = useState([]);
+          const [loadingQuestions, setLoadingQuestions] = useState(true);
+          const [usingExternal, setUsingExternal] = useState(false);
+          const [hasExamBank, setHasExamBank] = useState(false);
+          const [activeBankMode, setActiveBankMode] = useState(() => {
+            try { return localStorage.getItem('ukLifeActiveBankMode') || 'standard'; } catch(e) { return 'standard'; }
+          });
+
+          // Histories & Study Indexes (Separated for Standard vs Exam to keep stats pure)
+          const [standardStudyIndex, setStandardStudyIndex] = useState(() => {
+            try { return parseInt(localStorage.getItem('ukLifeStudyIndex'), 10) || 0; } catch(e) { return 0; }
+          });
+          const [examStudyIndex, setExamStudyIndex] = useState(() => {
+            try { return parseInt(localStorage.getItem('ukLifeExamStudyIndex'), 10) || 0; } catch(e) { return 0; }
+          });
+          
+          const [standardQuizHistory, setStandardQuizHistory] = useState(() => {
+            try { return JSON.parse(localStorage.getItem('ukLifeQuizHistory')) || []; } catch(e) { return []; }
+          });
+          const [examQuizHistory, setExamQuizHistory] = useState(() => {
+            try { return JSON.parse(localStorage.getItem('ukLifeExamQuizHistory')) || []; } catch(e) { return []; }
+          });
+
+          const [standardQuestionHistory, setStandardQuestionHistory] = useState(() => {
+            try { return JSON.parse(localStorage.getItem('ukLifeQuestionHistory')) || {}; } catch(e) { return {}; }
+          });
+          const [examQuestionHistory, setExamQuestionHistory] = useState(() => {
+            try { return JSON.parse(localStorage.getItem('ukLifeExamQuestionHistory')) || {}; } catch(e) { return {}; }
+          });
+
+          const [standardRecentlySeen, setStandardRecentlySeen] = useState(() => {
+            try { return new Set(JSON.parse(localStorage.getItem('ukLifeRecentlySeen')) || []); } catch(e) { return new Set(); }
+          });
+          const [examRecentlySeen, setExamRecentlySeen] = useState(() => {
+            try { return new Set(JSON.parse(localStorage.getItem('ukLifeExamRecentlySeen')) || []); } catch(e) { return new Set(); }
+          });
+
+          const [studyOptions, setStudyOptions] = useState([]);
+
+          // --- DYNAMIC ALIASES (These automatically route all logic to the correct bank!) ---
+          const questions = activeBankMode === 'standard' ? standardQuestions : examQuestions;
+          const studyIndex = activeBankMode === 'standard' ? standardStudyIndex : examStudyIndex;
+          const setStudyIndex = activeBankMode === 'standard' ? setStandardStudyIndex : setExamStudyIndex;
+          const quizHistory = activeBankMode === 'standard' ? standardQuizHistory : examQuizHistory;
+          const setQuizHistory = activeBankMode === 'standard' ? setStandardQuizHistory : setExamQuizHistory;
+          const questionHistory = activeBankMode === 'standard' ? standardQuestionHistory : examQuestionHistory;
+          const setQuestionHistory = activeBankMode === 'standard' ? setStandardQuestionHistory : setExamQuestionHistory;
+          const recentlySeen = activeBankMode === 'standard' ? standardRecentlySeen : examRecentlySeen;
+          const setRecentlySeen = activeBankMode === 'standard' ? setStandardRecentlySeen : setExamRecentlySeen;
+
+          // Dynamic detection of external question files (Standard & Exam)
           useEffect(() => {
-            let hasResolved = false;
+            let standardResolved = false;
 
-            const handleFallback = () => {
-              if (hasResolved) return;
-              hasResolved = true;
-              setQuestions(DEFAULT_QUESTION_BANK);
+            const finishLoading = () => {
+              setLoadingQuestions(false);
+            };
+
+            const handleStandardFallback = () => {
+              if (standardResolved) return;
+              standardResolved = true;
+              setStandardQuestions(DEFAULT_QUESTION_BANK);
               setUsingExternal(false);
-              setLoadingQuestions(false);
+              finishLoading();
             };
 
-            const handleSuccess = (externalData) => {
-              if (hasResolved) return;
-              hasResolved = true;
+            const handleStandardSuccess = (externalData) => {
+              if (standardResolved) return;
+              standardResolved = true;
               const mapped = externalData.map(d => ({
-                id: d[0],
-                category: d[1],
-                text: d[2],
-                options: d[3],
-                correctAnswer: d[3][d[4]],
-                explanation: d[5],
-                tip: d[6] || ""
+                id: d[0], category: d[1], text: d[2], options: d[3], correctAnswer: d[3][d[4]], explanation: d[5], tip: d[6] || ""
               }));
-              setQuestions(mapped);
+              setStandardQuestions(mapped);
               setUsingExternal(true);
-              setLoadingQuestions(false);
+              finishLoading();
             };
 
-            // Check if dynamically preloaded statically
+            // 1. Load Standard Question Bank
             if (window.EXTERNAL_QUESTIONS && Array.isArray(window.EXTERNAL_QUESTIONS) && window.EXTERNAL_QUESTIONS.length > 0) {
-              handleSuccess(window.EXTERNAL_QUESTIONS);
-              return;
+              handleStandardSuccess(window.EXTERNAL_QUESTIONS);
+            } else {
+              const script = document.createElement('script');
+              script.src = 'questions_bank.js';
+              script.async = true;
+              script.onload = () => {
+                if (window.EXTERNAL_QUESTIONS && Array.isArray(window.EXTERNAL_QUESTIONS) && window.EXTERNAL_QUESTIONS.length > 0) {
+                  handleStandardSuccess(window.EXTERNAL_QUESTIONS);
+                } else {
+                  handleStandardFallback();
+                }
+              };
+              script.onerror = handleStandardFallback;
+              document.body.appendChild(script);
             }
 
-            // Create dynamic script node to avoid local CORS issues
-            const script = document.createElement('script');
-            script.src = 'questions_bank.js';
-            script.async = true;
-            
-            script.onload = () => {
-              if (window.EXTERNAL_QUESTIONS && Array.isArray(window.EXTERNAL_QUESTIONS) && window.EXTERNAL_QUESTIONS.length > 0) {
-                handleSuccess(window.EXTERNAL_QUESTIONS);
-              } else {
-                handleFallback();
-              }
+            // 2. Load Optional Past Exams Bank
+            const handleExamSuccess = (examData) => {
+              const mapped = examData.map(d => ({
+                id: d[0], category: d[1], text: d[2], options: d[3], correctAnswer: d[3][d[4]], explanation: d[5], tip: d[6] || ""
+              }));
+              setExamQuestions(mapped);
+              setHasExamBank(true);
             };
 
-            script.onerror = () => {
-              handleFallback();
-            };
-
-            document.body.appendChild(script);
+            if (window.EXAM_QUESTIONS && Array.isArray(window.EXAM_QUESTIONS) && window.EXAM_QUESTIONS.length > 0) {
+              handleExamSuccess(window.EXAM_QUESTIONS);
+            } else {
+              const examScript = document.createElement('script');
+              examScript.src = 'exam_questions.js';
+              examScript.async = true;
+              examScript.onload = () => {
+                if (window.EXAM_QUESTIONS && Array.isArray(window.EXAM_QUESTIONS) && window.EXAM_QUESTIONS.length > 0) {
+                  handleExamSuccess(window.EXAM_QUESTIONS);
+                }
+              };
+              // Note: Intentionally no onerror fallback needed; hasExamBank remains false
+              document.body.appendChild(examScript);
+            }
 
             // Timeout safety guard (1.2s max scan time)
             const timer = setTimeout(() => {
-              handleFallback();
+              handleStandardFallback();
             }, 1200);
 
-            return () => {
-              clearTimeout(timer);
-              if (script.parentNode) {
-                script.parentNode.removeChild(script);
-              }
-            };
+            return () => clearTimeout(timer);
           }, []);
+
+          // Fallback sanity check: Revert to standard if exam mode is saved but file is missing
+          useEffect(() => {
+            if (!loadingQuestions && activeBankMode === 'exam' && !hasExamBank) {
+              setActiveBankMode('standard');
+            }
+          }, [loadingQuestions, activeBankMode, hasExamBank]);
 
           // Helper to get score values safely for backwards compatibility
           const getScoreValue = (entry) => typeof entry === 'number' ? entry : entry.score;
           const getTotalValue = (entry) => typeof entry === 'number' ? 24 : entry.total;
 
-          useEffect(() => {
-            localStorage.setItem('ukLifeAutoNav', JSON.stringify(autoNavigate));
-          }, [autoNavigate]);
+          // Local Storage Synchronizers
+          useEffect(() => { localStorage.setItem('ukLifeActiveBankMode', activeBankMode); }, [activeBankMode]);
+          useEffect(() => { localStorage.setItem('ukLifeAutoNav', JSON.stringify(autoNavigate)); }, [autoNavigate]);
+          useEffect(() => { localStorage.setItem('ukLifeAutoNavDelay', autoNavDelay); }, [autoNavDelay]);
+          useEffect(() => { localStorage.setItem('ukLifeMockTestSize', mockTestSize); }, [mockTestSize]);
+          useEffect(() => { localStorage.setItem('ukLifeHideIncorrect', JSON.stringify(hideIncorrectStudy)); }, [hideIncorrectStudy]);
+          
+          useEffect(() => { localStorage.setItem('ukLifeStudyIndex', standardStudyIndex.toString()); }, [standardStudyIndex]);
+          useEffect(() => { localStorage.setItem('ukLifeExamStudyIndex', examStudyIndex.toString()); }, [examStudyIndex]);
+          
+          useEffect(() => { localStorage.setItem('ukLifeQuizHistory', JSON.stringify(standardQuizHistory)); }, [standardQuizHistory]);
+          useEffect(() => { localStorage.setItem('ukLifeExamQuizHistory', JSON.stringify(examQuizHistory)); }, [examQuizHistory]);
 
-          useEffect(() => {
-            localStorage.setItem('ukLifeAutoNavDelay', autoNavDelay);
-          }, [autoNavDelay]);
+          useEffect(() => { localStorage.setItem('ukLifeQuestionHistory', JSON.stringify(standardQuestionHistory)); }, [standardQuestionHistory]);
+          useEffect(() => { localStorage.setItem('ukLifeExamQuestionHistory', JSON.stringify(examQuestionHistory)); }, [examQuestionHistory]);
 
-          useEffect(() => {
-            localStorage.setItem('ukLifeMockTestSize', mockTestSize);
-          }, [mockTestSize]);
-
-          useEffect(() => {
-            localStorage.setItem('ukLifeQuizHistory', JSON.stringify(quizHistory));
-          }, [quizHistory]);
-
-          useEffect(() => {
-            localStorage.setItem('ukLifeQuestionHistory', JSON.stringify(questionHistory));
-          }, [questionHistory]);
-
-          useEffect(() => {
-            localStorage.setItem('ukLifeRecentlySeen', JSON.stringify([...recentlySeen]));
-          }, [recentlySeen]);
-
-          useEffect(() => {
-            localStorage.setItem('ukLifeHideIncorrect', JSON.stringify(hideIncorrectStudy));
-          }, [hideIncorrectStudy]);
-
-          useEffect(() => {
-            localStorage.setItem('ukLifeStudyIndex', studyIndex.toString());
-          }, [studyIndex]);
+          useEffect(() => { localStorage.setItem('ukLifeRecentlySeen', JSON.stringify([...standardRecentlySeen])); }, [standardRecentlySeen]);
+          useEffect(() => { localStorage.setItem('ukLifeExamRecentlySeen', JSON.stringify([...examRecentlySeen])); }, [examRecentlySeen]);
 
           // Shuffler for Study & Review Mode Options
           useEffect(() => {
@@ -602,9 +622,31 @@
                   </div>
                 </div>
 
+                {/* Active Bank Toggle (Only visible if Exam questions detected) */}
+                {hasExamBank && (
+                  <div className="flex justify-center mb-10 animate-in fade-in duration-300">
+                    <div className="bg-slate-200/60 dark:bg-slate-800/80 p-1.5 rounded-full flex flex-col sm:flex-row items-center border border-slate-300/50 dark:border-slate-700/50 shadow-inner w-full sm:w-auto gap-1 sm:gap-0">
+                      <button 
+                        onClick={() => setActiveBankMode('standard')}
+                        className={`flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-full text-sm sm:text-base font-bold transition-all w-full sm:w-auto ${activeBankMode === 'standard' ? 'bg-white dark:bg-slate-700 text-blue-700 dark:text-blue-400 shadow-sm border border-slate-300 dark:border-slate-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                      >
+                        <BookOpen size={18} />
+                        Standard Syllabus
+                      </button>
+                      <button 
+                        onClick={() => setActiveBankMode('exam')}
+                        className={`flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-full text-sm sm:text-base font-bold transition-all w-full sm:w-auto ${activeBankMode === 'exam' ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-400 shadow-sm border border-slate-300 dark:border-slate-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                      >
+                        <Trophy size={18} />
+                        Past Exam Papers
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <h2 className="text-xl font-bold text-slate-800 dark:text-slate-50 mb-6 flex items-center gap-2 px-2">
                   <Activity size={20} className="text-blue-500" />
-                  Training Modes
+                  Training Modes {activeBankMode === 'exam' && <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-1">(Exams)</span>}
                 </h2>
 
                 {/* Actions Grid */}
@@ -1086,7 +1128,12 @@
                     </button>
                     <div>
                       <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">Performance Analytics</h2>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Based on {totalTests} mock tests taken</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Based on {totalTests} mock tests taken</p>
+                        {activeBankMode === 'exam' && (
+                          <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 text-[10px] font-bold uppercase tracking-widest border border-purple-200 dark:border-purple-800">Exam Mode</span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1323,13 +1370,20 @@
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Active Source</span>
-                                <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${usingExternal ? 'bg-green-100 border-green-300 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300' : 'bg-orange-100 border-orange-300 text-orange-800 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-300'}`}>
-                                  {usingExternal ? 'questions_bank.js' : 'Default Samples'}
+                                <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${activeBankMode === 'exam' ? 'bg-purple-100 border-purple-300 text-purple-800 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-300' : (usingExternal ? 'bg-green-100 border-green-300 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-300' : 'bg-orange-100 border-orange-300 text-orange-800 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-300')}`}>
+                                  {activeBankMode === 'exam' ? 'exam_questions.js' : (usingExternal ? 'questions_bank.js' : 'Default Samples')}
                                 </span>
                               </div>
-                              {!usingExternal && (
+                              
+                              {hasExamBank && activeBankMode === 'standard' && (
+                                <p className="text-[12px] leading-relaxed text-purple-700 dark:text-purple-400 mt-2 font-bold p-3 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-900/30">
+                                  🏆 Past Exam Papers unlocked! Switch modes on the Home screen to practice real exams.
+                                </p>
+                              )}
+                              
+                              {!usingExternal && activeBankMode === 'standard' && (
                                 <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400 mt-2">
-                                  To load your entire 300+ custom question database, simply upload a <code>questions_bank.js</code> file in the same directory.
+                                  To load your entire custom question database, simply upload a <code>questions_bank.js</code> file in the same directory.
                                 </p>
                               )}
                             </div>
