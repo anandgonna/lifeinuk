@@ -54,7 +54,7 @@
         import { 
           BookOpen, Trophy, AlertTriangle, CheckCircle2, XCircle, 
           RefreshCcw, ArrowRight, Play, Home, BarChart3, Info, Brain, Moon, Sun, Target, X,
-          Clock, PieChart, Activity, ChevronLeft, ChevronRight, GraduationCap, Settings, Eye, EyeOff, Monitor
+          Clock, PieChart, Activity, ChevronLeft, ChevronRight, GraduationCap, Settings, Eye, EyeOff, Monitor, HelpCircle
         } from 'lucide-react';
 
         /* DEFAULT 10 SAMPLE QUESTIONS DATABANK FOR LOCAL FALLBACK WITH MEMORY TIPS */
@@ -81,10 +81,10 @@
           tip: d[6] || ""
         }));
 
-        const APP_VERSION = "v3.2";
+        const APP_VERSION = "v3.4";
 
         function App() {
-          const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings
+          const [currentScreen, setCurrentScreen] = useState('home'); // home, quiz, results, analysis, study, settings, help
           const [activeQuestions, setActiveQuestions] = useState([]);
           const [currentIndex, setCurrentIndex] = useState(0);
           const [userAnswers, setUserAnswers] = useState({});
@@ -639,48 +639,63 @@
                   Training Modes {activeBankMode === 'exam' && <span className="text-sm font-medium text-slate-500 dark:text-slate-400 ml-1">(Exams)</span>}
                 </h2>
 
-                {/* Actions Grid */}
+                {/* Actions Grid with Helpful Descriptions */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   {activeQuestions.length > 0 && currentIndex < activeQuestions.length && currentScreen !== 'results' && (
                     <button 
                       onClick={() => setCurrentScreen('quiz')}
-                      className="lg:col-span-4 bg-orange-500 hover:bg-orange-600 text-white font-medium py-4 px-6 rounded-full flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] text-base"
+                      className="lg:col-span-4 bg-orange-500 hover:bg-orange-600 text-white p-5 rounded-3xl flex flex-col items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] text-center"
                     >
-                      <Play size={20} />
-                      Resume Interrupted Test
+                      <div className="flex items-center justify-center gap-2 font-bold text-lg sm:text-xl">
+                        <Play size={22} />
+                        Resume Interrupted Test
+                      </div>
+                      <p className="text-orange-100 text-sm sm:text-base font-medium">Pick up exactly where you left off in your active session.</p>
                     </button>
                   )}
 
                   <button 
                     onClick={() => generateQuiz(false, false)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-5 rounded-full flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] text-base"
+                    className="bg-blue-600 hover:bg-blue-700 text-white p-5 sm:p-6 rounded-3xl flex flex-col items-start text-left gap-2 transition-all shadow-md active:scale-[0.98]"
                   >
-                    <Play size={20} />
-                    Standard Test ({Math.min(mockTestSize, questions.length)} Qs)
+                    <div className="flex items-center gap-2 font-bold text-lg sm:text-xl">
+                      <Play size={22} />
+                      Standard Test
+                    </div>
+                    <p className="text-blue-100 text-sm font-medium">Take a timed {Math.min(mockTestSize, questions.length)}-question mock exam to simulate the real test environment.</p>
                   </button>
 
                   <button 
                     onClick={() => generateQuiz(false, true)}
-                    className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/40 dark:hover:bg-purple-900/60 text-purple-900 dark:text-purple-100 border border-purple-300 dark:border-purple-800 font-medium py-4 px-5 rounded-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base"
+                    className="bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/40 dark:hover:bg-purple-900/60 text-purple-900 dark:text-purple-100 border border-purple-300 dark:border-purple-800 p-5 sm:p-6 rounded-3xl flex flex-col items-start text-left gap-2 transition-all active:scale-[0.98]"
                   >
-                    <Activity size={20} />
-                    Marathon Mode
+                    <div className="flex items-center gap-2 font-bold text-lg sm:text-xl">
+                      <Activity size={22} />
+                      Marathon Mode
+                    </div>
+                    <p className="text-purple-700 dark:text-purple-300 text-sm font-medium">An endurance test covering every single available question in the bank.</p>
                   </button>
 
                   <button 
                     onClick={handleStudyModeClick}
-                    className="bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:hover:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-800 font-medium py-4 px-5 rounded-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base"
+                    className="bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:hover:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-800 p-5 sm:p-6 rounded-3xl flex flex-col items-start text-left gap-2 transition-all active:scale-[0.98]"
                   >
-                    <GraduationCap size={20} />
-                    Study & Review
+                    <div className="flex items-center gap-2 font-bold text-lg sm:text-xl">
+                      <GraduationCap size={22} />
+                      Study & Review
+                    </div>
+                    <p className="text-emerald-700 dark:text-emerald-300 text-sm font-medium">Learn at your own pace with instant answers, explanations, and memory tricks.</p>
                   </button>
                   
                   <button 
                     onClick={() => setCurrentScreen('analysis')}
-                    className="bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 font-medium py-4 px-5 rounded-full flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base shadow-sm border border-slate-300 dark:border-slate-600"
+                    className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-800 dark:text-slate-200 p-5 sm:p-6 rounded-3xl flex flex-col items-start text-left gap-2 transition-all active:scale-[0.98] shadow-sm border border-slate-300 dark:border-slate-600"
                   >
-                    <BarChart3 size={20} />
-                    View Stats
+                    <div className="flex items-center gap-2 font-bold text-lg sm:text-xl">
+                      <BarChart3 size={22} />
+                      View Stats
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Analyse your performance, identify weaknesses, and track syllabus mastery.</p>
                   </button>
                 </div>
 
@@ -1344,7 +1359,7 @@
                                   className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-bold rounded-xl transition-all ${activeBankMode === 'standard' ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-700 dark:text-blue-400 border border-slate-300 dark:border-slate-600' : 'text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-transparent'}`}
                                 >
                                   <BookOpen size={18} />
-                                  Standard
+                                  Syllabus
                                 </button>
                                 <button 
                                   onClick={() => setActiveBankMode('exam')}
@@ -1525,6 +1540,116 @@
             );
           };
 
+          const renderHelp = () => {
+            return (
+              <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => setCurrentScreen('home')}
+                      className="p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                    >
+                      <Home size={22} />
+                    </button>
+                    <div>
+                      <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 tracking-tight">How to use this app 🇬🇧</h2>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Everything you need to smash the exam!</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Who is this for */}
+                  <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-300 dark:border-slate-700 p-6 sm:p-8">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full border border-blue-200 dark:border-blue-800">
+                        <Info size={24} />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">Who is this app for?</h3>
+                    </div>
+                    <p className="text-slate-700 dark:text-slate-300 text-base leading-relaxed font-medium">
+                      Anyone preparing for the Life in the UK test who wants a smart, dynamic way to practise without getting bored! Whether you're just starting your revision or doing final mock exams, this app adapts to your progress.
+                    </p>
+                  </div>
+
+                  {/* Training Modes */}
+                  <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-300 dark:border-slate-700 p-6 sm:p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800">
+                        <Activity size={24} />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">Training Modes Explained</h3>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1.5"><GraduationCap size={18} className="text-emerald-500" /> Study Mode</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Your best mate for learning. Go through questions at your own pace with instant answers, explanations, and memory tricks. Great for learning the ropes.</p>
+                      </div>
+                      <div className="w-full h-px bg-slate-200 dark:bg-slate-700"></div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1.5"><Play size={18} className="text-blue-500" /> Standard Test</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Simulate the real deal! You can completely customise the number of questions in the <strong>Settings</strong> page to match your schedule or attention span.</p>
+                      </div>
+                      <div className="w-full h-px bg-slate-200 dark:bg-slate-700"></div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1.5"><Activity size={18} className="text-purple-500" /> Marathon Mode</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">An absolute endurance run. Take on every single available question in the bank in one massive, untimed session.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Smart Features */}
+                  <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-300 dark:border-slate-700 p-6 sm:p-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800">
+                        <Brain size={24} />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">Smart Features & Tricks</h3>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1.5"><BarChart3 size={18} className="text-blue-500" /> Stats & Preparedness</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Use your Preparedness score as a guide to see exactly how ready you are. Check the Syllabus Breakdown to spot the specific chapters where you need a bit more reading.</p>
+                      </div>
+                      <div className="w-full h-px bg-slate-200 dark:bg-slate-700"></div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1.5"><Target size={18} className="text-orange-500" /> Targeted Weak Areas</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">We track what you get wrong! These questions are prioritised in your 'Weak Areas' list so you can drill them. Once you get a weak question right <strong>at least 3 times</strong>, it gets cleared off the list! 🚀</p>
+                      </div>
+                      <div className="w-full h-px bg-slate-200 dark:bg-slate-700"></div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1.5"><Play size={18} className="text-green-500" /> Auto-Advance Timer</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Save time tapping! If you get a question right, the app can automatically move you to the next one. You can toggle this and configure exactly how fast it jumps in the <strong>Settings</strong> screen.</p>
+                      </div>
+                      <div className="w-full h-px bg-slate-200 dark:bg-slate-700"></div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1.5"><Brain size={18} className="text-pink-500" /> Memorisation Tricks</h4>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">We've added memory tricks to help facts stick in your mind. I agree, some of them are incredibly cheesy, but early users suggest they are highly effective when you're under pressure!</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact / Closing */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-3xl shadow-sm border border-blue-200 dark:border-blue-800/50 p-6 sm:p-8 text-center sm:text-left flex flex-col sm:flex-row items-center gap-6">
+                    <div className="text-4xl">👋</div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-2">Got feedback?</h3>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium mb-3">
+                        If you have any ideas or feedback for new features, please do pass them onto that guy who created this test—you know who that is, don't ya? 😉
+                      </p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-bold italic">
+                        Have fun, enjoy learning, and pass the exam easily. May this be of some use in your journey to secure your settlement in the UK! 🇬🇧
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
           // Render Loading Indicator while Scanning for external JS file
           if (loadingQuestions) {
             return (
@@ -1553,7 +1678,7 @@
                           else if (themePreference === 'light') setThemePreference('dark');
                           else setThemePreference('system');
                         }}
-                        className="hidden md:flex items-center justify-center p-2 rounded-full text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors mr-2"
+                        className="hidden md:flex items-center justify-center p-2 rounded-full text-slate-600 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors mr-2"
                         title={`Theme: ${themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}`}
                       >
                         {themePreference === 'light' && <Sun size={20} />}
@@ -1585,6 +1710,14 @@
                         <span className="hidden sm:inline">Settings</span>
                       </button>
 
+                      <button 
+                        onClick={() => setCurrentScreen('help')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${currentScreen === 'help' ? 'bg-blue-100 border border-blue-200 text-blue-800 dark:bg-blue-900/40 dark:border-blue-800 dark:text-blue-200' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 border border-transparent'}`}
+                      >
+                        <HelpCircle size={18} />
+                        <span className="hidden sm:inline">Help</span>
+                      </button>
+
                       {(currentScreen === 'quiz' || currentScreen === 'study') && (
                         <div className="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-2 hidden sm:block"></div>
                       )}
@@ -1602,7 +1735,7 @@
                 </header>
 
                 {/* GLOBAL BANK TOGGLE SUB-HEADER (Sticky) */}
-                {hasExamBank && !['quiz', 'study', 'results'].includes(currentScreen) && (
+                {hasExamBank && !['quiz', 'study', 'results', 'help'].includes(currentScreen) && (
                   <div className="bg-slate-100/95 dark:bg-[#0f172a]/95 backdrop-blur-md sticky top-16 z-40 border-b border-slate-300 dark:border-slate-800 px-4 py-3 shadow-sm flex justify-center animate-in slide-in-from-top-2 duration-300">
                     <div className="flex bg-slate-200 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-inner w-full max-w-sm">
                       <button 
@@ -1632,6 +1765,7 @@
                   {currentScreen === 'results' && renderResults()}
                   {currentScreen === 'analysis' && renderAnalysis()}
                   {currentScreen === 'settings' && renderSettings()}
+                  {currentScreen === 'help' && renderHelp()}
                 </main>
 
                 {/* STUDY MODE RESUME CHOICE MODAL */}
